@@ -5,6 +5,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { motion, useScroll, useTransform, useMotionValue, useSpring } from "motion/react";
+import { Landmark } from "lucide-react";
 
 export default function VirtualKingdomStage() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -46,6 +47,18 @@ export default function VirtualKingdomStage() {
   const cameraRotateX = useTransform(springY, (val) => `${-val * 5}deg`);
   const cameraRotateY = useTransform(springX, (val) => `${val * 6}deg`);
 
+  // --- UPGRADE: Subtle continuous zoom forward aligned to scroll position ---
+  const globalCameraScale = useTransform(smoothProgress, [0, 1], [1.0, 1.15]);
+
+  // --- UPGRADE: Dynamic scrolling parallax transforms for our luxurious background marble texture plates ---
+  const room1MarbleY = useTransform(smoothProgress, [0, 0.35], [0, -140]);
+  const room2MarbleY = useTransform(smoothProgress, [0.18, 0.62], [100, -100]);
+  const room3MarbleY = useTransform(smoothProgress, [0.45, 0.88], [-100, 100]);
+  const room4MarbleY = useTransform(smoothProgress, [0.65, 1.0], [120, 0]);
+
+  const marbleMouseParallaxX = useTransform(springX, (v) => `${v * -40}px`);
+  const marbleMouseParallaxY = useTransform(springY, (v) => `${v * -40}px`);
+
   // Transform functions for each of the 4 chambers of the virtual kingdom, mapping scale and opacity
   
   // Chamber 1: The Sovereign Threshold (Outer Marble Portal)
@@ -78,6 +91,18 @@ export default function VirtualKingdomStage() {
   const room4Opacity = useTransform(smoothProgress, [0.65, 0.88], [0, 1]);
   const room4Z = useTransform(smoothProgress, [0.65, 0.95], [-250, 0]);
 
+  // --- UPGRADE: Cinematic portal gate fade flash screen triggers near transition thresholds ---
+  const portalFlash = useTransform(
+    smoothProgress,
+    [0, 0.26, 0.34, 0.42, 0.56, 0.64, 0.72, 0.84, 0.91, 0.97, 1.0],
+    [0,  0,    1.0,  0,    0,    1.0,  0,    0,    1.0,  0,    0]
+  );
+  const portalFlashScale = useTransform(
+    smoothProgress,
+    [0, 0.26, 0.34, 0.42, 0.56, 0.64, 0.72, 0.84, 0.91, 0.97, 1.0],
+    [0.9, 0.95, 1.15, 1.3,  0.95, 1.15, 1.3,  0.95, 1.15, 1.3,  1.0]
+  );
+
   // Ambient drifting dust particles (controlled, non-chaotic)
   const [particles, setParticles] = useState<Array<{ id: number; left: string; top: string; delay: number; scale: number; duration: number }>>([]);
   useEffect(() => {
@@ -96,7 +121,7 @@ export default function VirtualKingdomStage() {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 w-full h-full z-0 overflow-hidden bg-[#010101] pointer-events-none select-none select-none"
+      className="fixed inset-0 w-full h-full z-0 overflow-hidden bg-[#010101] pointer-events-none select-none"
     >
       {/* Immersive Film Grain overlay to preserve corporate/luxury texture */}
       <div 
@@ -105,6 +130,29 @@ export default function VirtualKingdomStage() {
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.80' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
         }}
       />
+
+      {/* --- UPGRADE: High-blur animated fog layer drifting dynamically at multi-speed --- */}
+      <div className="absolute inset-0 z-[1] select-none pointer-events-none overflow-hidden opacity-35">
+        <motion.div
+          animate={{
+            x: ["-8%", "8%"],
+            y: ["-4%", "4%"],
+            scale: [1.1, 1.18, 1.1],
+          }}
+          transition={{
+            duration: 32,
+            repeat: Infinity,
+            repeatType: "mirror",
+            ease: "easeInOut",
+          }}
+          className="absolute inset-[-120px] filter blur-3xl mix-blend-screen pointer-events-none animate-fog-drift"
+          style={{
+            backgroundImage: `radial-gradient(ellipse at 30% 60%, rgba(198, 184, 158, 0.15) 0%, transparent 65%),
+                              radial-gradient(ellipse at 75% 25%, rgba(255, 74, 0, 0.08) 0%, transparent 55%),
+                              radial-gradient(ellipse at 15% 85%, rgba(198, 184, 158, 0.10) 0%, transparent 70%)`,
+          }}
+        />
+      </div>
 
       {/* Floating high-end golden ambient embers */}
       <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden mix-blend-screen">
@@ -133,13 +181,14 @@ export default function VirtualKingdomStage() {
         ))}
       </div>
 
-      {/* Primary 3D Virtual Camera Space */}
+      {/* Primary 3D Virtual Camera Space with global continuous push zoom factor incorporated */}
       <motion.div
         style={{
           perspective: "1000px",
           transformStyle: "preserve-3d",
           rotateX: cameraRotateX,
           rotateY: cameraRotateY,
+          scale: globalCameraScale,
         }}
         className="relative w-full h-full flex items-center justify-center transition-all duration-300"
       >
@@ -153,6 +202,31 @@ export default function VirtualKingdomStage() {
           }}
           className="absolute inset-0 flex items-center justify-center transition-all duration-100"
         >
+          {/* --- UPGRADE: Parallax Marble Plate Backdrop 1 with golden details --- */}
+          <motion.div
+            style={{
+              y: room1MarbleY,
+              x: marbleMouseParallaxX,
+              transformStyle: "preserve-3d",
+              backgroundImage: "radial-gradient(circle at center, rgba(17,17,17,0.92) 0%, rgba(5,5,5,1.0) 100%)",
+            }}
+            className="absolute inset-[-140px] pointer-events-none filter saturate-[0.85] opacity-[0.98] -z-10 rounded-sm border border-white/[0.02]"
+          >
+            {/* Elegant luxury gold sanctuary light sweep layer */}
+            <div 
+              className="absolute inset-0 z-10 pointer-events-none mix-blend-color-dodge opacity-[0.14] animate-light-sweep"
+              style={{
+                background: "linear-gradient(110deg, transparent 25%, rgba(198,184,158,0.2) 42%, rgba(198,184,158,0.3) 50%, rgba(198,184,158,0.2) 58%, transparent 75%)",
+                backgroundSize: "200% 100%",
+              }}
+            />
+            {/* Sophisticated marble patterns */}
+            <svg viewBox="0 0 1000 1000" className="absolute w-full h-full opacity-20 pointer-events-none stroke-[#c6b89e]/40 fill-none">
+              <path d="M50,150 L200,320 L270,410 L150,750" strokeWidth="0.5" />
+              <path d="M800,200 L650,450 L580,510 L700,850" strokeWidth="0.5" />
+            </svg>
+          </motion.div>
+
           {/* Deep Tunnel Perspective Lines */}
           <svg viewBox="0 0 1000 600" className="absolute w-[120%] h-[120%] opacity-40 mix-blend-screen">
             <line x1="0" y1="0" x2="350" y2="220" stroke="#c6b89e" strokeWidth="0.5" strokeOpacity="0.25" />
@@ -227,6 +301,32 @@ export default function VirtualKingdomStage() {
           }}
           className="absolute inset-0 flex items-center justify-center transition-all duration-100"
         >
+          {/* --- UPGRADE: Parallax Marble Plate Backdrop 2 with inverse drift --- */}
+          <motion.div
+            style={{
+              y: room2MarbleY,
+              x: marbleMouseParallaxY,
+              transformStyle: "preserve-3d",
+              backgroundImage: "radial-gradient(circle at center, rgba(10,10,10,0.95) 0%, rgba(3,3,3,1.0) 100%)",
+            }}
+            className="absolute inset-[-140px] pointer-events-none opacity-[0.98] -z-10 rounded-sm"
+          >
+            {/* Elegant sanctuary light sweep */}
+            <div 
+              className="absolute inset-0 z-10 pointer-events-none mix-blend-color-dodge opacity-[0.11] animate-light-sweep"
+              style={{
+                background: "linear-gradient(110deg, transparent 20%, rgba(198,184,158,0.18) 38%, rgba(198,184,158,0.25) 50%, rgba(198,184,158,0.18) 62%, transparent 80%)",
+                backgroundSize: "200% 100%",
+                animationDelay: "-4s"
+              }}
+            />
+            {/* Sophisticated marble patterns */}
+            <svg viewBox="0 0 1000 1000" className="absolute w-full h-full opacity-15 pointer-events-none stroke-[#c6b89e]/30 fill-none">
+              <path d="M120,50 L350,380 L520,680 L220,950" strokeWidth="0.5" />
+              <path d="M920,80 L720,410 L680,680 L850,910" strokeWidth="0.5" />
+            </svg>
+          </motion.div>
+
           {/* Radial concentric rings representing digital luxury vault security gates */}
           <div className="relative w-full h-full flex items-center justify-center">
             
@@ -268,7 +368,7 @@ export default function VirtualKingdomStage() {
         </motion.div>
 
 
-        {/* ROOM 3: The Holographic Constellation Deck (The Satellite Command Room) */}
+         {/* ROOM 3: The Holographic Constellation Deck (The Satellite Command Room) */}
         <motion.div
           style={{
             scale: room3Scale,
@@ -278,6 +378,32 @@ export default function VirtualKingdomStage() {
           }}
           className="absolute inset-0 flex items-center justify-center transition-all duration-100"
         >
+          {/* --- UPGRADE: Parallax Marble Plate Backdrop 3 with offset drift --- */}
+          <motion.div
+            style={{
+              y: room3MarbleY,
+              x: marbleMouseParallaxX,
+              transformStyle: "preserve-3d",
+              backgroundImage: "radial-gradient(circle at center, rgba(12,12,12,0.95) 0%, rgba(1,1,1,1.0) 100%)",
+            }}
+            className="absolute inset-[-140px] pointer-events-none opacity-[0.98] -z-10 rounded-sm"
+          >
+            {/* Elegant sanctuary light sweep */}
+            <div 
+              className="absolute inset-0 z-10 pointer-events-none mix-blend-color-dodge opacity-[0.12] animate-light-sweep"
+              style={{
+                background: "linear-gradient(110deg, transparent 20%, rgba(198,184,158,0.18) 38%, rgba(198,184,158,0.25) 50%, rgba(198,184,158,0.18) 62%, transparent 80%)",
+                backgroundSize: "200% 100%",
+                animationDelay: "-8s"
+              }}
+            />
+            {/* Sophisticated marble patterns */}
+            <svg viewBox="0 0 1000 1000" className="absolute w-full h-full opacity-15 pointer-events-none stroke-[#c6b89e]/30 fill-none">
+              <path d="M50,200 L280,380 L320,680 L180,950" strokeWidth="0.5" />
+              <path d="M950,200 L718,380 L680,680 L820,950" strokeWidth="0.5" />
+            </svg>
+          </motion.div>
+
           <div className="relative w-full h-full flex items-center justify-center">
             
             {/* Digital Constellation star grids mapped to radar sectors */}
@@ -306,7 +432,7 @@ export default function VirtualKingdomStage() {
         </motion.div>
 
 
-        {/* ROOM 4: The Core Sanctum Terminus (Digital Monolith Entrance) */}
+         {/* ROOM 4: The Core Sanctum Terminus (Digital Monolith Entrance) */}
         <motion.div
           style={{
             scale: room4Scale,
@@ -316,6 +442,32 @@ export default function VirtualKingdomStage() {
           }}
           className="absolute inset-0 flex items-center justify-center transition-all duration-100"
         >
+          {/* --- UPGRADE: Parallax Marble Plate Backdrop 4 with entrance reveal --- */}
+          <motion.div
+            style={{
+              y: room4MarbleY,
+              x: marbleMouseParallaxY,
+              transformStyle: "preserve-3d",
+              backgroundImage: "radial-gradient(circle at center, rgba(8,8,8,0.98) 0%, rgba(0,0,0,1.0) 100%)",
+            }}
+            className="absolute inset-[-140px] pointer-events-none opacity-100 -z-10 rounded-sm"
+          >
+            {/* Elegant sanctuary light sweep */}
+            <div 
+              className="absolute inset-0 z-10 pointer-events-none mix-blend-color-dodge opacity-[0.14] animate-light-sweep"
+              style={{
+                background: "linear-gradient(110deg, transparent 20%, rgba(198,184,158,0.18) 38%, rgba(198,184,158,0.25) 50%, rgba(198,184,158,0.18) 62%, transparent 80%)",
+                backgroundSize: "200% 100%",
+                animationDelay: "-12s"
+              }}
+            />
+            {/* Sophisticated marble patterns */}
+            <svg viewBox="0 0 1000 1000" className="absolute w-full h-full opacity-20 pointer-events-none stroke-[#c6b89e]/35 fill-none">
+              <path d="M80,80 L250,380 L380,680 L210,950" strokeWidth="0.5" />
+              <path d="M920,80 L750,380 L620,680 L790,950" strokeWidth="0.5" />
+            </svg>
+          </motion.div>
+
           <div className="relative w-full h-full flex items-center justify-center select-none">
             
             {/* Monumental shining luxury gold monolith arch */}
@@ -337,6 +489,42 @@ export default function VirtualKingdomStage() {
             <div className="absolute inset-y-0 right-[15%] w-[4px] bg-gradient-to-b from-transparent via-[#c6b89e]/40 to-transparent shadow-[0_0_12px_#c6b89e]" />
           </div>
         </motion.div>
+      </motion.div>
+
+      {/* --- UPGRADE: Full-Screen Gateway Portal Flash Intersection Overlay --- */}
+      <motion.div
+        style={{
+          opacity: portalFlash,
+          scale: portalFlashScale,
+        }}
+        className="absolute inset-0 z-45 bg-[#000000] mix-blend-normal pointer-events-none select-none flex items-center justify-center p-12 transition-all duration-200"
+      >
+        <div className="relative w-full h-[150%] max-w-2xl border-x-[0.5px] border-[#c6b89e]/20 flex items-center justify-center rounded-sm">
+          <div 
+            className="absolute inset-0 bg-[#050505] opacity-98"
+            style={{
+              backgroundImage: "radial-gradient(circle at center, transparent 35%, #000000 100%)",
+            }}
+          />
+          {/* Custom gold marble fracture simulation */}
+          <svg viewBox="0 0 1000 1000" className="absolute w-[150%] h-[150%] opacity-40 animate-pulse stroke-[#c6b89e]/50 fill-none pointer-events-none">
+            <path d="M150,50 L400,420 L420,620 L280,920" strokeWidth="0.5" />
+            <path d="M850,100 L620,460 L580,680 L720,980" strokeWidth="0.5" />
+            <path d="M500,0 L420,320 L580,580 L520,1000" strokeWidth="0.5" strokeOpacity="0.2" />
+          </svg>
+          
+          <div className="flex flex-col items-center gap-6 relative z-10 text-center">
+            <div className="w-16 h-16 rounded-full border border-dashed border-[#c6b89e] flex items-center justify-center animate-spin" style={{ animationDuration: "10s" }}>
+              <Landmark className="w-6 h-6 text-[#c6b89e]/80" />
+            </div>
+            <div className="text-[12px] font-serif uppercase tracking-[15px] text-[#c6b89e] mt-4">
+              CHANNELING SECURE PORTAL
+            </div>
+            <div className="text-[8px] font-mono tracking-[4px] text-[#ff4a00]">
+              AUTO_COORDINATING SOVEREIGN GATEWAY...
+            </div>
+          </div>
+        </div>
       </motion.div>
     </div>
   );

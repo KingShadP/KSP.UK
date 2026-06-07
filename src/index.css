@@ -20,6 +20,35 @@
   animation: scanline 8s linear infinite;
 }
 
+@keyframes sweep {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-light-sweep {
+  animation: sweep 16s ease-in-out infinite;
+}
+
+@keyframes fogDrift {
+  0% {
+    transform: translate3d(-5%, -5%, 0) scale(1.1);
+  }
+  50% {
+    transform: translate3d(5%, 5%, 0) scale(1.18);
+  }
+  100% {
+    transform: translate3d(-5%, -5%, 0) scale(1.1);
+  }
+}
+
+.animate-fog-drift {
+  animation: fogDrift 40s ease-in-out infinite;
+}
+
 /* Custom terminal scrollbars */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;

@@ -10,25 +10,28 @@ import ScrambleText from "./ScrambleText";
 
 const AUDIO_TRACKS = [
   {
-    id: "moonlight",
-    title: "CROWN ASCENSION",
+    id: "hawaii_sanctum",
+    title: "HAWAII SANCTUM // VOID REEF",
     channel: '"CHANNEL 01"',
+    location: "HONOLULU, HI [HQ]",
     codec: ".WAV",
     kbps: "1411 KBPS",
     url: "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=beethoven-moonlight-sonata-1st-movement-114-9983.mp3"
   },
   {
-    id: "ambient_track_1",
-    title: "AMORPHOUS VOID",
+    id: "miami_atrium",
+    title: "MIAMI ATRIUM // GOLD DEEP",
     channel: '"CHANNEL 02"',
+    location: "MIAMI BEACH, FL [HQ]",
     codec: ".FLAC",
     kbps: "4608 KBPS",
     url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
   },
   {
-    id: "ambient_track_2",
-    title: "PHANTOM DECRYPT",
+    id: "moonlight",
+    title: "CROWN ASCENSION // ARTIFACT",
     channel: '"CHANNEL 03"',
+    location: "SANTORINI, GR",
     codec: ".AIFF",
     kbps: "2304 KBPS",
     url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
@@ -192,6 +195,11 @@ export default function AudioPlayer() {
             </div>
             <div className="text-[18px] font-serif tracking-widest text-[#c6b89e] drop-shadow-md">
               <ScrambleText text={currentTrack.title} triggerOnHover duration={800} />
+            </div>
+            {/* Geographic Node and Tracking Badge */}
+            <div className="text-[8px] uppercase tracking-[3px] text-white/50 font-mono mt-2 flex items-center gap-1.5 selection:bg-[#ff4a00]/30 selection:text-white">
+              <span className="w-1 h-1 bg-[#ff4a00] rounded-full animate-pulse shadow-[0_0_6px_#ff4a00]" />
+              <span>NODE: {currentTrack.location}</span>
             </div>
           </div>
 
