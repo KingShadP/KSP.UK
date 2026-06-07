@@ -1,0 +1,6 @@
+{
+  "name": "The Sanctum",
+  "description": "Private luxury lifestyle and wealth management deck. Provides secure AI concierge systems, classified digital registry archives, and customized e-commerce themes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,624 @@
+=== TERM: "theme" IN ShopifyExport.js ===
+9uf"}]],a=B("copy",F);/**
+ * @license lucide-react v0.546.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const X=[["path",{d:"M12 19h8",key:"baeox8"}],["path",{d:"m4 17 6-6-6-6",key:"1yngyt"}]],J=B("terminal",X),A=`/* ========================================================
+   THE SANCTUM | TACTICAL ESPIONAGE THEME
+   Shopify Custom CSS (base.css or theme.liquid)
+   ======================================================== */
+
+:root {
+  /* Core Palette */
+  --color-background: #020202;
+  --color-foreground: #ffffff;
+  --color-accent-gold: #c6b89e;
+  --color-accent-tactical: #ff4a00;
+  
+  /* Typography */
+  --font-heading-family: "Playfair Display", serif; /* Replace with your desired serif */
+  --font-body-family: "Inter", sans-serif;
+  --font-mono-family: "JetBrains Mono", monospace;
+  
+  /* Spacing & Borders */
+  --border-thin: 1px solid rgba(198, 184, 158, 0.2);
+  --border-tactical: 1px solid rgba(255, 74, 0, 0.4);
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-body-family);
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6, .h
+---------------------------------
+
+=== TERM: "theme" IN ShopifyExport.js ===
+       "id": "font_body",
+        "label": "Body Font",
+        "default": "inter_n3"
+      }
+    ]
+  }`,_=`{
+  "current": {
+    "color_background": "#020202",
+    "color_text": "#ffffff",
+    "color_accent_gold": "#c6b89e",
+    "color_accent_tactical": "#ff4a00",
+    "font_heading": "playfair_display_n4",
+    "font_body": "inter_n3"
+  }
+}`,L=`<!-- THE SANCTUM | CUSTOM CURSOR -->
+<!-- Add this to theme.liquid before closing </body> tag -->
+<div id="sanctum-cursor-core"></div>
+<div id="sanctum-cursor-ring">
+  <div class="line top-line"></div>
+  <div class="line bottom-line"></div>
+  <div class="line left-line"></div>
+  <div class="line right-line"></div>
+</div>
+<div id="sanctum-cursor-coords">
+   <span class="dot"></span>
+   <span id="coord-text">[0 x 0]</span>
+</div>
+
+<style>
+@media (pointer: fine) {
+  body, a, button, [role="button"], input, select, textarea { cursor: none; }
+}
+
+#sanctum-cursor-core {
+  position: fixed; top: 0; left: 0;
+  width: 4px; height: 4px; background: #ff4a00;
+  border-radius: 2px; pointer-events: none;
+  mix-blend-mode: screen; box-shadow: 0 0 15px #ff4a00;
+  transform: translate(-50%, -50%); z-index: 9999999;
+  transition: opacity 0.3s, transform 0.05s li
+---------------------------------
+
+=== TERM: "theme" IN ShopifyExport.js ===
+rea, [role="button"]').forEach(el => {
+    el.addEventListener('mouseenter', () => { ring.classList.add('hovering'); core.style.opacity = '0'; coords.style.opacity = '0'; });
+    el.addEventListener('mouseleave', () => { ring.classList.remove('hovering'); core.style.opacity = '1'; coords.style.opacity = '1'; });
+  });
+});
+<\/script>`,O=`<!-- THE SANCTUM | SCRAMBLE TEXT EFFECT -->
+<!-- Add this to theme.liquid before closing </body> tag -->
+<script>
+class SanctumScramble {
+  constructor(el) {
+    this.el = el;
+    this.chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*()_+{}|[]<>';
+    this.originalText = el.innerText;
+    this.duration = parseInt(el.dataset.scrambleDuration) || 1500;
+    this.delay = parseInt(el.dataset.scrambleDelay) || 0;
+    this.triggerOnHover = el.dataset.scrambleHover === 'true';
+    this.isAnimating = false;
+    this.triggerCount = 0;
+
+    this.init();
+  }
+
+  init() {
+    setTimeout(() => this.startAnimation(), this.delay);
+    if (this.triggerOnHover) {
+      this.el.addEventListener('mouseenter', () => {
+        if (!this.isAnimating) this.startAnimation();
+      });
+    }
+  }
+
+  startAnimation() {
+    let startTime;
+    this.triggerCount++;
+    const cur
+---------------------------------
+
+=== TERM: "theme" IN ShopifyExport.js ===
+nalText;
+            this.isAnimating = false;
+          }
+        };
+
+        requestAnimationFrame(animate);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.scramble-text').forEach(el => new SanctumScramble(el));
+    });
+  <\/script>
+</body>
+</html>
+`,P=`<!-- THE SANCTUM | AMBIENT MATRIX BACKGROUND -->
+<!-- Add before closing </body> in theme.liquid -->
+<canvas id="sanctum-ambient-canvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;opacity:0.6;mix-blend-mode:screen;"></canvas>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const canvas = document.getElementById('sanctum-ambient-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  
+  const resize = () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  };
+  window.addEventListener('resize', resize);
+  resize();
+
+  const particles = [];
+  const particleCount = 100;
+  
+  const tacticalColors = ['rgba(198, 184, 158, 0.4)', 'rgba(255, 74, 0, 0.3)', 'rgba(50, 50, 50, 0.5)'];
+
+  for (let i = 0; i < particleCount; i++) {
+    particles.push({
+      x: Math.random(
+---------------------------------
+
+=== TERM: "theme" IN ShopifyExport.js ===
+t dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < 100) {
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.strokeStyle = \`rgba(198, 184, 158, \${0.1 - dist/1000})\`;
+          ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(loop);
+  };
+  loop();
+});
+<\/script>`,q=`<!-- THE SANCTUM | MAGNETIC BUTTONS -->
+<!-- Add to theme.liquid before closing </body> -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  if (matchMedia('(pointer: coarse)').matches) return;
+  
+  const magneticEls = document.querySelectorAll('.magnetic, .btn, .button, a');
+
+  magneticEls.forEach(el => {
+    el.addEventListener('mousemove', (e) => {
+      const rect = el.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      
+      el.style.transform = \`translate(\${x * 0.2}px, \${y * 0.2}px)\`;
+      el.style.transition = 'transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1)';
+    });
+
+    el.addEventListener('mouseleave', () => {
+      el.style.transform = 'translate(0px, 0px)';
+      el.style.transition = 'transform 0.6s cubic-bezier(0.2, 
+---------------------------------
+
+=== TERM: "theme" IN ShopifyExport.js ===
+0.2}px, \${y * 0.2}px)\`;
+      el.style.transition = 'transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1)';
+    });
+
+    el.addEventListener('mouseleave', () => {
+      el.style.transform = 'translate(0px, 0px)';
+      el.style.transition = 'transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)';
+    });
+  });
+});
+<\/script>`,D=`<!-- THE SANCTUM | BOOT SEQUENCE -->
+<!-- Place inside <body> right at the top in theme.liquid -->
+<div id="sanctum-boot-sequence" style="position:fixed;inset:0;background:#020202;z-index:99999999;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#ff4a00;font-family:monospace;overflow:hidden;transition:opacity 0.8s ease-out;">
+  <div style="text-align:left;max-width:600px;width:90%;font-size:12px;line-height:1.5;opacity:0.8;word-wrap:break-word;">
+    <div id="boot-log"></div>
+    <div id="boot-cursor" style="display:inline-block;width:8px;height:14px;background:#ff4a00;animation:blink 1s infinite;vertical-align:middle;margin-top:-2px;"></div>
+  </div>
+</div>
+<style>
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const bootLines = [
+    "INITIALI
+---------------------------------
+
+=== TERM: "theme" IN ShopifyExport.js ===
+l-align:middle;margin-top:-2px;"></div>
+  </div>
+</div>
+<style>
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const bootLines = [
+    "INITIALIZING SANCTUM PROTOCOL v1.0.0...",
+    "ESTABLISHING SECURE CONNECTION...",
+    "VERIFYING TACTICAL IDENTITY...",
+    "LOADING ACQUISITION GRID...",
+    "INJECTING THEME ASSETS [SUCCESS]",
+    "ACCESS GRANTED."
+  ];
+  
+  const bootLog = document.getElementById('boot-log');
+  const bootScreen = document.getElementById('sanctum-boot-sequence');
+  let currentLine = 0;
+  
+  if(sessionStorage.getItem('sanctumBooted')) {
+    bootScreen.style.display = 'none';
+    return;
+  }
+  
+  const typeLine = () => {
+    if (currentLine >= bootLines.length) {
+      setTimeout(() => {
+        bootScreen.style.opacity = '0';
+        setTimeout(() => bootScreen.style.display = 'none', 800);
+        sessionStorage.setItem('sanctumBooted', 'true');
+      }, 500);
+      return;
+    }
+    
+    const div = document.createElement('div');
+    div.innerText = bootLines[currentLine];
+    bootLog.appendChild(div);
+    currentLine++;
+    
+    setTimeout(typeLine, Math.random() * 200
+---------------------------------
+
+=== TERM: "theme" IN ShopifyExport.js ===
+ border-right-color: var(--color-accent-tactical); }
+.bl { bottom: 10px; left: 10px; border-bottom-color: var(--color-accent-tactical); border-left-color: var(--color-accent-tactical); }
+.br { bottom: 10px; right: 10px; border-bottom-color: var(--color-accent-tactical); border-right-color: var(--color-accent-tactical); }
+</style>
+`,Y=`INTEGRATION PROTOCOL [SHOPIFY]
+
+WARNING: ALWAYS DUPLICATE YOUR THEME BEFORE OVERRIDING CORE FILES.
+
+[1] BASE_CSS
+- Navigate: Online Store > Themes > [...] > Edit Code
+- Locate: Assets > base.css (or theme.css)
+- Action: Paste the base.css payload at the very bottom of the file.
+
+[2] SETTINGS_SCHEMA (Simple Placement)
+- Locate: Config > settings_schema.json
+- Action: Scroll to the VERY TOP of the file. You will see an opening bracket \`[\`.
+- Paste our Schema payload right after that first \`[\` bracket.
+- IMPORTANT: Make sure to add a comma \`,\` immediately after the closing brace \`}\` of our payload, before the next section begins.
+
+[3] SETTINGS_DATA (Simple Placement)
+- Locate: Config > settings_data.json
+- Action: Find the "current" object and replace the color and font values with the ones provided. DO NOT delete the whole file.
+
+[4] INTERACTIVE
+---------------------------------
+
+=== TERM: "theme" IN ShopifyExport.js ===
+re to add a comma \`,\` immediately after the closing brace \`}\` of our payload, before the next section begins.
+
+[3] SETTINGS_DATA (Simple Placement)
+- Locate: Config > settings_data.json
+- Action: Find the "current" object and replace the color and font values with the ones provided. DO NOT delete the whole file.
+
+[4] INTERACTIVE SCRIPTS (CURSOR, SCRAMBLE, AMBIENT, MAGNETIC)
+- Locate: Layout > theme.liquid
+- Action: Scroll to the absolute bottom. Paste all 4 JS payloads immediately before the closing </body> tag.
+
+[5] BOOT SEQUENCE (PRELOADER)
+- Locate: Layout > theme.liquid
+- Action: Find the opening <body> tag. Paste the Boot Sequence Liquid immediately after it.
+
+[6] ACQUISITION GRID SECTION
+- Navigate: Sections > Add a new section > select 'Liquid'
+- Name it: "acquisition-grid"
+- Action: Paste the entire Acquisition Grid payload. Go to your Theme Editor and add "Acquisition Grid" to any page!
+
+[7] FULL LANDING PAGE
+- Navigate: Templates > Add a new template > select 'page' > select 'Liquid'
+- Name it 'the-sanctum' (creates page.the-sanctum.liquid).
+- Action: YES, delete EVERY line of the default code generated by Shopify. The file should be completely empty. THEN, paste the 
+---------------------------------
+
+=== TERM: "export" IN ShopifyExport.js ===
+om-transparent via-[#ff4a00] to-transparent opacity-50"}),e.jsxs("div",{className:"p-6 md:p-10 border-b border-[#c6b89e]/10 flex justify-between items-center bg-black/40",children:[e.jsxs("div",{className:"flex items-center gap-4",children:[e.jsx(J,{className:"w-5 h-5 text-[#ff4a00]"}),e.jsx("h2",{className:"font-serif text-2xl tracking-widest uppercase text-white",children:e.jsx(H,{text:"Shopify Export Payload"})})]}),e.jsx("button",{onClick:z,className:"p-2 text-[#c6b89e]/50 hover:text-[#ff4a00] hover:bg-[#ff4a00]/10 hover:shadow-[0_0_15px_rgba(255,74,0,0.3)] border border-transparent hover:border-[#ff4a00]/30 transition-all duration-300 hover:scale-110 active:scale-95 rounded-full",children:e.jsx(U,{className:"w-5 h-5"})})]}),e.jsx("div",{className:"flex-1 overflow-y-auto custom-scrollbar bg-[#c6b89e]/10",children:e.jsxs("div",{className:"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[1px]",children:[e.jsxs("div",{className:"bg-[#050505] flex flex-col h-[400px] overflow-hidden relative group md:col-span-2 lg:col-span-3 border-b border-[#c6b89e]/10",children:[e.jsxs("div",{className:"p-4 border-b border-[#c6b89e]/10 flex justify-between items-center bg-[#ff4a00]/5",children:
+---------------------------------
+
+=== TERM: "export" IN ShopifyExport.js ===
+ursor-pointer px-3 py-1.5 rounded-sm active:scale-95",children:[T?e.jsx(o,{className:"w-3 h-3 text-green-400 mix-blend-difference"}):e.jsx(a,{className:"w-3 h-3"}),T?"COPIED":"COPY"]})]}),e.jsx("div",{className:"flex-1 overflow-y-auto custom-scrollbar p-6",children:e.jsx("pre",{className:"font-mono text-[11px] text-[#c6b89e]/80 leading-relaxed",children:e.jsx("code",{children:M})})})]})]})})]})})}export{V as ShopifyExport};
+
+---------------------------------
+
+=== TERM: "store" IN ShopifyExport.js ===
+px; left: 10px; border-bottom-color: var(--color-accent-tactical); border-left-color: var(--color-accent-tactical); }
+.br { bottom: 10px; right: 10px; border-bottom-color: var(--color-accent-tactical); border-right-color: var(--color-accent-tactical); }
+</style>
+`,Y=`INTEGRATION PROTOCOL [SHOPIFY]
+
+WARNING: ALWAYS DUPLICATE YOUR THEME BEFORE OVERRIDING CORE FILES.
+
+[1] BASE_CSS
+- Navigate: Online Store > Themes > [...] > Edit Code
+- Locate: Assets > base.css (or theme.css)
+- Action: Paste the base.css payload at the very bottom of the file.
+
+[2] SETTINGS_SCHEMA (Simple Placement)
+- Locate: Config > settings_schema.json
+- Action: Scroll to the VERY TOP of the file. You will see an opening bracket \`[\`.
+- Paste our Schema payload right after that first \`[\` bracket.
+- IMPORTANT: Make sure to add a comma \`,\` immediately after the closing brace \`}\` of our payload, before the next section begins.
+
+[3] SETTINGS_DATA (Simple Placement)
+- Locate: Config > settings_data.json
+- Action: Find the "current" object and replace the color and font values with the ones provided. DO NOT delete the whole file.
+
+[4] INTERACTIVE SCRIPTS (CURSOR, SCRAMBLE, AMBIENT, MAGNETIC)
+- Locate: Layout > the
+---------------------------------
+
+=== TERM: "shopify" IN ShopifyExport.js ===
+=B("copy",F);/**
+ * @license lucide-react v0.546.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const X=[["path",{d:"M12 19h8",key:"baeox8"}],["path",{d:"m4 17 6-6-6-6",key:"1yngyt"}]],J=B("terminal",X),A=`/* ========================================================
+   THE SANCTUM | TACTICAL ESPIONAGE THEME
+   Shopify Custom CSS (base.css or theme.liquid)
+   ======================================================== */
+
+:root {
+  /* Core Palette */
+  --color-background: #020202;
+  --color-foreground: #ffffff;
+  --color-accent-gold: #c6b89e;
+  --color-accent-tactical: #ff4a00;
+  
+  /* Typography */
+  --font-heading-family: "Playfair Display", serif; /* Replace with your desired serif */
+  --font-body-family: "Inter", sans-serif;
+  --font-mono-family: "JetBrains Mono", monospace;
+  
+  /* Spacing & Borders */
+  --border-thin: 1px solid rgba(198, 184, 158, 0.2);
+  --border-tactical: 1px solid rgba(255, 74, 0, 0.4);
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-body-family);
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6, .h1, .h2, .
+---------------------------------
+
+=== TERM: "shopify" IN ShopifyExport.js ===
+-top-color: var(--color-accent-tactical); border-right-color: var(--color-accent-tactical); }
+.bl { bottom: 10px; left: 10px; border-bottom-color: var(--color-accent-tactical); border-left-color: var(--color-accent-tactical); }
+.br { bottom: 10px; right: 10px; border-bottom-color: var(--color-accent-tactical); border-right-color: var(--color-accent-tactical); }
+</style>
+`,Y=`INTEGRATION PROTOCOL [SHOPIFY]
+
+WARNING: ALWAYS DUPLICATE YOUR THEME BEFORE OVERRIDING CORE FILES.
+
+[1] BASE_CSS
+- Navigate: Online Store > Themes > [...] > Edit Code
+- Locate: Assets > base.css (or theme.css)
+- Action: Paste the base.css payload at the very bottom of the file.
+
+[2] SETTINGS_SCHEMA (Simple Placement)
+- Locate: Config > settings_schema.json
+- Action: Scroll to the VERY TOP of the file. You will see an opening bracket \`[\`.
+- Paste our Schema payload right after that first \`[\` bracket.
+- IMPORTANT: Make sure to add a comma \`,\` immediately after the closing brace \`}\` of our payload, before the next section begins.
+
+[3] SETTINGS_DATA (Simple Placement)
+- Locate: Config > settings_data.json
+- Action: Find the "current" object and replace the color and font values with the ones provided. DO NO
+---------------------------------
+
+=== TERM: "shopify" IN ShopifyExport.js ===
+w section > select 'Liquid'
+- Name it: "acquisition-grid"
+- Action: Paste the entire Acquisition Grid payload. Go to your Theme Editor and add "Acquisition Grid" to any page!
+
+[7] FULL LANDING PAGE
+- Navigate: Templates > Add a new template > select 'page' > select 'Liquid'
+- Name it 'the-sanctum' (creates page.the-sanctum.liquid).
+- Action: YES, delete EVERY line of the default code generated by Shopify. The file should be completely empty. THEN, paste the entire "Landing Page (Liquid)" payload.`;function V({onClose:z}){const[s,n]=r.useState(!1),[c,l]=r.useState(!1),[d,p]=r.useState(!1),[m,x]=r.useState(!1),[f,h]=r.useState(!1),[b,g]=r.useState(!1),[u,v]=r.useState(!1),[y,w]=r.useState(!1),[N,C]=r.useState(!1),[T,j]=r.useState(!1),[S,E]=r.useState(!1),t=(G,i)=>{navigator.clipboard.writeText(G),i==="css"?(n(!0),setTimeout(()=>n(!1),2e3)):i==="schema"?(l(!0),setTimeout(()=>l(!1),2e3)):i==="data"?(p(!0),setTimeout(()=>p(!1),2e3)):i==="cursor"?(x(!0),setTimeout(()=>x(!1),2e3)):i==="scramble"?(h(!0),setTimeout(()=>h(!1),2e3)):i==="ambient"?(g(!0),setTimeout(()=>g(!1),2e3)):i==="magnetic"?(v(!0),setTimeout(()=>v(!1),2e3)):i==="boot sequence"?(w(!0),setTimeout(()=>w(!1),2e3)):i==="acquis
+---------------------------------
+
+=== TERM: "shopify" IN ShopifyExport.js ===
+-to-r from-transparent via-[#ff4a00] to-transparent opacity-50"}),e.jsxs("div",{className:"p-6 md:p-10 border-b border-[#c6b89e]/10 flex justify-between items-center bg-black/40",children:[e.jsxs("div",{className:"flex items-center gap-4",children:[e.jsx(J,{className:"w-5 h-5 text-[#ff4a00]"}),e.jsx("h2",{className:"font-serif text-2xl tracking-widest uppercase text-white",children:e.jsx(H,{text:"Shopify Export Payload"})})]}),e.jsx("button",{onClick:z,className:"p-2 text-[#c6b89e]/50 hover:text-[#ff4a00] hover:bg-[#ff4a00]/10 hover:shadow-[0_0_15px_rgba(255,74,0,0.3)] border border-transparent hover:border-[#ff4a00]/30 transition-all duration-300 hover:scale-110 active:scale-95 rounded-full",children:e.jsx(U,{className:"w-5 h-5"})})]}),e.jsx("div",{className:"flex-1 overflow-y-auto custom-scrollbar bg-[#c6b89e]/10",children:e.jsxs("div",{className:"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[1px]",children:[e.jsxs("div",{className:"bg-[#050505] flex flex-col h-[400px] overflow-hidden relative group md:col-span-2 lg:col-span-3 border-b border-[#c6b89e]/10",children:[e.jsxs("div",{className:"p-4 border-b border-[#c6b89e]/10 flex justify-between items-center bg-[#ff4a00]/5",c
+---------------------------------
+
+=== TERM: "shopify" IN ShopifyExport.js ===
+r px-3 py-1.5 rounded-sm active:scale-95",children:[T?e.jsx(o,{className:"w-3 h-3 text-green-400 mix-blend-difference"}):e.jsx(a,{className:"w-3 h-3"}),T?"COPIED":"COPY"]})]}),e.jsx("div",{className:"flex-1 overflow-y-auto custom-scrollbar p-6",children:e.jsx("pre",{className:"font-mono text-[11px] text-[#c6b89e]/80 leading-relaxed",children:e.jsx("code",{children:M})})})]})]})})]})})}export{V as ShopifyExport};
+
+---------------------------------
+
+=== TERM: "button" IN ShopifyExport.js ===
+d transparent;
+  transition: all 0.3s;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.card-wrapper:hover::before {
+  top: 10px; left: 10px;
+  border-top-color: var(--color-accent-gold);
+  border-left-color: var(--color-accent-gold);
+}
+
+.card-wrapper:hover::after {
+  bottom: 10px; right: 10px;
+  border-bottom-color: var(--color-accent-tactical);
+  border-right-color: var(--color-accent-tactical);
+}
+
+/* Buttons - Brutalist */
+.button, .btn {
+  background: transparent;
+  color: var(--color-accent-gold);
+  border: 1px solid var(--color-accent-gold);
+  font-family: var(--font-mono-family);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  font-size: 0.75rem;
+  padding: 16px 32px;
+  transition: all 0.4s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.button:hover, .btn:hover {
+  background: var(--color-accent-gold);
+  color: #000;
+  box-shadow: 0 0 30px rgba(198, 184, 158, 0.3);
+}
+
+.button--primary {
+  background: var(--color-accent-tactical);
+  color: #000;
+  border-color: var(--color-accent-tactical);
+}
+
+.button--primary:hover {
+  background: #fff;
+  border-color: #fff;
+  box-shadow: 0 0 30px rgba(255, 74, 0, 0.6);
+}
+
+/* Glitch Animation for text */
+@keyframes tex
+---------------------------------
+
+=== TERM: "button" IN ShopifyExport.js ===
+px solid var(--color-accent-gold);
+  font-family: var(--font-mono-family);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  font-size: 0.75rem;
+  padding: 16px 32px;
+  transition: all 0.4s ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.button:hover, .btn:hover {
+  background: var(--color-accent-gold);
+  color: #000;
+  box-shadow: 0 0 30px rgba(198, 184, 158, 0.3);
+}
+
+.button--primary {
+  background: var(--color-accent-tactical);
+  color: #000;
+  border-color: var(--color-accent-tactical);
+}
+
+.button--primary:hover {
+  background: #fff;
+  border-color: #fff;
+  box-shadow: 0 0 30px rgba(255, 74, 0, 0.6);
+}
+
+/* Glitch Animation for text */
+@keyframes textGlitch {
+  0% { transform: translate(0) }
+  20% { transform: translate(-2px, 2px) }
+  40% { transform: translate(-2px, -2px) }
+  60% { transform: translate(2px, 2px) }
+  80% { transform: translate(2px, -2px) }
+  100% { transform: translate(0) }
+}
+.glitch-hover:hover {
+  animation: textGlitch 0.2s linear infinite both;
+  color: var(--color-accent-tactical);
+}
+
+/* --------------------------------------------------------
+   PRODUCT CARDS | THE SANCTUM
+   -------------------------------------------------------
+---------------------------------
+
+=== TERM: "button" IN ShopifyExport.js ===
+sing </body> tag -->
+<div id="sanctum-cursor-core"></div>
+<div id="sanctum-cursor-ring">
+  <div class="line top-line"></div>
+  <div class="line bottom-line"></div>
+  <div class="line left-line"></div>
+  <div class="line right-line"></div>
+</div>
+<div id="sanctum-cursor-coords">
+   <span class="dot"></span>
+   <span id="coord-text">[0 x 0]</span>
+</div>
+
+<style>
+@media (pointer: fine) {
+  body, a, button, [role="button"], input, select, textarea { cursor: none; }
+}
+
+#sanctum-cursor-core {
+  position: fixed; top: 0; left: 0;
+  width: 4px; height: 4px; background: #ff4a00;
+  border-radius: 2px; pointer-events: none;
+  mix-blend-mode: screen; box-shadow: 0 0 15px #ff4a00;
+  transform: translate(-50%, -50%); z-index: 9999999;
+  transition: opacity 0.3s, transform 0.05s linear;
+}
+
+#sanctum-cursor-ring {
+  position: fixed; top: 0; left: 0;
+  width: 50px; height: 50px;
+  border: 1px solid rgba(198, 184, 158, 0.3); border-radius: 50%;
+  pointer-events: none; mix-blend-mode: difference;
+  transform: translate(-50%, -50%); z-index: 9999;
+  transition: width 0.3s, height 0.3s, border-color 0.3s, background 0.3s, transform 0.15s ease-out;
+}
+
+#sanctum-cursor-ring.hovering {
+  width: 60px; height
+---------------------------------
+
+=== TERM: "button" IN ShopifyExport.js ===
+) * 0.2; ringY += (mouseY - ringY) * 0.2;
+    ring.style.transform = \`translate(calc(-50% + \${ringX}px), calc(-50% + \${ringY}px))\`;
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+
+  document.addEventListener('mousedown', () => ring.classList.add('clicking'));
+  document.addEventListener('mouseup', () => ring.classList.remove('clicking'));
+
+  document.querySelectorAll('a, button, input, select, textarea, [role="button"]').forEach(el => {
+    el.addEventListener('mouseenter', () => { ring.classList.add('hovering'); core.style.opacity = '0'; coords.style.opacity = '0'; });
+    el.addEventListener('mouseleave', () => { ring.classList.remove('hovering'); core.style.opacity = '1'; coords.style.opacity = '1'; });
+  });
+});
+<\/script>`,O=`<!-- THE SANCTUM | SCRAMBLE TEXT EFFECT -->
+<!-- Add this to theme.liquid before closing </body> tag -->
+<script>
+class SanctumScramble {
+  constructor(el) {
+    this.el = el;
+    this.chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*()_+{}|[]<>';
+    this.originalText = el.innerText;
+    this.duration = parseInt(el.dataset.scrambleDuration) || 1500;
+    this.delay = parseInt(el.dataset.scrambleDelay) || 0;
+    this.triggerOnHo
+---------------------------------
+
+=== TERM: "onClick" IN ShopifyExport.js ===
+rent opacity-50"}),e.jsxs("div",{className:"p-6 md:p-10 border-b border-[#c6b89e]/10 flex justify-between items-center bg-black/40",children:[e.jsxs("div",{className:"flex items-center gap-4",children:[e.jsx(J,{className:"w-5 h-5 text-[#ff4a00]"}),e.jsx("h2",{className:"font-serif text-2xl tracking-widest uppercase text-white",children:e.jsx(H,{text:"Shopify Export Payload"})})]}),e.jsx("button",{onClick:z,className:"p-2 text-[#c6b89e]/50 hover:text-[#ff4a00] hover:bg-[#ff4a00]/10 hover:shadow-[0_0_15px_rgba(255,74,0,0.3)] border border-transparent hover:border-[#ff4a00]/30 transition-all duration-300 hover:scale-110 active:scale-95 rounded-full",children:e.jsx(U,{className:"w-5 h-5"})})]}),e.jsx("div",{className:"flex-1 overflow-y-auto custom-scrollbar bg-[#c6b89e]/10",children:e.jsxs("div",{className:"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[1px]",children:[e.jsxs("div",{className:"bg-[#050505] flex flex-col h-[400px] overflow-hidden relative group md:col-span-2 lg:col-span-3 border-b border-[#c6b89e]/10",children:[e.jsxs("div",{className:"p-4 border-b border-[#c6b89e]/10 flex justify-between items-center bg-[#ff4a00]/5",children:[e.jsx("span",{className:"font-mono tex
+---------------------------------
