@@ -18,17 +18,22 @@ import VirtualKingdomStage from "./components/VirtualKingdomStage";
 import SanctuaryAmbient from "./components/SanctuaryAmbient";
 import Tooltip from "./components/Tooltip";
 import TelemetryTerminal from "./components/TelemetryTerminal";
+import HomeSection from "./components/HomeSection";
+import ListenSection from "./components/ListenSection";
+import VaultSection from "./components/VaultSection";
+import LoreSection from "./components/LoreSection";
+import CommunitySection from "./components/CommunitySection";
 
-type TabState = "home" | "listen" | "vault" | "artifacts" | "lore" | "archive";
+type TabState = "home" | "listen" | "vault" | "artifacts" | "lore" | "community";
 
-const SECTIONS_ORDER: TabState[] = ["home", "listen", "vault", "artifacts", "lore", "archive"];
+const SECTIONS_ORDER: TabState[] = ["home", "listen", "vault", "artifacts", "lore", "community"];
 const SECTION_SELECTORS: Record<TabState, string> = {
   home: "section-home",
   listen: "section-listen",
   vault: "section-vault",
   artifacts: "section-artifacts",
   lore: "section-lore",
-  archive: "section-archive"
+  community: "section-community"
 };
 
 const SHIELD = 'aesthetic check';
@@ -47,6 +52,11 @@ export default function App() {
   // High-fidelity interactive dashboard states
   const [climateUnit, setClimateUnit] = useState<"F" | "C" | "H">("F");
   const [shieldLevel, setShieldLevel] = useState<1 | 5 | 9>(5);
+
+  // Secondary overlay states
+  const [showAboutModal, setShowAboutModal] = useState(false);
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [showNewsletterModal, setShowNewsletterModal] = useState(false);
 
   // Monitor scroll depth of active page to highlight HUD scrollbars and logs
   useEffect(() => {
@@ -92,13 +102,13 @@ export default function App() {
       "section-vault": "vault",
       "section-artifacts": "artifacts",
       "section-lore": "lore",
-      "section-archive": "archive",
+      "section-community": "community",
       "home": "home",
       "listen": "listen",
       "vault": "vault",
       "artifacts": "artifacts",
       "lore": "lore",
-      "archive": "archive"
+      "community": "community"
     };
     const targetTab = tabMap[sectionId] || "home";
     setActiveTab(targetTab);
@@ -143,7 +153,7 @@ export default function App() {
         vault: "EMPIRE DETECT: LINKING TIMELINE HISTORICAL ARCHIVES AND SOUND DEMO PLAYMETRIC REGISTERS.",
         artifacts: "EMPIRE DETECT: BOOTING COMMERCE TERMINALS. UNIFORM REPLICAS PRE-EMPTED [0PX ENVELOPE].",
         lore: "EMPIRE DETECT: OPENING ENCRYPTED THEOLOGY DOSSIER. PLAY IDENT PERSONA RECORDS.",
-        archive: "EMPIRE DETECT: SYNCHRONIZING RADAR GLOBAL LOGS AND DIRECTIVE SCRIBE SCRATCH JOURNALS."
+        community: "EMPIRE DETECT: STANDING WITH THE BELIEVERS. SECURING MULTIPLEX SOCIAL LINK AND DROP REMINDER NODES."
       };
 
       const leavingMsg = `SYS_ROUTE: EXITED SECTOR CONTAINER [${leavingName}]. SHUTTING DOWN LOCAL MATRIX.`;
@@ -293,11 +303,11 @@ export default function App() {
                 { id: "vault", num: "03", label: "VAULT (Live Catalog)", sectionId: "section-vault" },
                 { id: "artifacts", num: "04", label: "ARTIFACTS (Uniforms)", sectionId: "section-artifacts" },
                 { id: "lore", num: "05", label: "LORE (Mythology)", sectionId: "section-lore" },
-                { id: "archive", num: "06", label: "ARCHIVE (Scribe & Radar)", sectionId: "section-archive" }
+                { id: "community", num: "06", label: "COMMUNITY (Believers)", sectionId: "section-community" }
               ].map((item, idx) => {
                 const isActive = activeTab === item.id;
                 return (
-                  <Tooltip key={item.id} message={`SYS_NAV: Coordinate jump to ${item.num} // {item.label}`}>
+                  <Tooltip key={item.id} message={`SYS_NAV: Coordinate jump to ${item.num} // ${item.label}`}>
                     <button
                       onClick={() => scrollToSection(item.sectionId)}
                       onMouseEnter={() => {
@@ -307,7 +317,7 @@ export default function App() {
                           vault: "🗄️ [VAULT] Tracking streams: 395 SoundCloud believers, 5.77K Audiomack manifests secured.",
                           artifacts: "👕 [ITEMS] Artifact drop inventory: ARMORED LS (25 total units), CIPHER VEST (custom geometry).",
                           lore: "📖 [THEOLOGY] Parsing character god-complex briefs and Miami roots archive timeline.",
-                          archive: "🛰️ [RADAR HUD] Syncing satellite alignment telemetry. Global visitation records and notes online."
+                          community: "👥 [BELIEVERS] Accessing VIP email registry, live social outlets, FAQs, and event schedules."
                         };
                         window.dispatchEvent(new CustomEvent("telemetry-log", { 
                           detail: { message: messages[item.id], type: item.id === "artifacts" || item.id === "listen" ? "FORGE_SYNC" : "SYSTEM" } 
@@ -411,7 +421,7 @@ export default function App() {
                   { id: "vault", label: "VAULT", hover: "CATALOG", diag: "🗄️ [VAULT] Tracking streams: 395 SoundCloud believers, 5.77K Audiomack manifests secured." },
                   { id: "artifacts", label: "ARTIFACTS", hover: "UNIFORMS", diag: "👕 [ITEMS] Artifact drop inventory: ARMORED LS (25 total units), CIPHER VEST (custom geometry)." },
                   { id: "lore", label: "LORE", hover: "MYTHOLOGY", diag: "📖 [THEOLOGY] Parsing character god-complex briefs and Miami roots archive timeline." },
-                  { id: "archive", label: "ARCHIVE", hover: "RECORDS", diag: "🛰️ [RADAR HUD] Syncing satellite alignment telemetry. Global visitation records and notes online." },
+                  { id: "community", label: "COMMUNITY", hover: "BELIEVERS", diag: "👥 [BELIEVERS] Accessing VIP email registry, live social outlets, FAQs, and event schedules." },
                 ].map((tab, idx) => (
                   <motion.button
                     key={tab.id}
@@ -476,7 +486,7 @@ export default function App() {
                     { id: "vault", label: "03 VAULT", hover: "LOGS", diag: "🗄️ [VAULT] Historical releases synced." },
                     { id: "artifacts", label: "04 ARTIFACTS", hover: "BUY CLOTHING", diag: "👕 [ITEMS] Secure mobile store active." },
                     { id: "lore", label: "05 LORE", hover: "STORY", diag: "📖 [THEOLOGY] Reading Miami/Aegean biography." },
-                    { id: "archive", label: "06 ARCHIVE", hover: "RECORDS", diag: "🛰️ [RADAR] Global logging client online." },
+                    { id: "community", label: "06 COMMUNITY", hover: "BELIEVERS", diag: "👥 [BELIEVERS] Accessing VIP email registry, live social outlets, FAQs, and event schedules." },
                   ].map((tab, idx) => (
                     <button
                       key={tab.id}
@@ -511,328 +521,17 @@ export default function App() {
                 >
                   {/* SECTION 1: HOME (Manifesto Threshold) */}
                   {activeTab === "home" && (
-                    <div
-                      id="section-home"
-                      className="w-full min-h-[calc(100vh-200px)] flex flex-col lg:flex-row gap-12 pt-28 pb-16 items-stretch relative"
-                    >
-                      <div className="absolute top-[88px] left-0 font-mono text-[8.5px] tracking-[5px] text-[#c6b89e]/30 uppercase select-none">
-                        01 // THE THRESHOLD / HOME
-                      </div>
-
-                      {/* Left Panel column: Brand Identity statement */}
-                      <div className="flex-grow flex-1 flex flex-col justify-center text-left py-10 md:py-16">
-                        <div className="inline-flex max-w-max items-center gap-4 mb-8 border border-[#c6b89e]/20 bg-black/40 px-5 py-2.5 backdrop-blur-md">
-                          <Cpu className="w-4 h-4 text-[#c6b89e] animate-pulse" />
-                          <span className="text-[9px] md:text-[10px] font-mono uppercase tracking-[5px] text-[#c6b89e] pt-0.5 font-bold">
-                            <ScrambleText text="MYTHIC DIY RAP // POP EMPIRE" delay={500} duration={800} />
-                          </span>
-                        </div>
-
-                        <h2 className="font-serif text-5xl sm:text-6xl md:text-8xl xl:text-9xl font-normal leading-none tracking-tighter text-white mb-6 relative select-none uppercase">
-                          <span className="block italic text-[#c6b89e] opacity-90 leading-tight">
-                            KING
-                          </span>
-                          <span className="block ml-6 sm:ml-12 md:ml-16 leading-tight">
-                            SHADP.
-                          </span>
-                        </h2>
-
-                        <div className="text-[12px] md:text-[14px] uppercase tracking-[6px] text-[#dcc57b] font-mono mb-8 opacity-80">
-                          Raw. Theatrical. Cocky. Funny. Emotional.
-                        </div>
-
-                        {/* Decrypted descriptive copy briefs */}
-                        <div className="grid grid-cols-1 gap-8 border-t border-[#c6b89e]/30 pt-8 mt-4 max-w-3xl relative select-text">
-                          <div className="absolute top-0 left-0 w-24 h-[1px] bg-[#c6b89e] shadow-[0_0_15px_rgba(198,184,158,0.8)]" />
-                          
-                          <p className="text-[14px] md:text-base text-white/50 font-light leading-relaxed font-sans text-justify selection:bg-[#93000a]/30">
-                            The soundtrack to a personal empire. This is character-driven mythology where raw experimental compositions, demo mixes, and aggressive theatrical freestyles form a protective armor for the soul. We do not negotiate with the mainstream. We construct the fortress.
-                          </p>
-
-                          <div className="flex flex-col sm:flex-row gap-5 items-stretch mt-4">
-                            <button
-                              onClick={() => scrollToSection("section-listen")}
-                              aria-label="Listen to frequencies"
-                              className="flex items-center justify-between gap-8 px-8 py-5 border border-[#c6b89e] text-[#c6b89e] font-mono text-[9.5px] tracking-[5px] uppercase hover:bg-[#c6b89e] hover:text-black hover:shadow-[0_0_30px_rgba(198,184,158,0.3)] transition-all duration-500 relative overflow-hidden group cursor-pointer focus:outline-none"
-                            >
-                              <span className="relative z-10 font-bold pt-0.5">
-                                [ LISTEN TO FREQUENCIES ]
-                              </span>
-                              <ArrowUpRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
-                            </button>
-
-                            <button
-                              onClick={() => scrollToSection("section-artifacts")}
-                              aria-label="Browse believer uniforms"
-                              className="px-6 py-4 border border-white/5 hover:border-white/20 select-none text-white/40 hover:text-white font-mono text-[8.5px] md:text-[9.5px] uppercase tracking-[4px] py-5 flex items-center justify-center transition-colors focus:outline-none"
-                            >
-                              [ UNIFORM ARTIFACTS ]
-                            </button>
-                          </div>
-
-                          {/* Unique integrated Newsletter input for believers */}
-                          <div className="border border-[#c6b89e]/20 bg-black/60 backdrop-blur-md p-6 mt-6 select-none">
-                            <div className="text-[9px] font-mono tracking-[4px] text-[#c6b89e] uppercase mb-3">
-                              "JOIN THE BELIEVERS" // ENTER CREDENTIAL DISTRICT
-                            </div>
-                            <div className="text-[11px] text-white/40 font-sans mb-4">
-                              Submit your coordinate email for early decrypted alerts regarding physical uniform drops and upcoming unreleased sound chapters.
-                            </div>
-                            <form 
-                              onSubmit={(e) => {
-                                e.preventDefault();
-                                window.dispatchEvent(new CustomEvent("telemetry-log", {
-                                  detail: { message: `CREDENTIAL STORED: welcome to the empire, believer.`, type: "SYSTEM" }
-                                }));
-                                alert("Credentials compiled successfully. Biometric lock established.");
-                              }}
-                              className="flex gap-3"
-                            >
-                              <input 
-                                type="email" 
-                                required
-                                placeholder="BIOMETRIC_ID@DOMAIN.XYZ" 
-                                className="flex-1 bg-black/80 border border-[#c6b89e]/20 px-4 py-3 font-mono text-[10px] text-white tracking-[2px] outline-none focus:border-[#93000a] transition-all"
-                              />
-                              <button 
-                                type="submit" 
-                                className="px-6 border border-[#93000a] text-xs font-mono tracking-[3px] text-white hover:bg-[#93000a] transition-all hover:shadow-[0_0_15px_rgba(147,0,10,0.5)] cursor-pointer"
-                              >
-                                TRANSMIT
-                              </button>
-                            </form>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Right Panel stack columns */}
-                      <div className="w-full lg:w-[420px] xl:w-[480px] flex flex-col gap-8 justify-center relative select-none">
-                        
-                        {/* Audio Player placeholder loop */}
-                        <div className="bg-black/60 backdrop-blur-3xl border border-[#c6b89e]/20 shadow-2xl relative overflow-hidden">
-                          <AudioPlayer />
-                        </div>
-
-                        {/* Sanctuary ambient soundscape controls */}
-                        <SanctuaryAmbient />
-
-                        {/* Stack Block 2: Sensory climate and status dashboard gauges */}
-                        <div className="grid grid-cols-2 gap-6 select-none">
-                          
-                          {/* Subcard A: Current Climate coordinates gauge */}
-                          <Tooltip message="SYS_DIAG: Query Miami Beach HQ telemetric climate sensor array logs.">
-                            <motion.div
-                              whileTap={{ scale: 0.96 }}
-                              className="bg-black/60 backdrop-blur-3xl border border-[#c6b89e]/20 hover:border-[#c6b89e]/55 p-5 md:p-6 flex flex-col justify-between relative overflow-hidden group transition-all duration-500 shadow-2xl min-h-[140px]"
-                            >
-                              <div className="absolute inset-0 bg-[#c6b89e]/5 scale-y-0 group-hover:scale-y-100 origin-bottom transition-transform duration-500" />
-                              
-                              <div className="absolute top-5 right-5 z-20">
-                                <Thermometer className="w-4 h-4 text-[#93000a] opacity-80" />
-                              </div>
-
-                              <div className="relative z-10">
-                                <div className="text-3xl md:text-4xl font-serif text-white group-hover:text-[#c6b89e] transition-colors font-light leading-none mb-4">
-                                  82.4°F
-                                </div>
-
-                                <div className="text-[7.5px] uppercase tracking-[3px] text-[#c6b89e] font-mono mb-1">
-                                  Sovereign Thermal
-                                </div>
-                                <div className="text-[10px] text-white/45 font-sans font-light leading-none">
-                                  Miami Beach HQ, FL
-                                </div>
-                              </div>
-                            </motion.div>
-                          </Tooltip>
-
-                          {/* Subcard B: Live status check indicator with shielding level triggers */}
-                          <Tooltip message="SYS_DIAG: Recalibrate optimal radio suppression and signal scrambler levels.">
-                            <motion.div
-                              whileTap={{ scale: 0.96 }}
-                              onClick={() => {
-                                setShieldLevel((l) => l === 5 ? 9 : l === 9 ? 1 : 5);
-                              }}
-                              className="bg-black/60 backdrop-blur-3xl border border-[#c6b89e]/20 hover:border-[#c6b89e]/55 p-5 md:p-6 flex flex-col justify-between relative overflow-hidden group transition-all duration-500 cursor-pointer shadow-2xl min-h-[140px]"
-                            >
-                              <div className="absolute inset-0 bg-[#c6b89e]/70 scale-y-0 group-hover:scale-y-100 origin-bottom transition-transform duration-500" />
-                              
-                              <div className="absolute top-5 right-5 z-20">
-                                {shieldLevel === 1 && <Sparkles className="w-4 h-4 text-[#c6b89e]/40" />}
-                                {shieldLevel === 5 && <Radio className="w-4 h-4 text-[#c6b89e] animate-pulse" />}
-                                {shieldLevel === 9 && <ShieldAlert className="w-4 h-4 text-[#ff4a00] animate-pulse" />}
-                              </div>
-
-                              <div className="relative z-10">
-                                <div className="flex items-center gap-2 mb-3 mt-1">
-                                  <span className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                                    shieldLevel === 1 ? "bg-[#c6b89e]/40 shadow-none" : 
-                                    shieldLevel === 5 ? "bg-[#c6b89e] shadow-[0_0_8px_#c6b89e]" : 
-                                    "bg-[#ff4a00] shadow-[0_0_12px_#ff4a00]"
-                                  }`} />
-                                  <span className="text-[10px] uppercase font-mono tracking-[3px] text-white font-bold leading-none">
-                                    {shieldLevel === 1 ? "STEALTH L1" : shieldLevel === 5 ? "ARMORED L5" : "SECURE L9"}
-                                  </span>
-                                </div>
-
-                                <div className="text-[7.5px] uppercase tracking-[3px] text-[#c6b89e] font-mono mb-1">
-                                  {shieldLevel === 1 ? "Stealth mode" : shieldLevel === 5 ? "Encrypted Shield" : "Absolute Shield"}
-                                </div>
-                                <div className="text-[10px] text-white/45 font-sans font-light leading-none">
-                                  {shieldLevel === 1 ? "Quiet emissions" : shieldLevel === 5 ? "Active filters" : "Total biometric vault active"}
-                                </div>
-                              </div>
-                            </motion.div>
-                          </Tooltip>
-
-                        </div>
-                      </div>
-
-                    </div>
+                    <HomeSection onNavigate={(tab) => scrollToSection(`section-${tab}`)} />
                   )}
 
                   {/* SECTION 2: LISTEN (Sovereign Channels) */}
                   {activeTab === "listen" && (
-                    <div
-                      id="section-listen"
-                      className="w-full min-h-[calc(100vh-200px)] py-24 mb-12 relative"
-                    >
-                      <div className="absolute top-[88px] left-0 font-mono text-[8.5px] tracking-[5px] text-[#c6b89e]/30 uppercase select-none">
-                        02 // SOVEREIGN AUDIO TRANSMISSION / LISTEN
-                      </div>
-
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-16">
-                        {/* Left: HQ audio console widget */}
-                        <div className="bg-black/60 backdrop-blur-2xl border border-[#c6b89e]/20 p-8 flex flex-col justify-center min-h-[420px] relative shadow-2xl">
-                          <div className="text-[9px] font-mono tracking-[4px] text-white/40 uppercase mb-4 text-left">
-                            CHANNEL CONTROLLER DECK // ENGAGED
-                          </div>
-                          <AudioPlayer />
-                        </div>
-
-                        {/* Right: Embedded platforms & freestyle demo listings */}
-                        <div className="flex flex-col gap-6 text-left p-8 border border-white/5 bg-black/40 backdrop-blur-md">
-                          <div className="font-mono text-[9px] uppercase tracking-[4px] text-[#c6b89e] mb-1">
-                            STREAMING OUTLETS
-                          </div>
-                          
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <a 
-                              href="https://soundcloud.com" 
-                              target="_blank" 
-                              className="p-5 border border-[#c6b89e]/20 bg-black/60 hover:bg-[#93000a]/20 hover:border-[#93000a] transition-all flex flex-col justify-between"
-                            >
-                              <div className="text-[16px] text-white font-serif italic mb-1">SoundCloud</div>
-                              <div className="text-[9px] font-mono tracking-[2px] text-white/40 uppercase">
-                                395 Believers / Verified
-                              </div>
-                            </a>
-
-                            <div className="p-5 border border-[#c6b89e]/20 bg-black/60 flex flex-col justify-between opacity-80">
-                              <div className="text-[16px] text-white font-serif italic mb-1">Audiomack</div>
-                              <div className="text-[9px] font-mono tracking-[2px] text-white/40 uppercase">
-                                5.77K Era Plays
-                              </div>
-                            </div>
-
-                            <div className="p-5 border border-[#c6b89e]/20 bg-black/60 flex flex-col justify-between opacity-80">
-                              <div className="text-[16px] text-white font-serif italic mb-1">Spotify</div>
-                              <div className="text-[9px] font-mono tracking-[2px] text-white/40 uppercase">
-                                Protected Wave
-                              </div>
-                            </div>
-
-                            <div className="p-5 border border-[#c6b89e]/20 bg-black/60 flex flex-col justify-between opacity-80">
-                              <div className="text-[16px] text-white font-serif italic mb-1">Apple Music</div>
-                              <div className="text-[9px] font-mono tracking-[2px] text-white/40 uppercase">
-                                Sound Archive S5
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="border-t border-[#c6b89e]/20 pt-6 mt-4 select-text">
-                            <div className="text-[9px] font-mono tracking-[3px] text-[#c6b89e] uppercase mb-3">
-                              STUDIO FREESTYLE LOGGER METADATA
-                            </div>
-                            <p className="text-[12.5px] text-white/50 leading-relaxed font-sans">
-                              Recorded live inside the Miami sanctuary under total isolation levels. All vocals remain raw, unpolished, and completely aligned with KingShadP’s DIY ethics. No luxury presets, no tuning rigs—just pure, uncompromising king energy manifesting the universe in real-time.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <ListenSection onNavigate={(tab) => scrollToSection(`section-${tab}`)} />
                   )}
 
                   {/* SECTION 3: VAULT (The Interactive Release Timeline Record) */}
                   {activeTab === "vault" && (
-                    <div
-                      id="section-vault"
-                      className="w-full min-h-[calc(100vh-200px)] py-24 mb-12 relative text-left"
-                    >
-                      <div className="absolute top-[88px] left-0 font-mono text-[8.5px] tracking-[5px] text-[#c6b89e]/30 uppercase select-none">
-                        03 // ATELIER ERA CORE LISTING / VAULT
-                      </div>
-
-                      <div className="mt-16 max-w-5xl mx-auto border border-[#c6b89e]/20 bg-black/50 p-8 md:p-12 backdrop-blur-lg">
-                        <h3 className="font-serif text-3xl md:text-5xl font-light text-[#c6b89e] mb-6 italic">
-                          "The Chronos Record"
-                        </h3>
-                        <p className="font-sans text-[13px] text-white/40 tracking-wide mb-10 max-w-2xl">
-                          Every official and unofficial release from the KingShadP catalog. Filtered by year and era—complete with system analytics, play metrics, and historical descriptive lore.
-                        </p>
-
-                        <div className="border border-white/10 select-text overflow-hidden">
-                          <table className="w-full text-left font-mono text-[11px] tracking-[1.5px] border-collapse">
-                            <thead>
-                              <tr className="border-b border-white/10 uppercase text-[#c6b89e] bg-[#090909]">
-                                <th className="p-4 font-semibold">Track Title</th>
-                                <th className="p-4 font-semibold hidden md:table-cell">Year</th>
-                                <th className="p-4 font-semibold">Primary Platform</th>
-                                <th className="p-4 font-semibold">Play Metrics</th>
-                                <th className="p-4 font-semibold hidden sm:table-cell text-right">Lore Brief</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/5 text-white/70">
-                              <tr className="hover:bg-white/5 transition-colors">
-                                <td className="p-4 font-sans font-medium text-white">Regal Echoes of GOD (Demo)</td>
-                                <td className="p-4 hidden md:table-cell text-white/50">2024</td>
-                                <td className="p-4 text-[#dcc57b]">Audiomack</td>
-                                <td className="p-4 text-white">5.77K Plays</td>
-                                <td className="p-4 hidden sm:table-cell text-right text-white/40 text-[10px]">The god-complex made audible. Absolute system protection.</td>
-                              </tr>
-                              <tr className="hover:bg-white/5 transition-colors">
-                                <td className="p-4 font-sans font-medium text-white">UNFINISHED. UNEDITED. UNTITLED</td>
-                                <td className="p-4 hidden md:table-cell text-white/50">2023</td>
-                                <td className="p-4 text-[#dcc57b]">Spotify</td>
-                                <td className="p-4 text-white">12.4K Plays</td>
-                                <td className="p-4 hidden sm:table-cell text-right text-white/40 text-[10px]">A raw study in unfinished brutalist architectures.</td>
-                              </tr>
-                              <tr className="hover:bg-white/5 transition-colors">
-                                <td className="p-4 font-sans font-medium text-white">GOD IS A WOMAN (Remix)</td>
-                                <td className="p-4 hidden md:table-cell text-white/50">2021</td>
-                                <td className="p-4 text-[#dcc57b]">SoundCloud</td>
-                                <td className="p-4 text-[#93000a] font-bold">63.2K Plays</td>
-                                <td className="p-4 hidden sm:table-cell text-right text-white/40 text-[10px]">A statement of royal presence. The female deity as absolute sovereign.</td>
-                              </tr>
-                              <tr className="hover:bg-white/5 transition-colors">
-                                <td className="p-4 font-sans font-medium text-white">MAINTAIN VELOCITY</td>
-                                <td className="p-4 hidden md:table-cell text-white/50">2022</td>
-                                <td className="p-4 text-[#dcc57b]">SoundCloud</td>
-                                <td className="p-4 text-white">8.9K Plays</td>
-                                <td className="p-4 hidden sm:table-cell text-right text-white/40 text-[10px]">High-speed transition track capturing deep Miami roots.</td>
-                              </tr>
-                              <tr className="hover:bg-white/5 transition-colors">
-                                <td className="p-4 font-sans font-medium text-white">Gilded Chaos // Manifest</td>
-                                <td className="p-4 hidden md:table-cell text-white/50">2020</td>
-                                <td className="p-4 text-[#dcc57b]">Audiomack</td>
-                                <td className="p-4 text-white">3.1K Plays</td>
-                                <td className="p-4 hidden sm:table-cell text-right text-white/40 text-[10px]">Early manifestations recorded on single-track freestyle nodes.</td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </div>
+                    <VaultSection onNavigate={(tab) => scrollToSection(`section-${tab}`)} />
                   )}
 
                   {/* SECTION 4: ARTIFACTS (Shopify Portfolio uniform boutique) */}
@@ -862,121 +561,12 @@ export default function App() {
 
                   {/* SECTION 5: LORE (Editorial Gallery Dossier) */}
                   {activeTab === "lore" && (
-                    <div
-                      id="section-lore"
-                      className="w-full min-h-[calc(100vh-200px)] py-24 mb-12 relative text-left select-text"
-                    >
-                      <div className="absolute top-[88px] left-0 font-mono text-[8.5px] tracking-[5px] text-[#c6b89e]/30 uppercase select-none">
-                        05 // THEOLOGICAL ARCHIVE DOSSIER / LORE
-                      </div>
-
-                      <div className="mt-16 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 pt-8">
-                        {/* Column 1: Who is KingShadP */}
-                        <div className="border border-[#c6b89e]/20 p-8 bg-black/60 backdrop-blur-md relative">
-                          <div className="absolute top-0 left-0 w-16 h-[1.5px] bg-[#93000a]" />
-                          <h4 className="font-mono text-[10px] tracking-[4px] text-[#c6b89e] uppercase mb-6 font-bold">
-                            // IDENTITY PROFILE
-                          </h4>
-                          <h3 className="font-serif text-3xl font-light text-white mb-6 italic">
-                            "Who is KingShadP?"
-                          </h3>
-                          <p className="font-sans text-[13.5px] text-white/50 leading-relaxed font-light text-justify">
-                            KingShadP represents a theater-driven DIY mythology where sound serves or functions as personal empire control. Unlike polished, commercialized modern rappers or corporate labels, KingShadP operates beneath high-end, cold systems. A raw, authentic, comical, and emotional blend of rap/pop designed for those ready to live inside customized mythic frames.
-                          </p>
-                        </div>
-
-                        {/* Column 2: Why This Music */}
-                        <div className="border border-[#c6b89e]/20 p-8 bg-black/60 backdrop-blur-md relative">
-                          <div className="absolute top-0 left-0 w-16 h-[1.5px] bg-[#dcc57b]" />
-                          <h4 className="font-mono text-[10px] tracking-[4px] text-[#c6b89e] uppercase mb-6 font-bold">
-                            // CRITIQUE OF CHAOS
-                          </h4>
-                          <h3 className="font-serif text-3xl font-light text-white mb-6 italic">
-                            "Why This Music?"
-                          </h3>
-                          <p className="font-sans text-[13.5px] text-white/50 leading-relaxed font-light text-justify">
-                            Because polished artifice is a lie. True craft stems from the unfinished, unedited freestyle recordings and demo loops tracked straight to high-fidelity storage inside Aegean beachfront or Miami sanctuaries. We document the construction of an empire in real-time, leaving raw traces for true followers to experience step-by-step.
-                          </p>
-                        </div>
-
-                        {/* Column 3: Miami Roots / God Complex */}
-                        <div className="border border-[#c6b89e]/20 p-8 bg-black/60 backdrop-blur-md relative">
-                          <div className="absolute top-0 left-0 w-16 h-[1.5px] bg-[#c9c6c5]" />
-                          <h4 className="font-mono text-[10px] tracking-[4px] text-[#c6b89e] uppercase mb-6 font-bold">
-                            // SPACE COORDINATES
-                          </h4>
-                          <h3 className="font-serif text-3xl font-light text-white mb-6 italic">
-                            "Miami Beach & God-Complex"
-                          </h3>
-                          <p className="font-sans text-[13.5px] text-white/50 leading-relaxed font-light text-justify">
-                            Born from the intense heat of Florida's southern coast, the mythology channels absolute Miami roots balanced by a grandiose god-complex humor. It is clean, hyper-minimalist execution of sound paired with protective titanium and luxury garments. It is menacing, cold, yet beautiful theatricality made solid.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                    <LoreSection />
                   )}
 
-                  {/* SECTION 6: ARCHIVE (Duo Radar / Notes / Blueprint Suite) */}
-                  {activeTab === "archive" && (
-                    <div
-                      id="section-archive"
-                      className="w-full min-h-[calc(100vh-200px)] py-24 mb-12 relative text-left"
-                    >
-                      <div className="absolute top-[88px] left-0 font-mono text-[8.5px] tracking-[5px] text-[#c6b89e]/30 uppercase select-none">
-                        06 // GLOBAL COMMAND TERMINUS ARCHIVE
-                      </div>
-
-                      <div className="mt-16 grid grid-cols-1 xl:grid-cols-3 gap-12 pt-8">
-                        {/* Radar Widget */}
-                        <div className="flex flex-col gap-4">
-                          <div className="font-mono text-[9px] uppercase tracking-[4px] text-white/30 px-1">
-                            COORDINATES RADAR HUD
-                          </div>
-                          <div className="bg-black/60 backdrop-blur-2xl border border-[#c6b89e]/20 h-[380px] overflow-hidden relative shadow-2xl rounded-sm">
-                            <SatelliteRadar />
-                          </div>
-                        </div>
-
-                        {/* Scribe Notes */}
-                        <div className="flex flex-col gap-4">
-                          <div className="font-mono text-[9px] uppercase tracking-[4px] text-white/30 px-1">
-                            SCRIBE ATHENE DIARY NOTES
-                          </div>
-                          <div className="bg-black/60 backdrop-blur-2xl border border-[#c6b89e]/20 h-[380px] relative shadow-2xl rounded-sm">
-                            <ScribeNotes />
-                          </div>
-                        </div>
-
-                        {/* Previous Bluestreak Blueprints */}
-                        <div className="flex flex-col gap-4">
-                          <div className="font-mono text-[9px] uppercase tracking-[4px] text-white/30 px-1">
-                            ESTATE PREVIOUS BLUEPRINTS GALLERY
-                          </div>
-                          <div className="bg-black/60 backdrop-blur-2xl border border-[#c6b89e]/20 h-[380px] p-6 relative shadow-2xl rounded-sm overflow-y-auto">
-                            <div className="p-4 border border-teal-500/10 mb-4 bg-teal-500/5">
-                              <div className="text-[10px] font-mono tracking-[2px] text-[#dcc57b] uppercase mb-1">
-                                AEGEAN SEA SECTOR SECURE BLUEPRINTS // ACCESS
-                              </div>
-                              <div className="text-[11px] text-white/40 mb-3">
-                                Classic architectural portfolios of villas, yachts, and helicopter arrays are preserved for historical research.
-                              </div>
-                              <button
-                                onClick={() => {
-                                  window.dispatchEvent(new CustomEvent("telemetry-log", {
-                                    detail: { message: `AEGEAN ACCESSED: decryption and grid lock in progress...`, type: "FORGE_SYNC" }
-                                  }));
-                                  alert("System: Accessing Aegean Yacht and villa blueprints. Encryption decrypted.");
-                                }}
-                                className="px-3 py-1.5 border border-[#c9c6c5] text-[9px] font-mono text-white hover:bg-white/10 uppercase transition-all tracking-[2px]"
-                              >
-                                View Coordinates
-                              </button>
-                            </div>
-                            <AcquisitionGrid isInline={true} />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                  {/* SECTION 6: COMMUNITY (Citadel Portal / Believers Platform) */}
+                  {activeTab === "community" && (
+                    <CommunitySection />
                   )}
                 </motion.div>
               </AnimatePresence>
@@ -984,9 +574,47 @@ export default function App() {
             </div>
 
             {/* Bottom Global Coordinates tracking footer bar */}
-            <footer className="w-full py-6 border-t border-[#c6b89e]/10 bg-[#020202] text-center select-none text-[8.5px] uppercase tracking-[6px] text-white/20 z-35 relative flex flex-col md:flex-row justify-between items-center px-12 gap-2 pointer-events-none mix-blend-screen">
-              <span>COORDS STATUS DETECT [OK]</span>
-              <span className="font-sans font-light capitalize tracking-[1px] text-[#c6b89e]/70">
+            <footer className="w-full py-6 border-t border-[#c6b89e]/10 bg-[#020202] tracking-[2px] text-white/40 z-35 relative flex flex-col md:flex-row justify-between items-center px-12 gap-6 select-none">
+              <div className="flex flex-wrap items-center gap-6 text-[9px] font-mono tracking-[3px]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAboutModal(true);
+                    window.dispatchEvent(new CustomEvent("telemetry-log", {
+                      detail: { message: "CORE_LOG: Loaded artist lore dossiers.", type: "SYSTEM" }
+                    }));
+                  }}
+                  className="hover:text-white cursor-pointer transition-colors focus:outline-none"
+                >
+                  [ ABOUT MYTHOLOGY ]
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowArchiveModal(true);
+                    window.dispatchEvent(new CustomEvent("telemetry-log", {
+                      detail: { message: "DIAG_SYNC: Accessing satellite radar array terminal.", type: "SYSTEM" }
+                    }));
+                  }}
+                  className="hover:text-white cursor-pointer transition-colors focus:outline-none"
+                >
+                  [ ARCHIVE SYSTEMS ]
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowNewsletterModal(true);
+                    window.dispatchEvent(new CustomEvent("telemetry-log", {
+                      detail: { message: "CONN_LOG: Requesting digital credentials gateway.", type: "SYSTEM" }
+                    }));
+                  }}
+                  className="hover:text-white cursor-pointer transition-colors focus:outline-none"
+                >
+                  [ NEWSLETTER INTAKE ]
+                </button>
+              </div>
+
+              <span className="font-sans font-light capitalize text-[9.5px] text-[#c6b89e]/70">
                 Authorized Executive Lounge Session and Terminal Interface
               </span>
             </footer>
@@ -1004,6 +632,215 @@ export default function App() {
                 className="fixed right-0 top-0 bottom-0 w-full sm:w-[480px] md:w-[540px] z-50 bg-black shadow-2xl flex flex-col select-none"
               >
                 <AIChatbox onClose={() => setShowChatDrawer(false)} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* About Mythology Cinematic Overlay */}
+          <AnimatePresence>
+            {showAboutModal && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-6"
+              >
+                <motion.div
+                  initial={{ scale: 0.95, y: 20 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0.95, y: 20 }}
+                  className="bg-[#050505] border border-[#c6b89e]/30 max-w-2xl w-full p-8 md:p-10 relative overflow-hidden text-left"
+                >
+                  <div className="absolute top-0 left-0 w-24 h-[1.5px] bg-[#ff4a00]" />
+                  <button
+                    type="button"
+                    onClick={() => setShowAboutModal(false)}
+                    className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors cursor-pointer text-xs font-mono font-bold"
+                  >
+                    [ ESCAPE // CLOSE ]
+                  </button>
+
+                  <div className="text-[9px] font-mono tracking-[4px] text-[#c6b89e] uppercase mb-4">
+                    FILE ID: MASTER_TACTIC_DOSSIER
+                  </div>
+
+                  <h3 className="font-serif text-3xl md:text-4.5xl text-white tracking-wide uppercase mb-6 leading-tight select-none">
+                    The KingShadP Character Mythology
+                  </h3>
+
+                  <div className="space-y-6 font-sans text-[13px] md:text-[14px] text-white/50 leading-relaxed font-light text-justify select-text">
+                    <p>
+                      KingShadP is not a polished rapper or a luxury lifestyle brand. This is a highly theatrical, character-driven DIY empire centering music as the primary armor of the soul. Operates in total creative digital isolation—building a private sound castle room-by-room, leaving unedited rough drafts, vocal demos, and aggressive beachside freestyles for believers to experience.
+                    </p>
+                    <p>
+                      Drawing heavy performance notes from custom-constructed artist universes like <span className="text-white">Tyler, The Creator’s raw storybooks</span>, the confrontational theatricality of <span className="text-white">Vince Staples</span>, and the rough underground architecture of <span className="text-white">Earl Sweatshirt</span>.
+                    </p>
+                    <p>
+                      The garments we curate are physically wearable protective uniformity plates matching specific musical chapters. Wear the fabric, lock your coordinates, and secure your psyche inside our fortress.
+                    </p>
+
+                    <div className="border-t border-white/10 pt-4 font-mono text-[9.5px] text-[#ff4a00] uppercase tracking-[2px] space-y-1">
+                      <div>// ESTABLISHED LOCATIONS: Southern Beachfront Shorelines</div>
+                      <div>// COGNITIVE LEVEL: Grandiose God-Complex</div>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Interactive Archival Systems Console Bento Drawer */}
+          <AnimatePresence>
+            {showArchiveModal && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 bg-[#020202]/95 backdrop-blur-lg flex flex-col justify-between p-6 md:p-12 overflow-y-auto"
+              >
+                <div>
+                  <div className="flex justify-between items-center border-b border-white/10 pb-6 mb-10 select-none">
+                    <div>
+                      <div className="text-[9px] font-mono tracking-[3px] text-[#ff4a00] uppercase mb-1">
+                        SECURE LOG PORTAL / TELEMETRY TERMINUS
+                      </div>
+                      <h3 className="font-serif text-2xl md:text-4.5xl text-white tracking-wide uppercase">
+                        Global Archival Matrix Systems
+                      </h3>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowArchiveModal(false)}
+                      className="px-5 py-3 border border-white/20 hover:border-white text-white font-mono text-[9px] uppercase tracking-[3px] cursor-pointer transition-all"
+                    >
+                      [ CLOSE MATRIX ]
+                    </button>
+                  </div>
+
+                  {/* Archival system bento array */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                    
+                    {/* Panel 1: Satellite Radar */}
+                    <div className="flex flex-col gap-3">
+                      <div className="font-mono text-[9px] uppercase tracking-[3px] text-white/50 px-1">
+                        // COORDINATES_RADAR_HUD [ACTIVE]
+                      </div>
+                      <div className="bg-black border border-white/10 h-[380px] overflow-hidden relative rounded-sm">
+                        <SatelliteRadar />
+                      </div>
+                    </div>
+
+                    {/* Panel 2: Scribe Diary Notes */}
+                    <div className="flex flex-col gap-3">
+                      <div className="font-mono text-[9px] uppercase tracking-[3px] text-white/50 px-1">
+                        // SCRIPT_ATHENA_RECORDS_LOG
+                      </div>
+                      <div className="bg-black border border-white/10 h-[380px] relative rounded-sm">
+                        <ScribeNotes />
+                      </div>
+                    </div>
+
+                    {/* Panel 3: Previous Blueprints Grid */}
+                    <div className="flex flex-col gap-3">
+                      <div className="font-mono text-[9px] uppercase tracking-[3px] text-white/50 px-1">
+                        // ARCHITECTURE_BLUEPRINT_VAULT
+                      </div>
+                      <div className="bg-black border border-white/10 h-[380px] p-6 relative rounded-sm overflow-y-auto">
+                        <div className="p-4 border border-teal-500/10 mb-4 bg-teal-500/5 text-justify select-text">
+                          <div className="text-[10px] font-mono tracking-[2px] text-[#dcc57b] uppercase mb-1 font-bold">
+                            AEGEAN SEA SESS COORDINATES
+                          </div>
+                          <div className="text-[11px] text-white/40 mb-3 leading-relaxed">
+                            Decrypted records of private villa drafts, sovereign custom yachts, and heavy aerial helicopters are kept securely on file.
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              window.dispatchEvent(new CustomEvent("telemetry-log", {
+                                detail: { message: "AEGEAN ACCESSED: decryption lock synced.", type: "FORGE_SYNC" }
+                              }));
+                              alert("System Decryption: Accessing historical Aegean beachfront estate drawings.");
+                            }}
+                            className="px-3 py-1.5 border border-white/20 text-[9px] font-mono text-white hover:bg-white/10 uppercase transition-all tracking-[2px] cursor-pointer"
+                          >
+                            Mount Blueprint File
+                          </button>
+                        </div>
+                        <AcquisitionGrid isInline={true} />
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                <div className="border-t border-white/5 pt-6 mt-16 font-mono text-[8.5px] uppercase tracking-[5px] text-white/20 flex flex-col md:flex-row justify-between pointer-events-none select-none">
+                  <span>SECURE CHRONOS RECORD LOCK: ENGAGED</span>
+                  <span>CITADEL MATRIX SYSTEM LOGS OK [2026]</span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Quick Newsletter Modal Popup */}
+          <AnimatePresence>
+            {showNewsletterModal && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-6"
+              >
+                <motion.div
+                  initial={{ scale: 0.96, y: 15 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0.96, y: 15 }}
+                  className="bg-[#050505] border border-[#ff4a00]/30 max-w-md w-full p-8 relative overflow-hidden text-left"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setShowNewsletterModal(false)}
+                    className="absolute top-5 right-5 text-white/30 hover:text-white font-mono text-[9px] cursor-pointer select-none"
+                  >
+                    [ CLOSE ]
+                  </button>
+
+                  <div className="flex items-center gap-2 text-[#ff4a00] mb-4 select-none">
+                    <Radio className="w-3.5 h-3.5 animate-pulse" />
+                    <span className="font-mono text-[8px] tracking-[3px] uppercase font-bold">EMPIRE SIGNAL ACCESS</span>
+                  </div>
+
+                  <h3 className="font-serif text-2xl text-white tracking-wide uppercase mb-3">
+                    Secure Earliest Decryptions
+                  </h3>
+                  <p className="font-sans text-[12.5px] text-white/40 leading-relaxed font-light mb-6 text-justify">
+                    Submit your primary coordinate email address below to join the private fortress directory list. Get early audio demo cassette dispatches, behind-the-scenes beach room briefings, and physical gear launch updates.
+                  </p>
+
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      window.dispatchEvent(new CustomEvent("telemetry-log", {
+                        detail: { message: "COORDINATE DISPATCHED: Registered via floating modal popup.", type: "SYSTEM" }
+                      }));
+                      alert("Secured Entrance: Biometric credential list lock complete.");
+                      setShowNewsletterModal(false);
+                    }}
+                    className="space-y-3"
+                  >
+                    <input
+                      type="email"
+                      required
+                      placeholder="BIOMETRIC_ID@DOMAIN.XYZ"
+                      className="w-full bg-[#030303] border border-white/10 px-4 py-3 font-mono text-[10px] text-white tracking-[2px] outline-none focus:border-[#c6b89e] transition-all rounded-none"
+                    />
+                    <button
+                      type="submit"
+                      className="w-full py-3.5 bg-white text-black text-[9px] font-mono font-semibold tracking-[4px] uppercase hover:bg-[#c6b89e] transition-all cursor-pointer"
+                    >
+                      REGISTER DIGITAL COORDINATE
+                    </button>
+                  </form>
+                </motion.div>
               </motion.div>
             )}
           </AnimatePresence>
