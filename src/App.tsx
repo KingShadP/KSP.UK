@@ -30,6 +30,10 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrollPercent, setScrollPercent] = useState(0);
 
+  // Scroll dynamics parameters for 4D HUD acceleration tracker
+  const [scrollSpeed, setScrollSpeed] = useState(0);
+  const [scrollDirection, setScrollDirection] = useState<"up" | "down" | "none">("none");
+
   // High-fidelity interactive dashboard states
   const [climateUnit, setClimateUnit] = useState<"F" | "C" | "H">("F");
   const [shieldLevel, setShieldLevel] = useState<1 | 5 | 9>(5);
@@ -37,11 +41,19 @@ export default function App() {
   // Monitor real scroll depth to highlight the headers links appropriately
   useEffect(() => {
     if (!accessGranted) return;
+    let lastScrollY = window.scrollY;
+    let timeoutId: any = null;
+
     const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const velocity = Math.abs(currentScrollY - lastScrollY);
+      setScrollSpeed(Math.min(65, velocity));
+      setScrollDirection(currentScrollY > lastScrollY ? "down" : currentScrollY < lastScrollY ? "up" : "none");
+
       // Calculate total document scroll completion percent
       const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
       if (totalHeight > 0) {
-        setScrollPercent((window.scrollY / totalHeight) * 100);
+        setScrollPercent((currentScrollY / totalHeight) * 100);
       }
 
       const dossierEl = document.getElementById("section-dossier");
@@ -49,7 +61,7 @@ export default function App() {
       const commandEl = document.getElementById("section-command");
       const shopifyEl = document.getElementById("section-shopify");
 
-      const scrollPos = window.scrollY + window.innerHeight / 3;
+      const scrollPos = currentScrollY + window.innerHeight / 3;
 
       if (shopifyEl && scrollPos >= shopifyEl.offsetTop) {
         setActiveTab("shopify");
@@ -60,11 +72,22 @@ export default function App() {
       } else if (dossierEl) {
         setActiveTab("main");
       }
+
+      lastScrollY = currentScrollY;
+
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setScrollSpeed(0);
+        setScrollDirection("none");
+      }, 100);
     };
     window.addEventListener("scroll", handleScroll);
     // Initial call
     handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [accessGranted]);
 
   const scrollToSection = (sectionId: string) => {
@@ -127,7 +150,19 @@ export default function App() {
           <TelemetryTerminal />
 
           {/* FIXED VERTICAL SCROLL PROGRESS & HUD LOCATION LOCATOR (RIGHT SIDE) */}
-          <div className="fixed right-6 lg:right-10 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center gap-6 select-none bg-black/60 backdrop-blur-3xl p-4 md:p-5 border border-[#c6b89e]/20 shadow-[0_0_50px_rgba(0,0,0,0.85)] rounded-sm pointer-events-auto">
+          <div 
+            className="fixed right-6 lg:right-10 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center gap-6 select-none bg-black/75 backdrop-blur-3xl p-4 md:p-5 border shadow-2xl rounded-sm pointer-events-auto"
+            style={{
+              perspective: "500px",
+              transformStyle: "preserve-3d",
+              transform: `perspective(500px) rotateY(-18deg) rotateX(${
+                scrollDirection === "down" ? 14 : scrollDirection === "up" ? -14 : 0
+              }deg) scale(${1 + scrollSpeed * 0.0025})`,
+              boxShadow: `0 0 ${18 + scrollSpeed * 1.5}px rgba(255, 74, 0, ${0.12 + scrollSpeed * 0.012})`,
+              borderColor: scrollSpeed > 8 ? "rgba(255, 74, 0, 0.45)" : "rgba(198, 184, 158, 0.2)",
+              transition: "transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms ease-out, border-color 180ms ease-out",
+            } as any}
+          >
             <div className="text-[7.5px] font-mono text-[#c6b89e]/60 uppercase tracking-[3px] font-bold">L_SEC</div>
             
             <div className="h-44 w-[2px] bg-white/5 relative flex flex-col justify-between items-center py-2">
@@ -138,16 +173,27 @@ export default function App() {
               />
 
               {[
-                { id: "main", num: "01", label: "ATRIUM", sectionId: "section-dossier" },
-                { id: "assets", num: "02", label: "EXHIBITION", sectionId: "section-assets" },
-                { id: "command", num: "03", label: "COMMAND", sectionId: "section-command" },
-                { id: "shopify", num: "04", label: "BOUTIQUE", sectionId: "section-shopify" }
+                { id: "main", num: "01", label: "ATRIUM (Overview)", sectionId: "section-dossier" },
+                { id: "assets", num: "02", label: "EXHIBITION (Our Work)", sectionId: "section-assets" },
+                { id: "command", num: "03", label: "COMMAND (Interactive Map)", sectionId: "section-command" },
+                { id: "shopify", num: "04", label: "BOUTIQUE (Atelier Store)", sectionId: "section-shopify" }
               ].map((item, idx) => {
                 const isActive = activeTab === item.id;
                 return (
                   <Tooltip key={item.id} message={`SYS_NAV: Coordinate jump to ${item.num} // ${item.label}`}>
                     <button
                       onClick={() => scrollToSection(item.sectionId)}
+                      onMouseEnter={() => {
+                        const messages: {[key: string]: string} = {
+                          main: "🛡️ [SANCTUM SECURITY] Active gateway checking credentials... IP mapped to Sector 0xAA. Atrium clearance Level-5 verified.",
+                          assets: "⚠️ [SANCTUM SECURITY] Querying physical & digital design vault collection matrices... Decrypting catalog signatures...",
+                          command: "🛰️ [SANCTUM SECURITY] Syncing satellite alignment telemetry. Global visitation journals database online & synchronized.",
+                          shopify: "⚡ [SANCTUM SECURITY] Secured Shopify storefront synchronized. Direct camera-AR visual projection controller calibration active."
+                        };
+                        window.dispatchEvent(new CustomEvent("telemetry-log", { 
+                          detail: { message: messages[item.id], type: item.id === "shopify" || item.id === "assets" ? "FORGE_SYNC" : "SYSTEM" } 
+                        }));
+                      }}
                       aria-label={`Scroll to ${item.label}`}
                       className="group relative flex items-center justify-center w-7 h-7 cursor-pointer focus:outline-none"
                     >
@@ -227,16 +273,21 @@ export default function App() {
                 </Tooltip>
 
                 {[
-                  { id: "main", label: "ATRIUM", hover: "OVERVIEW" },
-                  { id: "assets", label: "EXHIBITION", hover: "COLLECTION" },
-                  { id: "command", label: "COMMAND", hover: "RADAR COORDS" },
-                  { id: "shopify", label: "ATELIER SHOP", hover: "BOUTIQUE" },
+                  { id: "main", label: "01 ATRIUM (Entrance)", hover: "OVERVIEW", diag: "🛡️ [SANCTUM SECURITY] Active gateway checking credentials... IP mapped to Sector 0xAA. Atrium clearance Level-5 verified." },
+                  { id: "assets", label: "02 GALLERY (Our Work)", hover: "VAULT MUSEUM", diag: "⚠️ [SANCTUM SECURITY] Querying physical & digital design vault collection matrices... Decrypting rare asset signatures..." },
+                  { id: "command", label: "03 COMMAND (Active Map)", hover: "RADAR HUD", diag: "🛰️ [SANCTUM SECURITY] Syncing satellite alignment telemetry. Global client visitation database online & synced." },
+                  { id: "shopify", label: "04 STORE (Boutique)", hover: "ATELIER SHOP", diag: "⚡ [SANCTUM SECURITY] Secured Shopify storefront synced. Direct camera-AR visual projection controller calibration active." },
                 ].map((tab, idx) => (
                   <motion.button
                     key={tab.id}
                     onClick={() => {
                       const sectionId = tab.id === "main" ? "section-dossier" : tab.id === "assets" ? "section-assets" : tab.id === "command" ? "section-command" : "section-shopify";
                       scrollToSection(sectionId);
+                    }}
+                    onMouseEnter={() => {
+                      window.dispatchEvent(new CustomEvent("telemetry-log", { 
+                        detail: { message: tab.diag, type: tab.id === "shopify" || tab.id === "assets" ? "FORGE_SYNC" : "SYSTEM" } 
+                      }));
                     }}
                     aria-label={`Navigate to ${tab.label}`}
                     whileHover={{ y: -1 }}
@@ -286,10 +337,10 @@ export default function App() {
                   className="absolute top-24 left-0 right-0 bg-black/57 backdrop-blur-3xl z-45 border-b border-[#c6b89e]/20 p-8 flex flex-col gap-5 md:hidden select-none"
                 >
                   {[
-                    { id: "main", label: "ATRIUM", hover: "OVERVIEW" },
-                    { id: "assets", label: "EXHIBITION", hover: "COLLECTION" },
-                    { id: "command", label: "COMMAND", hover: "RADAR COORDS" },
-                    { id: "shopify", label: "ATELIER SHOP", hover: "BOUTIQUE" },
+                    { id: "main", label: "01 ATRIUM (Entrance)", hover: "OVERVIEW", diag: "🛡️ [SANCTUM SECURITY] Mobile connection mapped... Sector Atrium clearance Level-5 verified." },
+                    { id: "assets", label: "02 GALLERY (Our Work)", hover: "VAULT MUSEUM", diag: "⚠️ [SANCTUM SECURITY] Decrypting mobile design vault collection matrices..." },
+                    { id: "command", label: "03 COMMAND (Active Map)", hover: "RADAR HUD", diag: "🛰️ [SANCTUM SECURITY] Mobile node linked. Satellite coordinate alignment synced." },
+                    { id: "shopify", label: "04 STORE (Boutique)", hover: "ATELIER SHOP", diag: "⚡ [SANCTUM SECURITY] Secure storefront synchronized. Interactive mobile AR active." },
                   ].map((tab, idx) => (
                     <button
                       key={tab.id}
@@ -297,6 +348,9 @@ export default function App() {
                         const sectionId = tab.id === "main" ? "section-dossier" : tab.id === "assets" ? "section-assets" : tab.id === "command" ? "section-command" : "section-shopify";
                         scrollToSection(sectionId);
                         setMobileMenuOpen(false);
+                        window.dispatchEvent(new CustomEvent("telemetry-log", { 
+                          detail: { message: tab.diag, type: tab.id === "shopify" || tab.id === "assets" ? "FORGE_SYNC" : "SYSTEM" } 
+                        }));
                       }}
                       className="text-left font-mono text-[10px] tracking-[6px] text-white/70 hover:text-[#c6b89e] transition-colors py-4 border-b border-white/5 flex justify-between items-center"
                     >

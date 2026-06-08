@@ -28,7 +28,9 @@ import {
   Layers,
   Shield,
   Activity,
-  RotateCw
+  RotateCw,
+  Camera,
+  Image as ImageIcon
 } from "lucide-react";
 import ScrambleText from "./ScrambleText";
 import Tooltip from "./Tooltip";
@@ -117,6 +119,13 @@ export default function ShopifyExport({ isInline }: ShopifyExportProps) {
   const [scanStatus, setScanStatus] = useState<"calibrating" | "ready" | "projecting">("calibrating");
   const [calibrationProgress, setCalibrationProgress] = useState(0);
 
+  // AR translation offsets & tactile drag positioning parameter hooks
+  const [arTranslateX, setArTranslateX] = useState(0);
+  const [arTranslateY, setArTranslateY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [flashActive, setFlashActive] = useState(false);
+
   // Webcam video elements state parameters
   const videoRef = useRef<HTMLVideoElement>(null);
   const [streamActive, setStreamActive] = useState(false);
@@ -157,11 +166,56 @@ export default function ShopifyExport({ isInline }: ShopifyExportProps) {
     };
   }, [arProduct, scanStatus]);
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - arTranslateX, y: e.clientY - arTranslateY });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setArTranslateX(e.clientX - dragStart.x);
+    setArTranslateY(e.clientY - dragStart.y);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      setIsDragging(true);
+      setDragStart({ 
+        x: e.touches[0].clientX - arTranslateX, 
+        y: e.touches[0].clientY - arTranslateY 
+      });
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || e.touches.length !== 1) return;
+    setArTranslateX(e.touches[0].clientX - dragStart.x);
+    setArTranslateY(e.touches[0].clientY - dragStart.y);
+  };
+
+  const handleCaptureSnapshot = () => {
+    setFlashActive(true);
+    setTimeout(() => setFlashActive(false), 220);
+    // Dispatch Telemetry Alert
+    window.dispatchEvent(new CustomEvent("telemetry-log", {
+      detail: { 
+        message: `📸 [AR PORTAL] Tactile viewport freeze: Snapshot aligned to host at coordinates [X: ${Math.round(arTranslateX)}px, Y: ${Math.round(arTranslateY)}px, Space Zoom: ${Math.round(arScale * 100)}%]`, 
+        type: "SYSTEM" 
+      }
+    }));
+  };
+
   useEffect(() => {
     let animId: number;
     if (arProduct) {
       setScanStatus("calibrating");
       setCalibrationProgress(0);
+      setArTranslateX(0);
+      setArTranslateY(0);
       
       const interval = setInterval(() => {
         setCalibrationProgress(prev => {
@@ -1373,94 +1427,135 @@ export default function ShopifyExport({ isInline }: ShopifyExportProps) {
                         transition={{ duration: 0.6 }}
                         className="w-full h-full flex items-center justify-center absolute"
                       >
+                        {/* Shutter Camera Flash Ambient Overlay */}
+                        {flashActive && (
+                          <div className="absolute inset-0 bg-white z-40 pointer-events-none transition-opacity duration-200" />
+                        )}
+
+                        {/* Floating Camera snap alignment controller */}
+                        <div className="absolute top-16 right-6 flex flex-col items-center gap-1 pointer-events-auto z-45 select-none">
+                          <button
+                            onClick={handleCaptureSnapshot}
+                            title="Capture aligned scene snapshot"
+                            className="p-3.5 rounded-full border border-[#ff4a00]/40 hover:border-[#ff4a00] bg-black/90 hover:bg-[#ff4a00] text-[#ff4a00] hover:text-black shadow-[0_0_15px_rgba(255,74,0,0.3)] transition-all cursor-pointer flex items-center justify-center focus:outline-none"
+                          >
+                            <Camera className="w-4.5 h-4.5" />
+                          </button>
+                          <span className="text-[7.5px] text-[#ff4a00] tracking-[2px] uppercase font-bold bg-black/75 px-1.5 py-0.5 mt-1 border border-white/5">SNAP HUD</span>
+                        </div>
+
                         {/* Immersive glowing laser scan wave */}
                         <div className="absolute w-[80%] h-0.5 bg-gradient-to-r from-transparent via-[#ff4a00]/30 to-transparent shadow-[0_0_12px_#ff4a00] animate-scanline pointer-events-none z-10" />
 
-                        {/* Interactive wireframe SVG assembly drawing */}
-                        <svg
-                          viewBox="0 0 400 400"
-                          className="w-[280px] h-[280px] filter drop-shadow-[0_0_20px_#ff4a00]"
+                        {/* Drag alignment coordinate track boundaries */}
+                        <div
                           style={{
-                            transform: `rotateY(${arAngle}deg) scale(${arScale})`,
+                            transform: `translate(${arTranslateX}px, ${arTranslateY}px)`,
                             transformStyle: "preserve-3d",
-                            color: arColor === 'red' ? '#ff4a00' : arColor === 'emerald' ? '#10b981' : '#c6b89e'
+                            cursor: isDragging ? 'grabbing' : 'grab',
                           }}
+                          onMouseDown={handleMouseDown}
+                          onMouseMove={handleMouseMove}
+                          onMouseUp={handleMouseUp}
+                          onMouseLeave={handleMouseUp}
+                          onTouchStart={handleTouchStart}
+                          onTouchMove={handleTouchMove}
+                          onTouchEnd={handleMouseUp}
+                          className="relative flex items-center justify-center p-8 select-none z-20 group"
                         >
-                          {/* Outer architectural compass axis elements */}
-                          <circle cx="200" cy="200" r="185" fill="none" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.1" />
-                          <circle cx="200" cy="200" r="175" fill="none" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.2" strokeDasharray="4 4" />
-                          <circle cx="200" cy="200" r="130" fill="none" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.15" />
+                          {/* Floating user guide instructions helper board */}
+                          <div className="absolute -top-12 opacity-80 group-hover:opacity-100 transition-opacity bg-black/90 p-2.5 border border-white/10 rounded-sm text-[8px] text-[#c6b89e] uppercase tracking-[2px] pointer-events-none text-center whitespace-nowrap shadow-xl">
+                            <span className="text-white font-bold text-[8.5px]">VISITOR GUIDE: ALIGN AR WIREFRAME IN YOUR SPACE</span>
+                            <br /><span className="text-white/40 text-[7px] mt-0.5 block">DRAG MODEL WITH MOUSE/TOUCH TO SHIFT BASE LOCATION</span>
+                          </div>
 
-                          {/* Dynamic SVG wireframe outline blueprint based on product type */}
-                          {arProduct.id.includes("watch") || arProduct.title.toLowerCase().includes("watch") || arProduct.id.includes("forged") ? (
-                            /* Planetary gear tourbillon watch */
-                            <g stroke="currentColor" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                              <circle cx="200" cy="200" r="95" strokeOpacity="0.6" />
-                              <circle cx="200" cy="200" r="85" strokeOpacity="0.4" />
-                              <circle cx="200" cy="200" r="30" strokeOpacity="0.75" />
-                              {/* Internal tourbillon mechanics cages */}
-                              <circle cx="200" cy="200" r="15" strokeDasharray="3 3" />
-                              {[0, 60, 120, 180, 240, 300].map((deg) => {
-                                const angle = (deg * Math.PI) / 180;
-                                return (
-                                  <line
-                                    key={deg}
-                                    x1={200 + Math.cos(angle) * 30}
-                                    y1={200 + Math.sin(angle) * 30}
-                                    x2={200 + Math.cos(angle) * 95}
-                                    y2={200 + Math.sin(angle) * 95}
-                                    strokeOpacity="0.3"
-                                  />
-                                );
-                              })}
-                              {/* Glowing hands */}
-                              <polyline points="200,200 240,140" strokeWidth="1.5" strokeOpacity="0.9" />
-                              <polyline points="200,200 160,195" strokeWidth="1.2" strokeOpacity="0.7" />
-                              {/* Outer gears */}
-                              <circle cx="200" cy="200" r="110" strokeDasharray="3 6" strokeOpacity="0.15" />
-                            </g>
-                          ) : arProduct.id.includes("chair") || arProduct.title.toLowerCase().includes("chair") ? (
-                            /* High-fidelity Lounge Chair mesh outline */
-                            <g stroke="currentColor" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                              <polygon points="120,110 280,110 260,220 140,220" strokeOpacity="0.6" />
-                              <line x1="120" y1="110" x2="260" y2="220" strokeOpacity="0.2" />
-                              <line x1="280" y1="110" x2="140" y2="220" strokeOpacity="0.2" />
-                              <polygon points="130,220 270,220 290,260 110,260" strokeOpacity="0.7" />
-                              <line x1="110" y1="260" x2="270" y2="220" strokeOpacity="0.3" />
-                              <line x1="140" y1="260" x2="160" y2="330" strokeOpacity="0.8" />
-                              <line x1="260" y1="260" x2="240" y2="330" strokeOpacity="0.8" />
-                              <line x1="110" y1="220" x2="110" y2="260" strokeOpacity="0.5" />
-                              <line x1="290" y1="220" x2="290" y2="260" strokeOpacity="0.5" />
-                              <ellipse cx="200" cy="330" rx="60" ry="12" strokeOpacity="0.4" />
-                            </g>
-                          ) : arProduct.title.toLowerCase().includes("sanctuary") || arProduct.id.includes("house") ? (
-                            /* Vault architectural rotunda */
-                            <g stroke="currentColor" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                              <ellipse cx="200" cy="280" rx="90" ry="25" strokeOpacity="0.6" />
-                              <ellipse cx="200" cy="220" rx="75" ry="20" strokeOpacity="0.4" />
-                              <ellipse cx="200" cy="160" rx="50" ry="13" strokeOpacity="0.3" />
-                              {[130, 160, 200, 240, 270].map((x) => (
-                                <line key={x} x1={x} y1={160} x2={x} y2={280} strokeOpacity="0.3" />
-                              ))}
-                              <rect x="90" y="280" width="220" height="15" strokeOpacity="0.8" />
-                              <rect x="70" y="295" width="260" height="15" strokeOpacity="0.9" />
-                            </g>
-                          ) : (
-                            /* Dual-hull yacht curves structural grid */
-                            <g stroke="currentColor" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                              <polygon points="200,80 290,260 110,260" strokeOpacity="0.6" />
-                              <polyline points="200,80 200,285" strokeOpacity="0.7" />
-                              <polygon points="100,260 300,260 270,312 130,312" strokeOpacity="0.7" />
-                              <polygon points="150,200 250,200 240,240 160,240" strokeOpacity="0.6" />
-                              <line x1="120" y1="312" x2="110" y2="340" />
-                              <line x1="280" y1="312" x2="290" y2="340" />
-                            </g>
-                          )}
-                        </svg>
+                          {/* Interactive wireframe SVG assembly drawing */}
+                          <svg
+                            viewBox="0 0 400 400"
+                            className="w-[280px] h-[280px] filter drop-shadow-[0_0_20px_var(--ar-col)]"
+                            style={{
+                              transform: `rotateY(${arAngle}deg) scale(${arScale})`,
+                              transformStyle: "preserve-3d",
+                              color: arColor === 'red' ? '#ff4a00' : arColor === 'emerald' ? '#10b981' : '#c6b89e',
+                              '--ar-col': arColor === 'red' ? '#ff4a00' : arColor === 'emerald' ? '#10b981' : '#c6b89e'
+                            } as any}
+                          >
+                            {/* Outer architectural compass axis elements */}
+                            <circle cx="200" cy="200" r="185" fill="none" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.1" />
+                            <circle cx="200" cy="200" r="175" fill="none" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.2" strokeDasharray="4 4" />
+                            <circle cx="200" cy="200" r="130" fill="none" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.15" />
+
+                            {/* Dynamic SVG wireframe outline blueprint based on product type */}
+                            {arProduct.id.includes("watch") || arProduct.title.toLowerCase().includes("watch") || arProduct.id.includes("forged") ? (
+                              /* Planetary gear tourbillon watch */
+                              <g stroke="currentColor" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="200" cy="200" r="95" strokeOpacity="0.6" />
+                                <circle cx="200" cy="200" r="85" strokeOpacity="0.4" />
+                                <circle cx="200" cy="200" r="30" strokeOpacity="0.75" />
+                                {/* Internal tourbillon mechanics cages */}
+                                <circle cx="200" cy="200" r="15" strokeDasharray="3 3" />
+                                {[0, 60, 120, 180, 240, 300].map((deg) => {
+                                  const angle = (deg * Math.PI) / 180;
+                                  return (
+                                    <line
+                                      key={deg}
+                                      x1={200 + Math.cos(angle) * 30}
+                                      y1={200 + Math.sin(angle) * 30}
+                                      x2={200 + Math.cos(angle) * 95}
+                                      y2={200 + Math.sin(angle) * 95}
+                                      strokeOpacity="0.3"
+                                    />
+                                  );
+                                })}
+                                {/* Glowing hands */}
+                                <polyline points="200,200 240,140" strokeWidth="1.5" strokeOpacity="0.9" />
+                                <polyline points="200,200 160,195" strokeWidth="1.2" strokeOpacity="0.7" />
+                                {/* Outer gears */}
+                                <circle cx="200" cy="200" r="110" strokeDasharray="3 6" strokeOpacity="0.15" />
+                              </g>
+                            ) : arProduct.id.includes("chair") || arProduct.title.toLowerCase().includes("chair") ? (
+                              /* High-fidelity Lounge Chair mesh outline */
+                              <g stroke="currentColor" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                                <polygon points="120,110 280,110 260,220 140,220" strokeOpacity="0.6" />
+                                <line x1="120" y1="110" x2="260" y2="220" strokeOpacity="0.2" />
+                                <line x1="280" y1="110" x2="140" y2="220" strokeOpacity="0.2" />
+                                <polygon points="130,220 270,220 290,260 110,260" strokeOpacity="0.7" />
+                                <line x1="110" y1="260" x2="270" y2="220" strokeOpacity="0.3" />
+                                <line x1="140" y1="260" x2="160" y2="330" strokeOpacity="0.8" />
+                                <line x1="260" y1="260" x2="240" y2="330" strokeOpacity="0.8" />
+                                <line x1="110" y1="220" x2="110" y2="260" strokeOpacity="0.5" />
+                                <line x1="290" y1="220" x2="290" y2="260" strokeOpacity="0.5" />
+                                <ellipse cx="200" cy="330" rx="60" ry="12" strokeOpacity="0.4" />
+                              </g>
+                            ) : arProduct.title.toLowerCase().includes("sanctuary") || arProduct.id.includes("house") ? (
+                              /* Vault architectural rotunda */
+                              <g stroke="currentColor" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                                <ellipse cx="200" cy="280" rx="90" ry="25" strokeOpacity="0.6" />
+                                <ellipse cx="200" cy="220" rx="75" ry="20" strokeOpacity="0.4" />
+                                <ellipse cx="200" cy="160" rx="50" ry="13" strokeOpacity="0.3" />
+                                {[130, 160, 200, 240, 270].map((x) => (
+                                  <line key={x} x1={x} y1={160} x2={x} y2={280} strokeOpacity="0.3" />
+                                ))}
+                                <rect x="90" y="280" width="220" height="15" strokeOpacity="0.8" />
+                                <rect x="70" y="295" width="260" height="15" strokeOpacity="0.9" />
+                              </g>
+                            ) : (
+                              /* Dual-hull yacht curves structural grid */
+                              <g stroke="currentColor" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                                <polygon points="200,80 290,260 110,260" strokeOpacity="0.6" />
+                                <polyline points="200,80 200,285" strokeOpacity="0.7" />
+                                <polygon points="100,260 300,260 270,312 130,312" strokeOpacity="0.7" />
+                                <polygon points="150,200 250,200 240,240 160,240" strokeOpacity="0.6" />
+                                <line x1="120" y1="312" x2="110" y2="340" />
+                                <line x1="280" y1="312" x2="290" y2="340" />
+                              </g>
+                            )}
+                          </svg>
+                        </div>
 
                         {/* Orbit axis label overlay */}
                         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 p-2 bg-black/60 border border-white/5 font-mono text-[8px] uppercase tracking-[3px] text-white/50 inline-block pointer-events-auto">
-                          PLANE_COORD: AXIS_Y_ROT // {Math.round(arAngle)}°
+                          PLANE_COORD: AXIS_Y_ROT // {Math.round(arAngle)}° // X: {Math.round(arTranslateX)} // Y: {Math.round(arTranslateY)}
                         </div>
                       </motion.div>
                     )}

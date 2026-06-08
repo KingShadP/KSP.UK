@@ -251,6 +251,14 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
         {/* --- DUST MOTES HIGH-PERFORMANCE INTERACTIVE CANVAS LAYER --- */}
         <MotesCanvas eye={eye} containerRef={containerRef} />
 
+        {/* --- 4D VOLUMETRIC CORRIDOR DEPTH MAP OVERLAY --- */}
+        <VolumetricCorridor 
+          smoothVelocity={smoothVelocity} 
+          smoothProgress={smoothProgress} 
+          springX={springX} 
+          springY={springY} 
+        />
+
         {/* ROOM 1: Sovereign Atrium (The Outer Threshold Portal) */}
         <motion.div
           style={{
@@ -987,6 +995,126 @@ function AtmosphericDustMotes() {
         </svg>
       </div>
     </>
+  );
+}
+
+interface VolumetricCorridorProps {
+  smoothVelocity: any;
+  smoothProgress: any;
+  springX: any;
+  springY: any;
+}
+
+function VolumetricCorridor({ smoothVelocity, smoothProgress, springX, springY }: VolumetricCorridorProps) {
+  // Translate velocity into elegant, physical displacement dimensions
+  const displacementScale = useTransform(smoothVelocity, (v) => Math.min(32, Math.abs(v as number) * 0.045));
+  
+  // Acceleration depth pull: zooming corridors when user accelerates scroll speed
+  const accelerationPull = useTransform(smoothVelocity, (v) => {
+    const speed = Math.abs(v as number);
+    return Math.min(1.22, 1.0 + speed * 0.002);
+  });
+
+  const speedGlowIntensity = useTransform(smoothVelocity, (v) => {
+    const speed = Math.abs(v as number);
+    return Math.min(0.85, 0.2 + speed * 0.015);
+  });
+
+  const mouseDriftX = useTransform(springX, (x) => `${(x as number) * -45}px`);
+  const mouseDriftY = useTransform(springY, (y) => `${(y as number) * -45}px`);
+
+  // Simple nested portal ring coordinates
+  const portalRings = [
+    { z: -150, opacity: 0.25, width: "100%", height: "100%" },
+    { z: -100, opacity: 0.45, width: "85%", height: "85%" },
+    { z: -50, opacity: 0.65, width: "70%", height: "70%" },
+    { z: 0, opacity: 0.85, width: "55%", height: "55%" },
+    { z: 50, opacity: 0.95, width: "40%", height: "40%" },
+  ];
+
+  return (
+    <div 
+      className="absolute inset-0 pointer-events-none select-none z-0 overflow-hidden mix-blend-screen"
+      style={{
+        perspective: "1200px",
+        transformStyle: "preserve-3d",
+      }}
+    >
+      {/* SVG Volumetric Filter Def for dynamic turbulence rendering */}
+      <svg className="w-0 h-0 absolute">
+        <defs>
+          <filter id="corridorWarpFilter" x="-50%" y="-50%" width="200%" height="200%">
+            {/* Turbulence fractal that shifts under acceleration */}
+            <feTurbulence type="fractalNoise" baseFrequency="0.008" numOctaves="3" result="noise" />
+            <motion.feDisplacementMap 
+              in="SourceGraphic" 
+              in2="noise" 
+              scale={displacementScale} 
+              xChannelSelector="R" 
+              yChannelSelector="G" 
+            />
+          </filter>
+        </defs>
+      </svg>
+
+      {/* Layered Volumetric Corridor Depth Plates */}
+      <motion.div
+        style={{
+          scale: accelerationPull,
+          x: mouseDriftX,
+          y: mouseDriftY,
+          transformStyle: "preserve-3d",
+        }}
+        className="relative w-full h-full flex items-center justify-center filter saturate-[0.9]"
+      >
+        {portalRings.map((ring, idx) => {
+          return (
+            <motion.div
+              key={idx}
+              style={{
+                z: ring.z,
+                width: ring.width,
+                height: ring.height,
+                transformStyle: "preserve-3d",
+                filter: "url(#corridorWarpFilter)",
+                opacity: ring.opacity,
+              }}
+              className="absolute flex items-center justify-center border border-[#c6b89e]/15 shadow-inner transition-colors duration-500 rounded-lg pointer-events-none"
+            >
+              {/* Internal volumetric gradient flare representing atmospheric lights */}
+              <motion.div 
+                style={{
+                  opacity: speedGlowIntensity,
+                  background: `radial-gradient(circle at center, rgba(255, 74, 0, 0.04) 0%, rgba(198, 184, 158, 0.01) 70%, transparent 100%)`
+                }}
+                className="absolute inset-4 blur-2xl"
+              />
+
+              {/* Holographic depth alignment lines linking outer grids to center */}
+              <div className="absolute inset-1 border border-dashed border-[#ff4a00]/5 rounded" />
+
+              {/* Aesthetic corporate quadrant metrics markers */}
+              <span className="absolute top-2 left-3 font-mono text-[6.5px] text-[#c6b89e]/40 tracking-wider">
+                CH_DEPT_Z // {ring.z}M
+              </span>
+              <span className="absolute bottom-2 right-3 font-mono text-[6px] text-white/20 tracking-wider">
+                4D_CORRIDOR_METRIC_OK
+              </span>
+            </motion.div>
+          );
+        })}
+
+        {/* Dynamic center light source tunnel guide */}
+        <motion.div
+          style={{
+            scale: useTransform(smoothVelocity, (v) => 1.0 + Math.abs(v as number) * 0.005),
+            opacity: useTransform(smoothVelocity, (v) => Math.min(0.55, 0.15 + Math.abs(v as number) * 0.02)),
+            boxShadow: `0 0 160px 80px rgba(255, 74, 0, 0.15), 0 0 80px 40px rgba(198, 184, 158, 0.1)`,
+          }}
+          className="w-16 h-16 rounded-full bg-white/5 absolute blur-md z-[-5]"
+        />
+      </motion.div>
+    </div>
   );
 }
 
