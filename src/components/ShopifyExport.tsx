@@ -55,39 +55,39 @@ interface CartItem {
 const CURATED_DEFAULT_PRODUCTS: Product[] = [
   {
     id: "KSD-01",
-    title: "Atelier Chrono 'Aura'",
-    description: "Highly structural luxury wristwatch. Cast in grade 5 titanium with an elegant satin finish, and a tourbillon movement reflecting custom cosmic coordinates.",
-    price: "28,500.00",
-    currency: "EUR",
-    imgUrl: "1523275335652-32a74c7402a5", // Watch
-    specs: ["Grade 5 Titanium", "60-Hour Power Reserve", "Tourbillon Calibre", "Saphire Crystall Case"]
+    title: "ARMORED LS",
+    description: "Built for the king. Japanese selvedge, custom reinforcement, hand-stitched. Only 25 units produced worldwide. [Connected to: 'Regal Echoes of GOD' era. Beautifully represents protective systems and high-end DIY encryption.]",
+    price: "420.00",
+    currency: "USD",
+    imgUrl: "/ChatGPT Image May 16, 2026, 05_00_22 AM (4).png",
+    specs: ["Japanese Selvedge Denim", "Hand-stitched detailing", "Protective Geometry cut", "Limited to 25 units"]
   },
   {
     id: "KSD-02",
-    title: "Avarice Obsidian Lounge Chair",
-    description: "Monolithic accent chair hand-formed from aerospace-grade structural carbon fiber composite and finished in high-polish black lacquer. Elegant space-maximizing geometry.",
-    price: "18,900.00",
-    currency: "EUR",
-    imgUrl: "1567538096630-e0c55bd6374c", // Modern chair
-    specs: ["Aegean Architecture-inspired", "Structural Carbon Fiber", "High-Polish Black Lacquer", "Ergonomic Tension Shell"]
+    title: "CIPHER VEST",
+    description: "The system made visible. Protective multi-pocket layout, rigid technical fabric, custom gold fire detailing. [Connected to: the initial mythology release. An ultimate uniform item for true believers of the empire.]",
+    price: "580.00",
+    currency: "USD",
+    imgUrl: "/ChatGPT Image May 16, 2026, 04_32_03 AM (1).png",
+    specs: ["Waterproof ballistic polymer", "Magnetic pocket triggers", "Gold-fire filament accents", "Individually numbered run"]
   },
   {
     id: "KSD-03",
-    title: "Sovereign Coast Architectural Blueprint",
-    description: "Complete spatial planning suite and physical blueprints for our cliffside Aegean residential compound. Complete with custom energy calculations and geothermal grids.",
-    price: "450,000.00",
-    currency: "EUR",
-    imgUrl: "1513694203232-719a280e022f", // Luxurious architectural interior
-    specs: ["Aegean Sea Coordinates", "Self-sustaining systems", "Geothermal power integration", "Complete digital Revit files"]
+    title: "SACRED CHRONO ATELIER",
+    description: "Complete spatial timepiece engineered with orbital alignment paths. Cast in grade 5 titanium with an elegant satin finish, tourbillon movement reflecting Miami-to-Aegean coordinates.",
+    price: "28,500.00",
+    currency: "USD",
+    imgUrl: "/ChatGPT Image May 5, 2026, 11_25_04 PM.png",
+    specs: ["Grade 5 Brushed Titanium", "60-Hour orbital reserve", "Manual tourbillon calibre", "Anti-reflective sapphire face"]
   },
   {
     id: "KSD-04",
-    title: "The Kingshadp Horizon Yacht Cruise",
-    description: "Exclusive charter of the 86M yacht 'Horizon'. 7 days in pristine Mediterranean international waters, accommodating up to 12 esteemed guests under total secure isolation.",
-    price: "1,250,000.00",
-    currency: "EUR",
-    imgUrl: "1559136555-9303baea8ebd", // Yacht
-    specs: ["86-Meter Hybrid propulsion", "Helipad & Sub-tender support", "18 Cabin crew inclusive", "Satellite Encryption Suite"]
+    title: "SOCIETY MASK // SHIELD L9",
+    description: "A thermal-suppressive face protective guard. Crafted from matte carbon fiberglass composites. Connected to the 'STEALTH L9' electromagnetic total silence era.",
+    price: "1,850.00",
+    currency: "USD",
+    imgUrl: "/ChatGPT Image May 16, 2026, 04_28_18 AM (4).png",
+    specs: ["Molded aerospace carbon", "Thermal emission dampening", "Glow-suppressed mesh liner", "One-of-one collection piece"]
   }
 ];
 
@@ -1005,7 +1005,7 @@ export default function ShopifyExport({ isInline }: ShopifyExportProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 pb-20">
         {products.map((product, pIdx) => {
           // Detect if image is standard unsplash ID or live URL
-          const srcUrl = product.imgUrl.startsWith("http") 
+          const srcUrl = (product.imgUrl.startsWith("http") || product.imgUrl.startsWith("/")) 
             ? product.imgUrl 
             : `https://images.unsplash.com/photo-${product.imgUrl}?q=80&w=800&auto=format&fit=crop`;
 
@@ -1190,7 +1190,7 @@ export default function ShopifyExport({ isInline }: ShopifyExportProps) {
                     /* Active Cart Items */
                     <div className="space-y-6">
                       {cart.map((item) => {
-                        const cellUrl = item.product.imgUrl.startsWith("http") 
+                        const cellUrl = (item.product.imgUrl.startsWith("http") || item.product.imgUrl.startsWith("/")) 
                           ? item.product.imgUrl 
                           : `https://images.unsplash.com/photo-${item.product.imgUrl}?q=80&w=300&auto=format&fit=crop`;
 

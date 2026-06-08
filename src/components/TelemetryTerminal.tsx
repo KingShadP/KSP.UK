@@ -17,7 +17,7 @@ export interface TelemetryLogEntry {
 
 export default function TelemetryTerminal() {
   const [logs, setLogs] = useState<TelemetryLogEntry[]>([]);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [activeSensors, setActiveSensors] = useState<string[]>([]);
   const [efficiency, setEfficiency] = useState(99.4);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -158,7 +158,7 @@ export default function TelemetryTerminal() {
       case "CAMERA_RAW":
         return "text-cyan-400 font-bold";
       case "WARNING":
-        return "text-[#ff4a00] font-bold animate-pulse";
+        return "text-[#93000a] font-bold animate-pulse";
       case "USER_INPUT":
         return "text-amber-400";
       case "FORGE_SYNC":
@@ -180,7 +180,7 @@ export default function TelemetryTerminal() {
             initial={{ opacity: 0, y: 15, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 15, scale: 0.95 }}
-            className="w-[340px] md:w-[480px] h-[220px] bg-black/92 border border-[#c6b89e]/20 hover:border-[#ff4a00]/30 shadow-[0_20px_50px_rgba(0,0,0,0.85)] flex flex-col justify-between overflow-hidden relative backdrop-blur-md"
+            className="w-[340px] md:w-[480px] h-[220px] bg-black/92 border border-[#c6b89e]/20 hover:border-[#93000a]/30 shadow-[0_20px_50px_rgba(0,0,0,0.85)] flex flex-col justify-between overflow-hidden relative backdrop-blur-md"
           >
             {/* Corner decals */}
             <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/20" />
@@ -191,7 +191,7 @@ export default function TelemetryTerminal() {
             {/* Header control line */}
             <div className="flex justify-between items-center bg-white/[0.02] px-4 py-2.5 border-b border-white/5">
               <div className="flex items-center gap-2">
-                <Terminal className="w-3.5 h-3.5 text-[#ff4a00]" />
+                <Terminal className="w-3.5 h-3.5 text-[#93000a]" />
                 <span className="text-[9px] font-bold tracking-[2.5px] text-white uppercase pt-0.5">
                   SYSTEM_TELEMETRY // RX_LOGS
                 </span>
@@ -223,7 +223,7 @@ export default function TelemetryTerminal() {
                 <span className="truncate">INTEGRITY: 100%</span>
               </div>
               <div className="flex items-center gap-1 col-span-2">
-                <Cpu className="w-2.5 h-2.5 text-[#ff4a00]" />
+                <Cpu className="w-2.5 h-2.5 text-[#93000a]" />
                 <span className="truncate uppercase font-bold text-white/60">SYS_EFF: {efficiency}%</span>
               </div>
               <div className="text-right text-[#c6b89e] uppercase truncate">
@@ -240,7 +240,7 @@ export default function TelemetryTerminal() {
                 <div key={log.id} className="flex items-start gap-2 border-b border-white/[0.01] pb-1 hover:bg-white/[0.01] transition-colors">
                   <span className="text-white/20 shrink-0 select-none">[{log.timestamp}]</span>
                   <span className="text-[#c6b89e]/40 shrink-0 select-none">{log.hex}</span>
-                  <CornerDownRight className="w-2.5 h-2.5 shrink-0 text-[#ff4a00]/50 mt-0.5 select-none" />
+                  <CornerDownRight className="w-2.5 h-2.5 shrink-0 text-[#93000a]/50 mt-0.5 select-none" />
                   <span className={`${getLogTypeColor(log.type)} break-all`}>
                     {log.message}
                   </span>
@@ -259,10 +259,10 @@ export default function TelemetryTerminal() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             onClick={() => setIsOpen(true)}
-            className="px-4 py-2 bg-black/85 border border-[#c6b89e]/30 hover:border-[#ff4a00] text-[#c6b89e] hover:text-white font-mono text-[9px] tracking-[2px] uppercase cursor-pointer flex items-center gap-2 backdrop-blur-md"
+            className="px-4 py-2 bg-black/85 border border-[#c6b89e]/30 hover:border-[#93000a] text-[#c6b89e] hover:text-white font-mono text-[9px] tracking-[2px] uppercase cursor-pointer flex items-center gap-2 backdrop-blur-md"
             id="RestoreTelemetryHUDButton"
           >
-            <Terminal className="w-3.5 h-3.5 text-[#ff4a00]" />
+            <Terminal className="w-3.5 h-3.5 text-[#93000a]" />
             <span>[ INJECT_TELEMETRY_HUD ]</span>
           </motion.button>
         )}

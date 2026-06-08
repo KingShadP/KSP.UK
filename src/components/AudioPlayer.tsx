@@ -10,28 +10,28 @@ import ScrambleText from "./ScrambleText";
 
 const AUDIO_TRACKS = [
   {
-    id: "hawaii_sanctum",
-    title: "HAWAII SANCTUM // VOID REEF",
+    id: "regal_echoes",
+    title: "REGAL ECHOES OF GOD (DEMO)",
     channel: '"CHANNEL 01"',
-    location: "HONOLULU, HI [HQ]",
+    location: "MIAMI BEACH, FL [HQ]",
     codec: ".WAV",
     kbps: "1411 KBPS",
     url: "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=beethoven-moonlight-sonata-1st-movement-114-9983.mp3"
   },
   {
-    id: "miami_atrium",
-    title: "MIAMI ATRIUM // GOLD DEEP",
+    id: "unfinished_untitled",
+    title: "UNFINISHED. UNEDITED. UNTITLED",
     channel: '"CHANNEL 02"',
-    location: "MIAMI BEACH, FL [HQ]",
+    location: "AEGEAN CROWN, GR [VAULT]",
     codec: ".FLAC",
     kbps: "4608 KBPS",
     url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
   },
   {
-    id: "moonlight",
-    title: "CROWN ASCENSION // ARTIFACT",
+    id: "god_is_woman",
+    title: "GOD IS A WOMAN (REMIX) // THE ROYAL manifesto",
     channel: '"CHANNEL 03"',
-    location: "SANTORINI, GR",
+    location: "VAULT STUDIO ARCHIVE",
     codec: ".AIFF",
     kbps: "2304 KBPS",
     url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"

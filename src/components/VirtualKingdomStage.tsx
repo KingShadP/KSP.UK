@@ -199,19 +199,19 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
     return (
       <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-8 z-25 font-mono text-[9px] text-[#c6b89e]/70">
         <div className="absolute inset-12 border border-[#c6b89e]/10 rounded-full flex items-center justify-center">
-          <div className="w-2.5 h-2.5 border-t border-l border-[#ff4a00]/70 absolute -top-1 -left-1" />
-          <div className="w-2.5 h-2.5 border-t border-r border-[#ff4a00]/70 absolute -top-1 -right-1" />
-          <div className="w-2.5 h-2.5 border-b border-l border-[#ff4a00]/70 absolute -bottom-1 -left-1" />
-          <div className="w-2.5 h-2.5 border-b border-r border-[#ff4a00]/70 absolute -bottom-1 -right-1" />
+          <div className="w-2.5 h-2.5 border-t border-l border-[#93000a]/70 absolute -top-1 -left-1" />
+          <div className="w-2.5 h-2.5 border-t border-r border-[#93000a]/70 absolute -top-1 -right-1" />
+          <div className="w-2.5 h-2.5 border-b border-l border-[#93000a]/70 absolute -bottom-1 -left-1" />
+          <div className="w-2.5 h-2.5 border-b border-r border-[#93000a]/70 absolute -bottom-1 -right-1" />
           <div className="w-24 h-24 border border-dashed border-[#c6b89e]/15 rounded-full animate-spin" style={{ animationDuration: "120s" }} />
-          <div className="w-[1px] h-12 bg-[#ff4a00]/15 absolute" />
-          <div className="w-12 h-[1px] bg-[#ff4a00]/15 absolute" />
+          <div className="w-[1px] h-12 bg-[#93000a]/15 absolute" />
+          <div className="w-12 h-[1px] bg-[#93000a]/15 absolute" />
         </div>
 
         <div className="flex justify-between items-start bg-black/30 backdrop-blur-xs p-3 border border-white/5 relative">
           <div className="space-y-1">
-            <div className="font-bold tracking-widest text-[#ff4a00] flex items-center gap-1.5 animate-pulse">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#ff4a00]" />
+            <div className="font-bold tracking-widest text-[#93000a] flex items-center gap-1.5 animate-pulse">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#93000a]" />
               STEREOSCOPIC VR // ACTIVE
             </div>
             <div className="text-white/40 uppercase text-[7px] tracking-wider">SPECTRAL MATRIX EYE: {eyeLabel}</div>
@@ -231,7 +231,7 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
             <div className="text-[7px] text-white/30 uppercase tracking-widest">Atelier Hologram Sync OK</div>
           </div>
           <div className="flex items-center gap-2">
-            <Activity className="w-3.5 h-3.5 text-[#ff4a00] animate-pulse" />
+            <Activity className="w-3.5 h-3.5 text-[#93000a] animate-pulse" />
             <span className="tracking-wider text-[8px]">SENSORS_REFRESH: 90Hz</span>
           </div>
         </div>
@@ -273,7 +273,7 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
           className="absolute inset-[-120px] filter blur-3xl mix-blend-screen pointer-events-none"
           style={{
             backgroundImage: `radial-gradient(ellipse at 30% 60%, rgba(198, 184, 158, 0.15) 0%, transparent 65%),
-                              radial-gradient(ellipse at 75% 25%, rgba(255, 74, 0, 0.08) 0%, transparent 55%),
+                              radial-gradient(ellipse at 75% 25%, rgba(147, 0, 10, 0.08) 0%, transparent 55%),
                               radial-gradient(ellipse at 15% 85%, rgba(198, 184, 158, 0.10) 0%, transparent 70%)`,
           }}
         />
@@ -327,7 +327,7 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
 
       {/* --- SOVEREIGN VR TOGGLE HUB CONTROLS PANEL --- */}
       <div 
-        className="absolute bottom-6 left-6 z-40 bg-black/75 border border-[#c6b89e]/20 hover:border-[#ff4a00]/40 p-3 flex items-center gap-4 pointer-events-auto transition-all backdrop-blur-md rounded-none shadow-[2px_15px_30px_rgba(0,0,0,0.8)]"
+        className="absolute bottom-6 left-6 z-40 bg-black/75 border border-[#c6b89e]/20 hover:border-[#93000a]/40 p-3 flex items-center gap-4 pointer-events-auto transition-all backdrop-blur-md rounded-none shadow-[2px_15px_30px_rgba(0,0,0,0.8)]"
         id="SpatialHubControlsPanel"
       >
         <div className="flex flex-col gap-0.5">
@@ -345,7 +345,7 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
           onClick={() => setVrActive(!vrActive)}
           className={`flex items-center gap-2 px-3 py-1.5 text-[9px] font-mono tracking-[2px] uppercase transition-all duration-300 cursor-pointer border ${
             vrActive
-              ? "bg-[#ff4a00]/20 text-[#ff4a00] border-[#ff4a00] hover:bg-transparent hover:text-white"
+              ? "bg-[#93000a]/20 text-[#93000a] border-[#93000a] hover:bg-transparent hover:text-white"
               : "bg-transparent text-white border-white/20 hover:border-[#c6b89e] hover:text-[#c6b89e]"
           }`}
           title="Toggle 4D Spatial Stereoscopic dual-eye mode"
@@ -384,7 +384,7 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
             <div className="text-[12px] font-serif uppercase tracking-[15px] text-[#c6b89e] mt-4">
               CHANNELING SECURE PORTAL
             </div>
-            <div className="text-[8px] font-mono tracking-[4px] text-[#ff4a00]">
+            <div className="text-[8px] font-mono tracking-[4px] text-[#93000a]">
               AUTO_COORDINATING SOVEREIGN GATEWAY...
             </div>
           </div>
@@ -445,7 +445,7 @@ function MotesCanvas({
         vy: (Math.random() - 0.7) * 0.55, 
         size: 0.8 + Math.random() * 2.4,
         depth: 0.5 + Math.random() * 2.5, 
-        color: Math.random() > 0.4 ? "198, 184, 158" : "255, 74, 0", 
+        color: Math.random() > 0.4 ? "198, 184, 158" : "147, 0, 10", 
         alpha: 0.15 + Math.random() * 0.4,
         pulseSpeed: 0.008 + Math.random() * 0.015,
         pulseTime: Math.random() * Math.PI * 2,
@@ -550,7 +550,7 @@ function AtmosphericDustMotes({ isLowPerformance }: { isLowPerformance: boolean 
         size: 1.2 + Math.random() * 4.5,
         delay: `${Math.random() * -45}s`,
         duration: `${35 + Math.random() * 65}s`,
-        color: isGold ? "rgba(198, 184, 158, 0.42)" : "rgba(255, 74, 0, 0.30)",
+        color: isGold ? "rgba(198, 184, 158, 0.42)" : "rgba(147, 0, 10, 0.30)",
       };
     })
   ).current;
@@ -703,12 +703,12 @@ function VolumetricCorridor({ smoothVelocity, smoothProgress, springX, springY, 
               <motion.div 
                 style={{
                   opacity: speedGlowIntensity,
-                  background: `radial-gradient(circle at center, rgba(255, 74, 0, 0.04) 0%, rgba(198, 184, 158, 0.01) 70%, transparent 100%)`
+                  background: `radial-gradient(circle at center, rgba(147, 0, 10, 0.04) 0%, rgba(198, 184, 158, 0.01) 70%, transparent 100%)`
                 }}
                 className="absolute inset-4 blur-2xl"
               />
 
-              <div className="absolute inset-1 border border-dashed border-[#ff4a00]/5 rounded" />
+              <div className="absolute inset-1 border border-dashed border-[#93000a]/5 rounded" />
 
               <span className="absolute top-2 left-3 font-mono text-[6.5px] text-[#c6b89e]/40 tracking-wider">
                 CH_DEPT_Z // {ring.z}M
@@ -724,7 +724,7 @@ function VolumetricCorridor({ smoothVelocity, smoothProgress, springX, springY, 
           style={{
             scale: useTransform(smoothVelocity, (v) => 1.0 + Math.abs(v as number) * 0.005),
             opacity: useTransform(smoothVelocity, (v) => Math.min(0.55, 0.15 + Math.abs(v as number) * 0.02)),
-            boxShadow: `0 0 160px 80px rgba(255, 74, 0, 0.15), 0 0 80px 40px rgba(198, 184, 158, 0.1)`,
+            boxShadow: `0 0 160px 80px rgba(147, 0, 10, 0.15), 0 0 80px 40px rgba(198, 184, 158, 0.1)`,
           }}
           className="w-16 h-16 rounded-full bg-white/5 absolute blur-md z-[-5]"
         />

@@ -95,7 +95,7 @@ export default function SovereignWebGLStage({ isLowPerformance = false }: Sovere
       uniform float u_scroll_speed;
       uniform float u_depth_scale;
 
-      // Pseudo-random noise for volumetric drift simulation
+      // Pseudo-random noise for volumetric space mist and star distribution
       float noise(vec2 p) {
         return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
       }
@@ -106,71 +106,116 @@ export default function SovereignWebGLStage({ isLowPerformance = false }: Sovere
         vec2 p = uv - 0.5;
         p.x *= u_resolution.x / u_resolution.y;
 
-        // Perspective-based mouse parallax offset & drift
-        vec2 mouseOffset = u_mouse * 0.15;
+        // Perspective-based mouse parallax offset & celestial drift
+        vec2 mouseOffset = u_mouse * 0.12;
         
-        // Volumetric drift cycle
-        float driftAngle = u_time * 0.15;
-        vec2 drift = vec2(sin(driftAngle), cos(driftAngle)) * 0.04;
+        // Soft gravity pull celestial drift cycle
+        float driftAngle = u_time * 0.08;
+        vec2 drift = vec2(sin(driftAngle), cos(driftAngle)) * 0.03;
         
         // Apply camera shift warp
         p += mouseOffset + drift;
 
-        // Spherical polar coordinate mappings mapping perspective
+        // Spherical polar coordinate mappings for space geometries
         float r = length(p);
         float theta = atan(p.y, p.x);
 
-        // Simulated infinite depth corridor calculation (true virtual room entrance corridor)
-        // Guard against division by zero at the center point
-        float depth = 1.0 / (r + 0.008);
+        // Real-time interactive cosmic velocity effects
+        float kineticImpact = mix(u_mouse_velocity * 0.5, u_scroll_speed * 1.0, 0.4);
+        float accelerationFactor = clamp(kineticImpact * 0.10, 0.0, 0.70);
+
+        // 1. STARFIELD GENERATION (Aesthetic, glittering stardust space)
+        float stars = 0.0;
         
-        // Real-time interactive warp speed modulations
-        float kineticImpact = mix(u_mouse_velocity * 0.8, u_scroll_speed * 1.5, 0.5);
-        float accelerationFactor = clamp(kineticImpact * 0.12, 0.0, 0.85);
-        
-        // Offset deep layers by scroll progression + kinetic warp acceleration with high precision, mouse velocity guided depth scaling
-        float depthLayers = (depth * u_depth_scale) - u_scroll * 6.5 - (u_time * 0.25) * (1.0 + accelerationFactor * 2.0);
+        // First background layer: Micro-stardust
+        vec2 st1 = p * 15.0;
+        vec2 ip1 = floor(st1);
+        vec2 fp1 = fract(st1) - 0.5;
+        float h1 = noise(ip1);
+        if (h1 > 0.91) {
+          float twinkle = sin(u_time * 1.5 + h1 * 6.28) * 0.5 + 0.5;
+          stars += smoothstep(0.05, 0.0, length(fp1)) * twinkle * 0.22;
+        }
 
-        // Grid-based structural divisions mapping luxurious portal lines
-        // 8-way architectural support ribs extending into depth center
-        float ribGrid = step(0.965, cos(theta * 8.0)) * step(0.2, r);
+        // Second background layer: Mid-distance stars
+        vec2 st2 = p * 28.0;
+        vec2 ip2 = floor(st2);
+        vec2 fp2 = fract(st2) - 0.5;
+        float h2 = noise(ip2 + vec2(37.4, 82.1));
+        if (h2 > 0.955) {
+          float twinkle = sin(u_time * 2.8 + h2 * 6.28) * 0.5 + 0.5;
+          stars += smoothstep(0.11, 0.0, length(fp2)) * twinkle * 0.38;
+        }
 
-        // Circular geometric portal rings pulsing through high accuracy depth coordinates
-        float rings = step(0.94 - (accelerationFactor * 0.05), fract(depthLayers * 0.4));
+        // Third background layer: Closer sparkling stellar points
+        vec2 st3 = p * 45.0;
+        vec2 ip3 = floor(st3);
+        vec2 fp3 = fract(st3) - 0.5;
+        float h3 = noise(ip3 + vec2(13.9, 44.8));
+        if (h3 > 0.985) {
+          float twinkle = sin(u_time * 4.2 + h3 * 6.28) * 0.5 + 0.5;
+          stars += smoothstep(0.16, 0.0, length(fp3)) * twinkle * 0.55;
+        }
 
-        // Depth cueing opacity modulation to fade distant points to absolute blackness
-        float depthCue = smoothstep(1.3, 0.04, r);
+        // 2. SOVEREIGN COSMIC SYSTEM (Concentric Hairline Planetary Orbits)
+        // 4 elegant concentric blueprint circles mapping luxurious planetary paths
+        float orbit1 = smoothstep(0.0016, 0.0, abs(r - 0.16));
+        float orbit2 = smoothstep(0.0013, 0.0, abs(r - 0.30));
+        float orbit3 = smoothstep(0.0010, 0.0, abs(r - 0.46));
+        float orbit4 = smoothstep(0.0008, 0.0, abs(r - 0.65));
+        float orbits = (orbit1 * 0.07) + (orbit2 * 0.05) + (orbit3 * 0.04) + (orbit4 * 0.03);
 
-        // Shift color profile dynamically between Room Stages:
-        // Section 1: Deep Aegean Blue -> Section 2-3: Gold -> Section 4: Searing Boutique Orange
-        vec3 colAegean = vec3(0.06, 0.37, 0.71);    // Aegean Blue
-        vec3 colGold = vec3(0.77, 0.72, 0.62);      // Champagne Gold
-        vec3 colBoutique = vec3(1.0, 0.29, 0.0);    // Searing Boutique Orange
+        // 3. CELESTIAL PLANETARY BODIES (Glow node planets revolving on orbits)
+        // Orbit 1: Inner Gold Node
+        vec2 planetPos1 = vec2(cos(u_time * 0.32 + 1.5) * 0.16, sin(u_time * 0.32 + 1.5) * 0.16);
+        float planetGlow1 = 0.0012 / (length(p - planetPos1) + 0.0010);
+
+        // Orbit 2: Companion Platinum Node
+        vec2 planetPos2 = vec2(cos(-u_time * 0.22 + 4.2) * 0.30, sin(-u_time * 0.22 + 4.2) * 0.30);
+        float planetGlow2 = 0.0016 / (length(p - planetPos2) + 0.0010);
+
+        // Orbit 3: Primary Crimson Overlord Planet
+        vec2 planetPos3 = vec2(cos(u_time * 0.13 + 0.8) * 0.46, sin(u_time * 0.13 + 0.8) * 0.46);
+        float planetGlow3 = 0.0022 / (length(p - planetPos3) + 0.0014);
+
+        // Orbit 4: Distant Muted Star Node
+        vec2 planetPos4 = vec2(cos(-u_time * 0.07 + 5.9) * 0.65, sin(-u_time * 0.07 + 5.9) * 0.65);
+        float planetGlow4 = 0.0018 / (length(p - planetPos4) + 0.0016);
+
+        float allPlanets = planetGlow1 + planetGlow2 + planetGlow3 + planetGlow4;
+
+        // Depth cueing opacity modulation to fade distant points gracefully
+        float depthCue = smoothstep(1.5, 0.02, r);
+
+        // Map luxury theme colors: Oxblood Red (#93000a), Muted Gold (#dcc57b), Platinum (#c9c6c5)
+        vec3 colOxblood = vec3(0.58, 0.00, 0.04);   // Deep Luxury Oxblood
+        vec3 colGold = vec3(0.86, 0.77, 0.48);      // Muted Golden Glow
+        vec3 colPlatinum = vec3(0.79, 0.78, 0.77);  // Polished Platinum
 
         vec3 currentSecColor;
         if (u_scroll < 0.33) {
           float t = u_scroll / 0.33;
-          currentSecColor = mix(colAegean, colGold, t);
+          currentSecColor = mix(colOxblood, colGold, t);
         } else if (u_scroll < 0.66) {
           float t = (u_scroll - 0.33) / 0.33;
-          currentSecColor = mix(colGold, colGold * 1.1, t);
+          currentSecColor = mix(colGold, colPlatinum, t);
         } else {
           float t = (u_scroll - 0.66) / 0.34;
-          currentSecColor = mix(colGold * 1.1, colBoutique, t);
+          currentSecColor = mix(colPlatinum, colOxblood, t);
         }
 
-        // Add procedural light sweeps emitting from the central depth focal point
-        float focalSweep = 0.045 / (r + 0.002);
+        // 4. CENTRAL LUXURY SOLAR CORE Flare glow emitting from focus
+        float solarCore = 0.0065 / (r + 0.0015);
         
-        // Procedural volumetric drift fog using screen space noise patterns (skip noise math on low performance specs)
-        float volumetricDrift = ${isLowPerformance ? "0.0" : "noise(uv * 12.0 + vec2(0.0, u_time * 0.8)) * 0.045 * (1.0 - r)"};
+        // Procedural cosmic nebula drift fog using coordinate scale noise
+        float volumetricDrift = ${isLowPerformance ? "0.0" : "noise(uv * 8.0 + vec2(0.0, u_time * 0.3)) * 0.012 * (1.0 - r)"};
 
-        // Final wireframe architecture glow intensities
-        vec3 structureColor = currentSecColor * (ribGrid * 1.4 + rings * 2.2);
-        vec3 combinedColor = structureColor + currentSecColor * (focalSweep + volumetricDrift);
+        // Combine celestial systems
+        float spaceStructures = stars * 1.5 + orbits * 1.1 + allPlanets;
+        vec3 combinedColor = currentSecColor * spaceStructures + currentSecColor * (solarCore + volumetricDrift);
 
-        // Modulate buffer opacity dynamically with real-time mouse/scroll acceleration sparks
-        float baseOpacity = 0.04 + (0.16 * (1.0 - accelerationFactor));
+        // Modulate buffer opacity dynamically with real-time mouse/scroll variables
+        float baseOpacity = 0.009 + (0.011 * (1.0 - accelerationFactor));
         float finalAlpha = baseOpacity * depthCue;
 
         gl_FragColor = vec4(combinedColor, finalAlpha);

@@ -28,7 +28,7 @@ const ASSETS_LIST: Asset[] = [
     name: '"MEDITERRANEAN CRUISER"',
     specs: "HYBRID HULL / 86M / BESPOKE OUTLAY",
     price: "€ 142.000.000",
-    img: "src/assets/images/regenerated_image_1780886692001.png",
+    img: "/ChatGPT Image May 16, 2026, 04_28_18 AM (5).png",
     fullSpecs: [
       "86M L.O.A. Custom Hull",
       "Hybrid Propulsion Unit",
@@ -47,7 +47,7 @@ const ASSETS_LIST: Asset[] = [
     name: '"EXECUTIVE TRANSIT JET"',
     specs: "G700 / EXTENDED RANGE / ACU-CABIN",
     price: "€ 88.500.000",
-    img: "src/assets/images/regenerated_image_1780886695981.png",
+    img: "/ChatGPT Image May 16, 2026, 04_28_18 AM (2).png",
     fullSpecs: [
       "Extended Range Fuel Configuration",
       "Custom Chronos Flight Cabin Suite",
@@ -66,7 +66,7 @@ const ASSETS_LIST: Asset[] = [
     name: '"AEGEAN SANCTUM COMPLEX"',
     specs: "CLIFFSIDE RESIDENCY / GEOTHERMAL",
     price: "€ 112.500.000",
-    img: "src/assets/images/regenerated_image_1780886685578.png",
+    img: "/ChatGPT Image May 12, 2026, 05_20_18 PM.png",
     fullSpecs: [
       "Self-sustaining Geothermal Plant",
       "Off-grid Seismic Damping Protection",
@@ -85,7 +85,7 @@ const ASSETS_LIST: Asset[] = [
     name: '"CREATIVE ATELIER WORKSTATION"',
     specs: "ATELIER HUB / DIGITAL COMMS",
     price: "€ 24.000.000",
-    img: "src/assets/images/regenerated_image_1780886688598.png",
+    img: "/ChatGPT Image May 16, 2026, 04_16_44 AM (5).png",
     fullSpecs: [
       "Bespoke High-bandwidth Fiber Trunks",
       "Precision Solar Thermal Grid Backups",

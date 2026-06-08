@@ -19,25 +19,26 @@ import SanctuaryAmbient from "./components/SanctuaryAmbient";
 import Tooltip from "./components/Tooltip";
 import TelemetryTerminal from "./components/TelemetryTerminal";
 
-type TabState = "main" | "assets" | "command" | "shopify";
+type TabState = "home" | "listen" | "vault" | "artifacts" | "lore" | "archive";
 
-const SECTIONS_ORDER: TabState[] = ["main", "assets", "command", "shopify"];
+const SECTIONS_ORDER: TabState[] = ["home", "listen", "vault", "artifacts", "lore", "archive"];
 const SECTION_SELECTORS: Record<TabState, string> = {
-  main: "section-dossier",
-  assets: "section-assets",
-  command: "section-command",
-  shopify: "section-shopify"
+  home: "section-home",
+  listen: "section-listen",
+  vault: "section-vault",
+  artifacts: "section-artifacts",
+  lore: "section-lore",
+  archive: "section-archive"
 };
 
 const SHIELD = 'aesthetic check';
 
 export default function App() {
   const [accessGranted, setAccessGranted] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabState>("main");
+  const [activeTab, setActiveTab] = useState<TabState>("home");
   const [showChatDrawer, setShowChatDrawer] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrollPercent, setScrollPercent] = useState(0);
-  const [touchTransitionActive, setTouchTransitionActive] = useState(false);
 
   // Scroll dynamics parameters for 4D HUD acceleration tracker
   const [scrollSpeed, setScrollSpeed] = useState(0);
@@ -47,117 +48,7 @@ export default function App() {
   const [climateUnit, setClimateUnit] = useState<"F" | "C" | "H">("F");
   const [shieldLevel, setShieldLevel] = useState<1 | 5 | 9>(5);
 
-  // High-precision touch event tracker for mobile flick-velocity detection
-  const touchStateRef = useRef({
-    startY: 0,
-    startTime: 0,
-    transitioning: false,
-    activeTab: "main" as TabState,
-  });
-
-  useEffect(() => {
-    touchStateRef.current.activeTab = activeTab;
-  }, [activeTab]);
-
-  useEffect(() => {
-    if (!accessGranted) return;
-
-    const handleTouchStart = (e: TouchEvent) => {
-      if (window.innerWidth >= 768) return; 
-      if (touchStateRef.current.transitioning) return;
-
-      const touch = e.touches[0];
-      touchStateRef.current.startY = touch.clientY;
-      touchStateRef.current.startTime = Date.now();
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (window.innerWidth >= 768) return;
-      // If currently transitioning, prevent default behavior to avoid scroll clashes and jitter
-      if (touchStateRef.current.transitioning) {
-        if (e.cancelable) e.preventDefault();
-      }
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      if (window.innerWidth >= 768) return;
-      if (touchStateRef.current.transitioning) return;
-
-      if (e.changedTouches.length === 0) return;
-      
-      const touch = e.changedTouches[0];
-      const endY = touch.clientY;
-      const endTime = Date.now();
-
-      const deltaY = endY - touchStateRef.current.startY;
-      const deltaTime = endTime - touchStateRef.current.startTime;
-
-      if (deltaTime <= 0) return;
-
-      const distance = Math.abs(deltaY);
-      const velocity = distance / deltaTime; // pixels per millisecond
-
-      const minDistance = 40; // minimum touch swiped distance (px)
-      const flickSensitivityMultiplier = 0.38; // fine-tuned flick velocity multiplier sensitivity (px/ms)
-
-      if (distance >= minDistance && velocity >= flickSensitivityMultiplier) {
-        const isSwipeUp = deltaY < 0; // Swipe up moves the page DOWN (next section)
-        const currentTab = touchStateRef.current.activeTab;
-        const currentIndex = SECTIONS_ORDER.indexOf(currentTab);
-
-        let targetIndex = currentIndex;
-        if (isSwipeUp) {
-          if (currentIndex < SECTIONS_ORDER.length - 1) {
-            targetIndex = currentIndex + 1;
-          }
-        } else {
-          if (currentIndex > 0) {
-            targetIndex = currentIndex - 1;
-          }
-        }
-
-        if (targetIndex !== currentIndex) {
-          if (e.cancelable) e.preventDefault();
-
-          const targetTab = SECTIONS_ORDER[targetIndex];
-          const targetSelector = SECTION_SELECTORS[targetTab];
-
-          setTouchTransitionActive(true);
-          touchStateRef.current.transitioning = true;
-
-          window.dispatchEvent(new CustomEvent("telemetry-log", {
-            detail: { 
-              message: `📱 VELOCITY_SWIPE: FLICK METRIC [${velocity.toFixed(2)} px/ms] SURPASSED MULTIPLIER [${flickSensitivityMultiplier} px/ms]. DISENGAGING SCROLL-SNAP. INITIATING HIGH-PRECISION CAMERA PUSH COORDS JUMP TO [${targetTab.toUpperCase()}].`, 
-              type: "SYSTEM" 
-            }
-          }));
-
-          const el = document.getElementById(targetSelector);
-          if (el) {
-            el.scrollIntoView({ behavior: "smooth", block: "start" });
-          }
-
-          // Dynamic cool-down to allow webGL camera corridor pushes to ease in perfectly
-          setTimeout(() => {
-            touchStateRef.current.transitioning = false;
-            setTouchTransitionActive(false);
-          }, 850);
-        }
-      }
-    };
-
-    window.addEventListener("touchstart", handleTouchStart, { passive: true });
-    window.addEventListener("touchmove", handleTouchMove, { passive: false });
-    window.addEventListener("touchend", handleTouchEnd, { passive: false });
-
-    return () => {
-      window.removeEventListener("touchstart", handleTouchStart);
-      window.removeEventListener("touchmove", handleTouchMove);
-      window.removeEventListener("touchend", handleTouchEnd);
-    };
-  }, [accessGranted]);
-
-  // Monitor real scroll depth to highlight the headers links appropriately
+  // Monitor scroll depth of active page to highlight HUD scrollbars and logs
   useEffect(() => {
     if (!accessGranted) return;
     let lastScrollY = window.scrollY;
@@ -173,6 +64,8 @@ export default function App() {
       const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
       if (totalHeight > 0) {
         setScrollPercent((currentScrollY / totalHeight) * 100);
+      } else {
+        setScrollPercent(0);
       }
 
       lastScrollY = currentScrollY;
@@ -190,54 +83,29 @@ export default function App() {
       window.removeEventListener("scroll", handleScroll);
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [accessGranted]);
-
-  // Unified high-precision Intersection Observer to sync active tab boundaries beautifully
-  useEffect(() => {
-    if (!accessGranted) return;
-
-    const sections = [
-      { id: "main", selector: "section-dossier" },
-      { id: "assets", selector: "section-assets" },
-      { id: "command", selector: "section-command" },
-      { id: "shopify", selector: "section-shopify" }
-    ];
-
-    const observerOptions = {
-      root: null,
-      rootMargin: "-45% 0px -45% 0px", // Trigger when entering the central screen focus region
-      threshold: 0.01
-    };
-
-    const handleIntersection = (entries: IntersectionObserverEntry[]) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const sectionId = entry.target.id;
-          const matched = sections.find((s) => s.selector === sectionId);
-          if (matched) {
-            setActiveTab(matched.id as TabState);
-          }
-        }
-      });
-    };
-
-    const observer = new IntersectionObserver(handleIntersection, observerOptions);
-
-    sections.forEach((sec) => {
-      const el = document.getElementById(sec.selector);
-      if (el) observer.observe(el);
-    });
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [accessGranted]);
+  }, [accessGranted, activeTab]);
 
   const scrollToSection = (sectionId: string) => {
-    const el = document.getElementById(sectionId);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    const tabMap: Record<string, TabState> = {
+      "section-home": "home",
+      "section-listen": "listen",
+      "section-vault": "vault",
+      "section-artifacts": "artifacts",
+      "section-lore": "lore",
+      "section-archive": "archive",
+      "home": "home",
+      "listen": "listen",
+      "vault": "vault",
+      "artifacts": "artifacts",
+      "lore": "lore",
+      "archive": "archive"
+    };
+    const targetTab = tabMap[sectionId] || "home";
+    setActiveTab(targetTab);
+    
+    // Smooth transitions between distinct page coordinates while automatically recovering scrolling bounds
+    window.scrollTo({ top: 0, behavior: "instant" as any });
+    setScrollPercent(0);
   };
 
   useEffect(() => {
@@ -270,10 +138,12 @@ export default function App() {
       const enteringName = activeTab.toUpperCase();
 
       const messages: { [key: string]: string } = {
-        main: "SYSTEM DECK TRACE: ENTERED SOVEREIGN ATRIUM CHAMBER. BIOMETRIC RESIDENCY LEVEL-9 CONFIRMED.",
-        assets: "SYSTEM DECK TRACE: TRANSITIONED TO SOVEREIGN ASSETS EXHIBITION DECK. STAGE PERSPECTIVES SYNCHRONIZED.",
-        command: "SYSTEM DECK TRACE: LINKED TO CORE COMMAND CONTROL PLATFORM. HIGH-SEC GRID BUFFERS ENGAGED.",
-        shopify: "SYSTEM DECK TRACE: ACTIVE SHOP COMMERCE VAULT SECURED. PREPARING INDIVIDUAL PORTAL CAMERA EMITTERS."
+        home: "EMPIRE DETECT: ENTERED THE SECTORS MANIFESTO. INTUITING GENERAL KING DIRECTIVES.",
+        listen: "EMPIRE DETECT: SYNCHRONIZING REALTIME FREQUENCY CHANNELS. INITIALIZING EMBED STREAM NODES.",
+        vault: "EMPIRE DETECT: LINKING TIMELINE HISTORICAL ARCHIVES AND SOUND DEMO PLAYMETRIC REGISTERS.",
+        artifacts: "EMPIRE DETECT: BOOTING COMMERCE TERMINALS. UNIFORM REPLICAS PRE-EMPTED [0PX ENVELOPE].",
+        lore: "EMPIRE DETECT: OPENING ENCRYPTED THEOLOGY DOSSIER. PLAY IDENT PERSONA RECORDS.",
+        archive: "EMPIRE DETECT: SYNCHRONIZING RADAR GLOBAL LOGS AND DIRECTIVE SCRIBE SCRATCH JOURNALS."
       };
 
       const leavingMsg = `SYS_ROUTE: EXITED SECTOR CONTAINER [${leavingName}]. SHUTTING DOWN LOCAL MATRIX.`;
@@ -299,19 +169,19 @@ export default function App() {
     setShowChatDrawer(true);
   };
 
-  // Aegean blue (16, 95, 180) to Champagne Gold (198, 184, 158) to Boutique searing orange (255, 74, 0)
+  // Deep Oxblood Crimson (147, 0, 10) to Muted Gold (220, 197, 123) to Polished Platinum (201, 198, 197)
   const getInterpolatedColor = (pct: number) => {
     if (pct < 50) {
       const t = pct / 50;
-      const r = Math.round(16 * (1 - t) + 198 * t);
-      const g = Math.round(95 * (1 - t) + 184 * t);
-      const b = Math.round(180 * (1 - t) + 158 * t);
+      const r = Math.round(147 * (1 - t) + 220 * t);
+      const g = Math.round(0 * (1 - t) + 197 * t);
+      const b = Math.round(10 * (1 - t) + 123 * t);
       return `rgb(${r}, ${g}, ${b})`;
     } else {
       const t = (pct - 50) / 50;
-      const r = Math.round(198 * (1 - t) + 255 * t);
-      const g = Math.round(184 * (1 - t) + 74 * t);
-      const b = Math.round(158 * (1 - t) + 0 * t);
+      const r = Math.round(220 * (1 - t) + 201 * t);
+      const g = Math.round(197 * (1 - t) + 198 * t);
+      const b = Math.round(123 * (1 - t) + 197 * t);
       return `rgb(${r}, ${g}, ${b})`;
     }
   };
@@ -319,14 +189,14 @@ export default function App() {
   const depthColor = getInterpolatedColor(scrollPercent);
 
   return (
-    <div className="min-h-screen bg-[#020202] text-white font-sans overflow-x-hidden selection:bg-[#ff4a00]/30 selection:text-white custom-aiming-reticle relative">
+    <div className="min-h-screen bg-[#020202] text-white font-sans overflow-x-hidden selection:bg-[#93000a]/30 selection:text-white custom-aiming-reticle relative">
       {/* Immersive Client custom cursor rings */}
       {accessGranted && (
         <div
           id="sanctum-global-cursor-ring"
           className="w-10 h-10 border border-[#c6b89e]/30 rounded-full pointer-events-none fixed -translate-x-[20px] -translate-y-[20px] z-[99999] transition-all duration-75 mix-blend-difference hidden lg:block"
         >
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#ff4a00] rounded-full" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#93000a] rounded-full" />
         </div>
       )}
 
@@ -339,26 +209,10 @@ export default function App() {
 
       {/* Cyberpunk Scanline ambient tracker */}
       <div className="fixed inset-0 pointer-events-none z-30 overflow-hidden opacity-[0.015]">
-        <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-[#ff4a00] to-transparent animate-scanline" />
+        <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-[#93000a] to-transparent animate-scanline" />
       </div>
 
-      {/* GPU Accelerated Mobile CSS Scroll-Snapping Stylesheet */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        @media (max-width: 768px) {
-          html, body {
-            scroll-snap-type: ${touchTransitionActive ? "none" : "y mandatory"} !important;
-            scroll-behavior: smooth !important;
-            overscroll-behavior-y: none !important;
-          }
-          #section-dossier,
-          #section-assets,
-          #section-command,
-          #section-shopify {
-            scroll-snap-align: ${touchTransitionActive ? "none" : "start"} !important;
-            scroll-snap-stop: always !important;
-          }
-        }
-      `}} />
+
 
       {/* Main Container workspace */}
       {accessGranted && (
@@ -434,25 +288,29 @@ export default function App() {
               />
 
               {[
-                { id: "main", num: "01", label: "ATRIUM (Overview)", sectionId: "section-dossier" },
-                { id: "assets", num: "02", label: "EXHIBITION (Our Work)", sectionId: "section-assets" },
-                { id: "command", num: "03", label: "COMMAND (Interactive Map)", sectionId: "section-command" },
-                { id: "shopify", num: "04", label: "BOUTIQUE (Atelier Store)", sectionId: "section-shopify" }
+                { id: "home", num: "01", label: "HOME (Manifesto)", sectionId: "section-home" },
+                { id: "listen", num: "02", label: "LISTEN (Frequencies)", sectionId: "section-listen" },
+                { id: "vault", num: "03", label: "VAULT (Live Catalog)", sectionId: "section-vault" },
+                { id: "artifacts", num: "04", label: "ARTIFACTS (Uniforms)", sectionId: "section-artifacts" },
+                { id: "lore", num: "05", label: "LORE (Mythology)", sectionId: "section-lore" },
+                { id: "archive", num: "06", label: "ARCHIVE (Scribe & Radar)", sectionId: "section-archive" }
               ].map((item, idx) => {
                 const isActive = activeTab === item.id;
                 return (
-                  <Tooltip key={item.id} message={`SYS_NAV: Coordinate jump to ${item.num} // ${item.label}`}>
+                  <Tooltip key={item.id} message={`SYS_NAV: Coordinate jump to ${item.num} // {item.label}`}>
                     <button
                       onClick={() => scrollToSection(item.sectionId)}
                       onMouseEnter={() => {
                         const messages: {[key: string]: string} = {
-                          main: "🛡️ [SANCTUM SECURITY] Active gateway checking credentials... IP mapped to Sector 0xAA. Atrium clearance Level-5 verified.",
-                          assets: "⚠️ [SANCTUM SECURITY] Querying physical & digital design vault collection matrices... Decrypting catalog signatures...",
-                          command: "🛰️ [SANCTUM SECURITY] Syncing satellite alignment telemetry. Global visitation journals database online & synchronized.",
-                          shopify: "⚡ [SANCTUM SECURITY] Secured Shopify storefront synchronized. Direct camera-AR visual projection controller calibration active."
+                          home: "🛡️ [GATEWAY] Live biometric trace aligned... Main Atrium credentials set to Sovereign level.",
+                          listen: "🎵 [FREQUENCY] Buffers engaged. Active list of sound channels ready. Checking hardware synth.",
+                          vault: "🗄️ [VAULT] Tracking streams: 395 SoundCloud believers, 5.77K Audiomack manifests secured.",
+                          artifacts: "👕 [ITEMS] Artifact drop inventory: ARMORED LS (25 total units), CIPHER VEST (custom geometry).",
+                          lore: "📖 [THEOLOGY] Parsing character god-complex briefs and Miami roots archive timeline.",
+                          archive: "🛰️ [RADAR HUD] Syncing satellite alignment telemetry. Global visitation records and notes online."
                         };
                         window.dispatchEvent(new CustomEvent("telemetry-log", { 
-                          detail: { message: messages[item.id], type: item.id === "shopify" || item.id === "assets" ? "FORGE_SYNC" : "SYSTEM" } 
+                          detail: { message: messages[item.id], type: item.id === "artifacts" || item.id === "listen" ? "FORGE_SYNC" : "SYSTEM" } 
                         }));
                       }}
                       aria-label={`Scroll to ${item.label}`}
@@ -506,8 +364,8 @@ export default function App() {
 
           {/* Right Decorative margin bar - Desktop only */}
           <div className="absolute right-0 top-0 bottom-0 w-8 border-l border-[#c6b89e]/10 flex flex-col items-center justify-between py-12 pointer-events-none z-35 hidden md:flex mix-blend-screen select-none">
-            <div className="w-1.5 h-1.5 bg-[#ff4a00] animate-pulse rounded-full shadow-[0_0_8px_#ff4a00]" />
-            <div className="rotate-90 font-mono text-[7px] tracking-[8px] text-[#ff4a00]/80 uppercase whitespace-nowrap">
+            <div className="w-1.5 h-1.5 bg-[#93000a] animate-pulse rounded-full shadow-[0_0_8px_#93000a]" />
+            <div className="rotate-90 font-mono text-[7px] tracking-[8px] text-[#93000a]/80 uppercase whitespace-nowrap">
               "SYSTEMS_NOMINAL"
             </div>
             <div className="w-[1px] h-32 border-l border-dashed border-[#c6b89e]/40" />
@@ -541,27 +399,28 @@ export default function App() {
                   <button
                     onClick={() => setShowChatDrawer(!showChatDrawer)}
                     aria-label="Toggle executive AI system"
-                    className="px-4 py-2 border border-[#ff4a00]/30 hover:bg-[#ff4a00] hover:text-black font-semibold tracking-[3px] text-[#ff4a00] hover:shadow-[0_0_20px_rgba(255,74,0,0.3)] transition-all uppercase cursor-pointer mr-6 font-mono"
+                    className="px-4 py-2 border border-[#93000a]/30 hover:bg-[#93000a] hover:text-white font-semibold tracking-[3px] text-[#93000a] hover:shadow-[0_0_20px_rgba(147,0,10,0.3)] transition-all uppercase cursor-pointer mr-6 font-mono"
                   >
                     "CHAT CONCIERGE"
                   </button>
                 </Tooltip>
 
                 {[
-                  { id: "main", label: "01 ATRIUM (Entrance)", hover: "OVERVIEW", diag: "🛡️ [SANCTUM SECURITY] Active gateway checking credentials... IP mapped to Sector 0xAA. Atrium clearance Level-5 verified." },
-                  { id: "assets", label: "02 GALLERY (Our Work)", hover: "VAULT MUSEUM", diag: "⚠️ [SANCTUM SECURITY] Querying physical & digital design vault collection matrices... Decrypting rare asset signatures..." },
-                  { id: "command", label: "03 COMMAND (Active Map)", hover: "RADAR HUD", diag: "🛰️ [SANCTUM SECURITY] Syncing satellite alignment telemetry. Global client visitation database online & synced." },
-                  { id: "shopify", label: "04 STORE (Boutique)", hover: "ATELIER SHOP", diag: "⚡ [SANCTUM SECURITY] Secured Shopify storefront synced. Direct camera-AR visual projection controller calibration active." },
+                  { id: "home", label: "HOME", hover: "MANIFESTO", diag: "🛡️ [GATEWAY] Live biometric trace aligned... Main Atrium credentials set to Sovereign level." },
+                  { id: "listen", label: "LISTEN", hover: "FREQUENCY", diag: "🎵 [FREQUENCY] Buffers engaged. Active list of sound channels ready. Checking hardware synth." },
+                  { id: "vault", label: "VAULT", hover: "CATALOG", diag: "🗄️ [VAULT] Tracking streams: 395 SoundCloud believers, 5.77K Audiomack manifests secured." },
+                  { id: "artifacts", label: "ARTIFACTS", hover: "UNIFORMS", diag: "👕 [ITEMS] Artifact drop inventory: ARMORED LS (25 total units), CIPHER VEST (custom geometry)." },
+                  { id: "lore", label: "LORE", hover: "MYTHOLOGY", diag: "📖 [THEOLOGY] Parsing character god-complex briefs and Miami roots archive timeline." },
+                  { id: "archive", label: "ARCHIVE", hover: "RECORDS", diag: "🛰️ [RADAR HUD] Syncing satellite alignment telemetry. Global visitation records and notes online." },
                 ].map((tab, idx) => (
                   <motion.button
                     key={tab.id}
                     onClick={() => {
-                      const sectionId = tab.id === "main" ? "section-dossier" : tab.id === "assets" ? "section-assets" : tab.id === "command" ? "section-command" : "section-shopify";
-                      scrollToSection(sectionId);
+                      scrollToSection(`section-${tab.id}`);
                     }}
                     onMouseEnter={() => {
                       window.dispatchEvent(new CustomEvent("telemetry-log", { 
-                        detail: { message: tab.diag, type: tab.id === "shopify" || tab.id === "assets" ? "FORGE_SYNC" : "SYSTEM" } 
+                        detail: { message: tab.diag, type: tab.id === "artifacts" || tab.id === "listen" ? "FORGE_SYNC" : "SYSTEM" } 
                       }));
                     }}
                     aria-label={`Navigate to ${tab.label}`}
@@ -574,7 +433,7 @@ export default function App() {
                     <span className="text-[7.5px] opacity-30 absolute -top-4 -right-1.5 font-mono">
                       0{idx + 1}
                     </span>
-                    <ScrambleText text={tab.label} hoverText={tab.hover} delay={2200} duration={600} triggerOnHover />
+                    <ScrambleText text={tab.label} hoverText={tab.hover} delay={200} duration={600} triggerOnHover />
                     <span
                       className={`absolute bottom-0 right-0 h-[1.5px] bg-[#c6b89e] transition-all duration-350 ${
                         activeTab === tab.id ? "w-full" : "w-0 group-hover:w-full"
@@ -588,7 +447,7 @@ export default function App() {
               <div className="md:hidden pointer-events-auto mt-2 flex gap-4 items-center">
                 <button
                   onClick={() => setShowChatDrawer(!showChatDrawer)}
-                  className="text-[#ff4a00] p-2.5 h-full border border-[#ff4a00]/30 uppercase font-mono text-[9px] tracking-[2px] bg-black/60 backdrop-blur-md"
+                  className="text-[#93000a] p-2.5 h-full border border-[#93000a]/30 uppercase font-mono text-[9px] tracking-[2px] bg-black/60 backdrop-blur-md"
                 >
                   CHAT
                 </button>
@@ -612,19 +471,20 @@ export default function App() {
                   className="absolute top-24 left-0 right-0 bg-black/57 backdrop-blur-3xl z-45 border-b border-[#c6b89e]/20 p-8 flex flex-col gap-5 md:hidden select-none"
                 >
                   {[
-                    { id: "main", label: "01 ATRIUM (Entrance)", hover: "OVERVIEW", diag: "🛡️ [SANCTUM SECURITY] Mobile connection mapped... Sector Atrium clearance Level-5 verified." },
-                    { id: "assets", label: "02 GALLERY (Our Work)", hover: "VAULT MUSEUM", diag: "⚠️ [SANCTUM SECURITY] Decrypting mobile design vault collection matrices..." },
-                    { id: "command", label: "03 COMMAND (Active Map)", hover: "RADAR HUD", diag: "🛰️ [SANCTUM SECURITY] Mobile node linked. Satellite coordinate alignment synced." },
-                    { id: "shopify", label: "04 STORE (Boutique)", hover: "ATELIER SHOP", diag: "⚡ [SANCTUM SECURITY] Secure storefront synchronized. Interactive mobile AR active." },
+                    { id: "home", label: "01 HOME", hover: "THE ARCHIVE", diag: "🛡️ [GATEWAY] Mobile login registered." },
+                    { id: "listen", label: "02 LISTEN", hover: "STREAM MUSIC", diag: "🎵 [FREQUENCY] Buffering soundtrack." },
+                    { id: "vault", label: "03 VAULT", hover: "LOGS", diag: "🗄️ [VAULT] Historical releases synced." },
+                    { id: "artifacts", label: "04 ARTIFACTS", hover: "BUY CLOTHING", diag: "👕 [ITEMS] Secure mobile store active." },
+                    { id: "lore", label: "05 LORE", hover: "STORY", diag: "📖 [THEOLOGY] Reading Miami/Aegean biography." },
+                    { id: "archive", label: "06 ARCHIVE", hover: "RECORDS", diag: "🛰️ [RADAR] Global logging client online." },
                   ].map((tab, idx) => (
                     <button
                       key={tab.id}
                       onClick={() => {
-                        const sectionId = tab.id === "main" ? "section-dossier" : tab.id === "assets" ? "section-assets" : tab.id === "command" ? "section-command" : "section-shopify";
-                        scrollToSection(sectionId);
+                        scrollToSection(`section-${tab.id}`);
                         setMobileMenuOpen(false);
                         window.dispatchEvent(new CustomEvent("telemetry-log", { 
-                          detail: { message: tab.diag, type: tab.id === "shopify" || tab.id === "assets" ? "FORGE_SYNC" : "SYSTEM" } 
+                          detail: { message: tab.diag, type: tab.id === "artifacts" || tab.id === "listen" ? "FORGE_SYNC" : "SYSTEM" } 
                         }));
                       }}
                       className="text-left font-mono text-[10px] tracking-[6px] text-white/70 hover:text-[#c6b89e] transition-colors py-4 border-b border-white/5 flex justify-between items-center"
@@ -637,246 +497,488 @@ export default function App() {
               )}
             </AnimatePresence>
 
-            {/* Central routing screen loader container */}
+             {/* Central routing screen loader container */}
             <div className="flex-grow flex flex-col w-full px-6 md:px-12 xl:px-24 relative z-20">
               
-              {/* SECTION 1: DOSSIER CHAMBER (Sovereign Threshold / Outer Portal Room) */}
-              <div
-                id="section-dossier"
-                className="w-full min-h-screen flex flex-col lg:flex-row gap-12 pt-28 pb-16 items-stretch relative"
-              >
-                <div className="absolute top-[88px] left-0 font-mono text-[8.5px] tracking-[5px] text-[#c6b89e]/30 uppercase select-none">
-                  01 // INTRODUCTORY ATRIUM
-                </div>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 70, scale: 0.985, filter: "blur(10px)" }}
+                  animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, y: -70, scale: 0.985, filter: "blur(10px)" }}
+                  transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1]                   {/* SECTION 1: HOME (Manifesto Threshold) */}
+                  {activeTab === "home" && (
+                    <div
+                      id="section-home"
+                      className="w-full min-h-[calc(100vh-200px)] flex flex-col lg:flex-row gap-12 pt-28 pb-16 items-stretch relative"
+                    >
+                      <div className="absolute top-[88px] left-0 font-mono text-[8.5px] tracking-[5px] text-[#c6b89e]/30 uppercase select-none">
+                        01 // THE THRESHOLD / HOME
+                      </div>
 
-                {/* Left Panel column: Critical recommendations introduction */}
-                <div className="flex-grow flex-1 flex flex-col justify-center text-left py-10 md:py-16">
-                  <div className="inline-flex max-w-max items-center gap-4 mb-8 border border-[#c6b89e]/20 bg-black/40 px-5 py-2.5 backdrop-blur-md">
-                    <Cpu className="w-4 h-4 text-[#c6b89e] animate-pulse" />
-                    <span className="text-[9px] md:text-[10px] font-mono uppercase tracking-[5px] text-[#c6b89e] pt-0.5 font-bold">
-                      <ScrambleText text="EXCLUSIVE ATELIER SUITE" delay={2100} duration={100} />
-                    </span>
-                  </div>
-
-                  <h2 className="font-serif text-4xl sm:text-5xl md:text-7xl xl:text-8xl font-normal leading-none tracking-tighter text-white mb-6 relative select-none">
-                    {/* Orange Floating identity tag */}
-                    <div className="absolute top-[-15px] right-[10%] rotate-[12deg] bg-[#ff4a00] text-black font-sans font-bold text-[9px] md:text-[10px] px-3 py-1 uppercase tracking-[3px] shadow-[0_10px_20px_rgba(255,74,0,0.3)] select-none">
-                      "ESTATE"
-                    </div>
-
-                    <span className="block italic text-[#c6b89e] opacity-90 leading-tight">
-                      <ScrambleText text="Atelier" delay={2300} duration={1200} triggerOnHover />
-                    </span>
-                    <span className="block ml-6 sm:ml-12 md:ml-16 leading-tight">
-                      Kingshadp.
-                    </span>
-                  </h2>
-
-                  {/* Decrypted descriptive copy briefs */}
-                  <div className="grid grid-cols-1 gap-8 border-t border-[#c6b89e]/30 pt-8 mt-10 max-w-3xl relative select-text">
-                    <div className="absolute top-0 left-0 w-24 h-[1px] bg-[#c6b89e] shadow-[0_0_15px_rgba(198,184,158,0.8)]" />
-                    <p className="text-[13.5px] md:text-base text-white/50 font-light leading-relaxed font-sans text-justify selection:bg-[#ff4a00]/30">
-                      <span className="text-[#c6b89e] text-lg md:text-xl font-serif italic mr-2 text-left leading-none tracking-tight">"Welcome</span>
-                      to Atelier Kingshadp. An elite architectural sanctuary and digital design laboratory overlooking absolute Aegean horizons. We craft bespoke physical commissions, private luxury products, and custom high-fidelity Shopify storefronts with timeless precision.
-                    </p>
-
-                    <div className="flex flex-col sm:flex-row gap-5 items-stretch mt-4">
-                      <Tooltip message="SYS_DIAG: Open encrypted communication pipeline to our AI concierge for personalized specifications.">
-                        <button
-                          onClick={handleInitiateDeploy}
-                          aria-label="Access AI Concierge Assistant"
-                          className="flex items-center justify-between gap-8 px-8 py-5 border border-[#c6b89e] text-[#c6b89e] font-mono text-[9.5px] tracking-[5px] uppercase hover:bg-[#c6b89e] hover:text-black hover:shadow-[0_0_30px_rgba(198,184,158,0.3)] transition-all duration-500 relative overflow-hidden group cursor-pointer focus:outline-none"
-                        >
-                          <span className="relative z-10 font-bold pt-0.5">
-                            <ScrambleText text="TALK TO CONCIERGE" hoverText="ACTIVATE" delay={2500} duration={800} triggerOnHover />
+                      {/* Left Panel column: Brand Identity statement */}
+                      <div className="flex-grow flex-1 flex flex-col justify-center text-left py-10 md:py-16">
+                        <div className="inline-flex max-w-max items-center gap-4 mb-8 border border-[#c6b89e]/20 bg-black/40 px-5 py-2.5 backdrop-blur-md">
+                          <Cpu className="w-4 h-4 text-[#c6b89e] animate-pulse" />
+                          <span className="text-[9px] md:text-[10px] font-mono uppercase tracking-[5px] text-[#c6b89e] pt-0.5 font-bold">
+                            <ScrambleText text="MYTHIC DIY RAP // POP EMPIRE" delay={500} duration={800} />
                           </span>
-                          <ArrowUpRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
-                        </button>
-                       </Tooltip>
-
-                      <button
-                        onClick={() => scrollToSection("section-assets")}
-                        aria-label="Browse catalog archives"
-                        className="px-6 py-4 border border-white/5 hover:border-white/20 select-none text-white/40 hover:text-white font-mono text-[8px] md:text-[9px] uppercase tracking-[4px] py-5 flex items-center justify-center transition-colors focus:outline-none"
-                      >
-                        [ VIEW DETAILED PORTFOLIO ]
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                 {/* Right Panel stack columns */}
-                <div className="w-full lg:w-[420px] xl:w-[480px] flex flex-col gap-8 justify-center relative select-none">
-                  
-                  {/* Stack Block 1: Beethoven Moonlight sonata music audio deck */}
-                  <div className="bg-black/60 backdrop-blur-3xl border border-[#c6b89e]/20 shadow-2xl relative overflow-hidden">
-                    <AudioPlayer />
-                  </div>
-
-                  {/* Sanctuary ambient soundscape controls */}
-                  <SanctuaryAmbient />
-
-                  {/* Stack Block 2: Sensory climate and status dashboard gauges */}
-                  <div className="grid grid-cols-2 gap-6 select-none">
-                    
-                    {/* Subcard A: Current Climate coordinates gauge */}
-                    <Tooltip message="SYS_DIAG: Query Aegean base telemetry relative humidity and thermal payload index.">
-                      <motion.div
-                        whileTap={{ scale: 0.96 }}
-                        onClick={() => {
-                          setClimateUnit((u) => u === "F" ? "C" : u === "C" ? "H" : "F");
-                        }}
-                        className="bg-black/60 backdrop-blur-3xl border border-[#c6b89e]/20 hover:border-[#c6b89e]/55 p-5 md:p-6 flex flex-col justify-between relative overflow-hidden group transition-all duration-500 cursor-pointer shadow-2xl min-h-[140px]"
-                      >
-                        <div className="absolute inset-0 bg-[#c6b89e]/5 scale-y-0 group-hover:scale-y-100 origin-bottom transition-transform duration-500" />
-                        
-                        <div className="absolute top-5 right-5 z-20">
-                          {climateUnit === "F" && (
-                            <Thermometer className="w-4 h-4 text-[#ff4a00] opacity-80 group-hover:opacity-100 transition-opacity" />
-                          )}
-                          {climateUnit === "C" && (
-                            <Thermometer className="w-4 h-4 text-[#c6b89e] opacity-80 group-hover:opacity-100 transition-opacity" />
-                          )}
-                          {climateUnit === "H" && (
-                            <Droplet className="w-4 h-4 text-[#c6b89e] opacity-80 group-hover:opacity-100 transition-opacity animate-bounce" />
-                          )}
                         </div>
 
-                        <div className="relative z-10">
-                          <AnimatePresence mode="wait">
-                            <motion.div
-                              key={climateUnit}
-                              initial={{ opacity: 0, y: 6 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -6 }}
-                              transition={{ duration: 0.25 }}
-                              className="text-3xl md:text-4xl font-serif text-white group-hover:text-[#c6b89e] transition-colors font-light leading-none mb-4"
+                        <h2 className="font-serif text-5xl sm:text-6xl md:text-8xl xl:text-9xl font-normal leading-none tracking-tighter text-white mb-6 relative select-none uppercase">
+                          <span className="block italic text-[#c6b89e] opacity-90 leading-tight">
+                            KING
+                          </span>
+                          <span className="block ml-6 sm:ml-12 md:ml-16 leading-tight">
+                            SHADP.
+                          </span>
+                        </h2>
+
+                        <div className="text-[12px] md:text-[14px] uppercase tracking-[6px] text-[#dcc57b] font-mono mb-8 opacity-80">
+                          Raw. Theatrical. Cocky. Funny. Emotional.
+                        </div>
+
+                        {/* Decrypted descriptive copy briefs */}
+                        <div className="grid grid-cols-1 gap-8 border-t border-[#c6b89e]/30 pt-8 mt-4 max-w-3xl relative select-text">
+                          <div className="absolute top-0 left-0 w-24 h-[1px] bg-[#c6b89e] shadow-[0_0_15px_rgba(198,184,158,0.8)]" />
+                          
+                          <p className="text-[14px] md:text-base text-white/50 font-light leading-relaxed font-sans text-justify selection:bg-[#93000a]/30">
+                            The soundtrack to a personal empire. This is character-driven mythology where raw experimental compositions, demo mixes, and aggressive theatrical freestyles form a protective armor for the soul. We do not negotiate with the mainstream. We construct the fortress.
+                          </p>
+
+                          <div className="flex flex-col sm:flex-row gap-5 items-stretch mt-4">
+                            <button
+                              onClick={() => scrollToSection("section-listen")}
+                              aria-label="Listen to frequencies"
+                              className="flex items-center justify-between gap-8 px-8 py-5 border border-[#c6b89e] text-[#c6b89e] font-mono text-[9.5px] tracking-[5px] uppercase hover:bg-[#c6b89e] hover:text-black hover:shadow-[0_0_30px_rgba(198,184,158,0.3)] transition-all duration-500 relative overflow-hidden group cursor-pointer focus:outline-none"
                             >
-                              {climateUnit === "F" ? "82.4°F" : climateUnit === "C" ? "28.0°C" : "44.2% RH"}
+                              <span className="relative z-10 font-bold pt-0.5">
+                                [ LISTEN TO FREQUENCIES ]
+                              </span>
+                              <ArrowUpRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
+                            </button>
+
+                            <button
+                              onClick={() => scrollToSection("section-artifacts")}
+                              aria-label="Browse believer uniforms"
+                              className="px-6 py-4 border border-white/5 hover:border-white/20 select-none text-white/40 hover:text-white font-mono text-[8.5px] md:text-[9.5px] uppercase tracking-[4px] py-5 flex items-center justify-center transition-colors focus:outline-none"
+                            >
+                              [ UNIFORM ARTIFACTS ]
+                            </button>
+                          </div>
+
+                          {/* Unique integrated Newsletter input for believers */}
+                          <div className="border border-[#c6b89e]/20 bg-black/60 backdrop-blur-md p-6 mt-6 select-none">
+                            <div className="text-[9px] font-mono tracking-[4px] text-[#c6b89e] uppercase mb-3">
+                              "JOIN THE BELIEVERS" // ENTER CREDENTIAL DISTRICT
+                            </div>
+                            <div className="text-[11px] text-white/40 font-sans mb-4">
+                              Submit your coordinate email for early decrypted alerts regarding physical uniform drops and upcoming unreleased sound chapters.
+                            </div>
+                            <form 
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                window.dispatchEvent(new CustomEvent("telemetry-log", {
+                                  detail: { message: `CREDENTIAL STORED: welcome to the empire, believer.`, type: "SYSTEM" }
+                                }));
+                                alert("Credentials compiled successfully. Biometric lock established.");
+                              }}
+                              className="flex gap-3"
+                            >
+                              <input 
+                                type="email" 
+                                required
+                                placeholder="BIOMETRIC_ID@DOMAIN.XYZ" 
+                                className="flex-1 bg-black/80 border border-[#c6b89e]/20 px-4 py-3 font-mono text-[10px] text-white tracking-[2px] outline-none focus:border-[#93000a] transition-all"
+                              />
+                              <button 
+                                type="submit" 
+                                className="px-6 border border-[#93000a] text-xs font-mono tracking-[3px] text-white hover:bg-[#93000a] transition-all hover:shadow-[0_0_15px_rgba(147,0,10,0.5)] cursor-pointer"
+                              >
+                                TRANSMIT
+                              </button>
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right Panel stack columns */}
+                      <div className="w-full lg:w-[420px] xl:w-[480px] flex flex-col gap-8 justify-center relative select-none">
+                        
+                        {/* Audio Player placeholder loop */}
+                        <div className="bg-black/60 backdrop-blur-3xl border border-[#c6b89e]/20 shadow-2xl relative overflow-hidden">
+                          <AudioPlayer />
+                        </div>
+
+                        {/* Sanctuary ambient soundscape controls */}
+                        <SanctuaryAmbient />
+
+                        {/* Stack Block 2: Sensory climate and status dashboard gauges */}
+                        <div className="grid grid-cols-2 gap-6 select-none">
+                          
+                          {/* Subcard A: Current Climate coordinates gauge */}
+                          <Tooltip message="SYS_DIAG: Query Miami Beach HQ telemetric climate sensor array logs.">
+                            <motion.div
+                              whileTap={{ scale: 0.96 }}
+                              className="bg-black/60 backdrop-blur-3xl border border-[#c6b89e]/20 hover:border-[#c6b89e]/55 p-5 md:p-6 flex flex-col justify-between relative overflow-hidden group transition-all duration-500 shadow-2xl min-h-[140px]"
+                            >
+                              <div className="absolute inset-0 bg-[#c6b89e]/5 scale-y-0 group-hover:scale-y-100 origin-bottom transition-transform duration-500" />
+                              
+                              <div className="absolute top-5 right-5 z-20">
+                                <Thermometer className="w-4 h-4 text-[#93000a] opacity-80" />
+                              </div>
+
+                              <div className="relative z-10">
+                                <div className="text-3xl md:text-4xl font-serif text-white group-hover:text-[#c6b89e] transition-colors font-light leading-none mb-4">
+                                  82.4°F
+                                </div>
+
+                                <div className="text-[7.5px] uppercase tracking-[3px] text-[#c6b89e] font-mono mb-1">
+                                  Sovereign Thermal
+                                </div>
+                                <div className="text-[10px] text-white/45 font-sans font-light leading-none">
+                                  Miami Beach HQ, FL
+                                </div>
+                              </div>
                             </motion.div>
-                          </AnimatePresence>
+                          </Tooltip>
 
-                          <div className="text-[7.5px] uppercase tracking-[3px] text-[#c6b89e] font-mono mb-1">
-                            {climateUnit === "F" ? "Thermal payload" : climateUnit === "C" ? "Celsius Matrix" : "Air Moisture"}
-                          </div>
-                          <div className="text-[10px] text-white/45 font-sans font-light leading-none">
-                            Aegean Vault, GR
-                          </div>
+                          {/* Subcard B: Live status check indicator with shielding level triggers */}
+                          <Tooltip message="SYS_DIAG: Recalibrate optimal radio suppression and signal scrambler levels.">
+                            <motion.div
+                              whileTap={{ scale: 0.96 }}
+                              onClick={() => {
+                                setShieldLevel((l) => l === 5 ? 9 : l === 9 ? 1 : 5);
+                              }}
+                              className="bg-black/60 backdrop-blur-3xl border border-[#c6b89e]/20 hover:border-[#c6b89e]/55 p-5 md:p-6 flex flex-col justify-between relative overflow-hidden group transition-all duration-500 cursor-pointer shadow-2xl min-h-[140px]"
+                            >
+                              <div className="absolute inset-0 bg-[#c6b89e]/70 scale-y-0 group-hover:scale-y-100 origin-bottom transition-transform duration-500" />
+                              
+                              <div className="absolute top-5 right-5 z-20">
+                                {shieldLevel === 1 && <Sparkles className="w-4 h-4 text-[#c6b89e]/40" />}
+                                {shieldLevel === 5 && <Radio className="w-4 h-4 text-[#c6b89e] animate-pulse" />}
+                                {shieldLevel === 9 && <ShieldAlert className="w-4 h-4 text-[#ff4a00] animate-pulse" />}
+                              </div>
+
+                              <div className="relative z-10">
+                                <div className="flex items-center gap-2 mb-3 mt-1">
+                                  <span className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                                    shieldLevel === 1 ? "bg-[#c6b89e]/40 shadow-none" : 
+                                    shieldLevel === 5 ? "bg-[#c6b89e] shadow-[0_0_8px_#c6b89e]" : 
+                                    "bg-[#ff4a00] shadow-[0_0_12px_#ff4a00]"
+                                  }`} />
+                                  <span className="text-[10px] uppercase font-mono tracking-[3px] text-white font-bold leading-none">
+                                    {shieldLevel === 1 ? "STEALTH L1" : shieldLevel === 5 ? "ARMORED L5" : "SECURE L9"}
+                                  </span>
+                                </div>
+
+                                <div className="text-[7.5px] uppercase tracking-[3px] text-[#c6b89e] font-mono mb-1">
+                                  {shieldLevel === 1 ? "Stealth mode" : shieldLevel === 5 ? "Encrypted Shield" : "Absolute Shield"}
+                                </div>
+                                <div className="text-[10px] text-white/45 font-sans font-light leading-none">
+                                  {shieldLevel === 1 ? "Quiet emissions" : shieldLevel === 5 ? "Active filters" : "Total biometric vault active"}
+                                </div>
+                              </div>
+                            </motion.div>
+                          </Tooltip>
+
                         </div>
-                        
-                        <div className="absolute bottom-2 right-4 text-[6.5px] tracking-[1.5px] uppercase font-mono text-[#c6b89e]/35 opacity-0 group-hover:opacity-100 transition-opacity duration-350 select-none">
-                          TAP_TOGGLE
-                        </div>
-                      </motion.div>
-                    </Tooltip>
+                      </div>
 
-                    {/* Subcard B: Live status check indicator with shielding level triggers */}
-                    <Tooltip message="SYS_DIAG: Recalibrate optimal radio suppression and signal scrambler levels.">
-                      <motion.div
-                        whileTap={{ scale: 0.96 }}
-                        onClick={() => {
-                          setShieldLevel((l) => l === 5 ? 9 : l === 9 ? 1 : 5);
-                        }}
-                        className="bg-black/60 backdrop-blur-3xl border border-[#c6b89e]/20 hover:border-[#c6b89e]/55 p-5 md:p-6 flex flex-col justify-between relative overflow-hidden group transition-all duration-500 cursor-pointer shadow-2xl min-h-[140px]"
-                      >
-                        <div className="absolute inset-0 bg-[#c6b89e]/5 scale-y-0 group-hover:scale-y-100 origin-bottom transition-transform duration-500" />
-                        
-                        <div className="absolute top-5 right-5 z-20">
-                          {shieldLevel === 1 && <Sparkles className="w-4 h-4 text-[#c6b89e]/40" />}
-                          {shieldLevel === 5 && <Radio className="w-4 h-4 text-[#c6b89e] animate-pulse" />}
-                          {shieldLevel === 9 && <ShieldAlert className="w-4 h-4 text-[#ff4a00] animate-pulse" />}
-                        </div>
-
-                        <div className="relative z-10">
-                          <div className="flex items-center gap-2 mb-3 mt-1">
-                            <span className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                              shieldLevel === 1 ? "bg-[#c6b89e]/40 shadow-none" : 
-                              shieldLevel === 5 ? "bg-[#c6b89e] shadow-[0_0_8px_#c6b89e]" : 
-                              "bg-[#ff4a00] shadow-[0_0_12px_#ff4a00]"
-                            }`} />
-                            <span className="text-[10px] uppercase font-mono tracking-[3px] text-white font-bold leading-none">
-                              {shieldLevel === 1 ? "PASSIVE L1" : shieldLevel === 5 ? "ARMORED L5" : "STEALTH L9"}
-                            </span>
-                          </div>
-
-                          <div className="text-[7.5px] uppercase tracking-[3px] text-[#c6b89e] font-mono mb-1">
-                            {shieldLevel === 1 ? "Soft Filter" : shieldLevel === 5 ? "Acoustic Void" : "Suppressed Void"}
-                          </div>
-                          <div className="text-[10px] text-white/45 font-sans font-light leading-none">
-                            {shieldLevel === 1 ? "Minimum Defenses" : shieldLevel === 5 ? "Optimal Shielding" : "Total Electromagnetic Dark"}
-                          </div>
-                        </div>
-
-                        <div className="absolute bottom-2 right-4 text-[6.5px] tracking-[1.5px] uppercase font-mono text-[#c6b89e]/35 opacity-0 group-hover:opacity-100 transition-opacity duration-350 select-none">
-                          TAP_SHIELD
-                        </div>
-                      </motion.div>
-                    </Tooltip>
-
-                  </div>
-                </div>
-
-              </div>
-
-              {/* SECTION 2: ACQUISITION VAULT CHAMBER (Middle Golden Vault Room) */}
-              <div
-                id="section-assets"
-                className="w-full min-h-screen py-24 mb-12 border-t border-[#c6b89e]/15 relative"
-              >
-                <div className="absolute top-[88px] left-0 font-mono text-[8.5px] tracking-[5px] text-[#c6b89e]/30 uppercase select-none">
-                  02 // CURATED LUXURY EXHIBITION
-                </div>
-
-                <div className="mt-16">
-                  <AcquisitionGrid isInline={true} />
-                </div>
-              </div>
-
-              {/* SECTION 3: COMMAND RADAR & DIRECTIVES (Orbital Constellation Deck) */}
-              <div
-                id="section-command"
-                className="w-full min-h-screen py-24 mb-12 border-t border-[#c6b89e]/15 relative flex flex-col justify-center"
-              >
-                <div className="absolute top-[88px] left-0 font-mono text-[8.5px] tracking-[5px] text-[#c6b89e]/30 uppercase select-none">
-                  03 // GLOBAL VISITATION & JOURNAL
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-16 select-text">
-                  {/* Left: Star Map Orbit Radar widget */}
-                  <div className="flex flex-col gap-4 select-none">
-                    <div className="font-mono text-[9px] uppercase tracking-[4px] text-white/30 px-1">
-                      REAL-TIME VISITATION ORBIT
                     </div>
-                    <div className="bg-black/60 backdrop-blur-2xl border border-[#c6b89e]/20 h-[400px] overflow-hidden relative shadow-2xl rounded-sm">
-                      <SatelliteRadar />
-                    </div>
-                  </div>
+                  )}
 
-                  {/* Right: Notes logger scribe tool */}
-                  <div className="flex flex-col gap-4 select-none">
-                    <div className="font-mono text-[9px] uppercase tracking-[4px] text-white/30 px-1">
-                      BESPOKE ATELIER JOURNAL & NOTES
-                    </div>
-                    <div className="bg-black/60 backdrop-blur-2xl border border-[#c6b89e]/20 min-h-[400px] relative shadow-2xl rounded-sm">
-                      <ScribeNotes />
-                    </div>
-                  </div>
-                </div>
-              </div>
+                  {/* SECTION 2: LISTEN (Sovereign Channels) */}
+                  {activeTab === "listen" && (
+                    <div
+                      id="section-listen"
+                      className="w-full min-h-[calc(100vh-200px)] py-24 mb-12 relative"
+                    >
+                      <div className="absolute top-[88px] left-0 font-mono text-[8.5px] tracking-[5px] text-[#c6b89e]/30 uppercase select-none">
+                        02 // SOVEREIGN AUDIO TRANSMISSION / LISTEN
+                      </div>
 
-              {/* SECTION 4: THE SHOP_EXPORT TERMINUS (Royal Monolith Deck) */}
-              <div
-                id="section-shopify"
-                className="w-full min-h-screen py-24 mb-12 border-t border-[#c6b89e]/15 relative"
-              >
-                <div className="absolute top-[88px] left-0 font-mono text-[8.5px] tracking-[5px] text-[#c6b89e]/30 uppercase select-none">
-                  04 // ACTIVE SHOPIFY STOREFRONT INTEGRATION
-                </div>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-16">
+                        {/* Left: HQ audio console widget */}
+                        <div className="bg-black/60 backdrop-blur-2xl border border-[#c6b89e]/20 p-8 flex flex-col justify-center min-h-[420px] relative shadow-2xl">
+                          <div className="text-[9px] font-mono tracking-[4px] text-white/40 uppercase mb-4 text-left">
+                            CHANNEL CONTROLLER DECK // ENGAGED
+                          </div>
+                          <AudioPlayer />
+                        </div>
 
-                <div className="mt-16">
-                  <ShopifyExport isInline={true} />
-                </div>
-              </div>
+                        {/* Right: Embedded platforms & freestyle demo listings */}
+                        <div className="flex flex-col gap-6 text-left p-8 border border-white/5 bg-black/40 backdrop-blur-md">
+                          <div className="font-mono text-[9px] uppercase tracking-[4px] text-[#c6b89e] mb-1">
+                            STREAMING OUTLETS
+                          </div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <a 
+                              href="https://soundcloud.com" 
+                              target="_blank" 
+                              className="p-5 border border-[#c6b89e]/20 bg-black/60 hover:bg-[#93000a]/20 hover:border-[#93000a] transition-all flex flex-col justify-between"
+                            >
+                              <div className="text-[16px] text-white font-serif italic mb-1">SoundCloud</div>
+                              <div className="text-[9px] font-mono tracking-[2px] text-white/40 uppercase">
+                                395 Believers / Verified
+                              </div>
+                            </a>
+
+                            <div className="p-5 border border-[#c6b89e]/20 bg-black/60 flex flex-col justify-between opacity-80">
+                              <div className="text-[16px] text-white font-serif italic mb-1">Audiomack</div>
+                              <div className="text-[9px] font-mono tracking-[2px] text-white/40 uppercase">
+                                5.77K Era Plays
+                              </div>
+                            </div>
+
+                            <div className="p-5 border border-[#c6b89e]/20 bg-black/60 flex flex-col justify-between opacity-80">
+                              <div className="text-[16px] text-white font-serif italic mb-1">Spotify</div>
+                              <div className="text-[9px] font-mono tracking-[2px] text-white/40 uppercase">
+                                Protected Wave
+                              </div>
+                            </div>
+
+                            <div className="p-5 border border-[#c6b89e]/20 bg-black/60 flex flex-col justify-between opacity-80">
+                              <div className="text-[16px] text-white font-serif italic mb-1">Apple Music</div>
+                              <div className="text-[9px] font-mono tracking-[2px] text-white/40 uppercase">
+                                Sound Archive S5
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="border-t border-[#c6b89e]/20 pt-6 mt-4 select-text">
+                            <div className="text-[9px] font-mono tracking-[3px] text-[#c6b89e] uppercase mb-3">
+                              STUDIO FREESTYLE LOGGER METADATA
+                            </div>
+                            <p className="text-[12.5px] text-white/50 leading-relaxed font-sans">
+                              Recorded live inside the Miami sanctuary under total isolation levels. All vocals remain raw, unpolished, and completely aligned with KingShadP’s DIY ethics. No luxury presets, no tuning rigs—just pure, uncompromising king energy manifesting the universe in real-time.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SECTION 3: VAULT (The Interactive Release Timeline Record) */}
+                  {activeTab === "vault" && (
+                    <div
+                      id="section-vault"
+                      className="w-full min-h-[calc(100vh-200px)] py-24 mb-12 relative text-left"
+                    >
+                      <div className="absolute top-[88px] left-0 font-mono text-[8.5px] tracking-[5px] text-[#c6b89e]/30 uppercase select-none">
+                        03 // ATELIER ERA CORE LISTING / VAULT
+                      </div>
+
+                      <div className="mt-16 max-w-5xl mx-auto border border-[#c6b89e]/20 bg-black/50 p-8 md:p-12 backdrop-blur-lg">
+                        <h3 className="font-serif text-3xl md:text-5xl font-light text-[#c6b89e] mb-6 italic">
+                          "The Chronos Record"
+                        </h3>
+                        <p className="font-sans text-[13px] text-white/40 tracking-wide mb-10 max-w-2xl">
+                          Every official and unofficial release from the KingShadP catalog. Filtered by year and era—complete with system analytics, play metrics, and historical descriptive lore.
+                        </p>
+
+                        <div className="border border-white/10 select-text overflow-hidden">
+                          <table className="w-full text-left font-mono text-[11px] tracking-[1.5px] border-collapse">
+                            <thead>
+                              <tr className="border-b border-white/10 uppercase text-[#c6b89e] bg-[#090909]">
+                                <th className="p-4 font-semibold">Track Title</th>
+                                <th className="p-4 font-semibold hidden md:table-cell">Year</th>
+                                <th className="p-4 font-semibold">Primary Platform</th>
+                                <th className="p-4 font-semibold">Play Metrics</th>
+                                <th className="p-4 font-semibold hidden sm:table-cell text-right">Lore Brief</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5 text-white/70">
+                              <tr className="hover:bg-white/5 transition-colors">
+                                <td className="p-4 font-sans font-medium text-white">Regal Echoes of GOD (Demo)</td>
+                                <td className="p-4 hidden md:table-cell text-white/50">2024</td>
+                                <td className="p-4 text-[#dcc57b]">Audiomack</td>
+                                <td className="p-4 text-white">5.77K Plays</td>
+                                <td className="p-4 hidden sm:table-cell text-right text-white/40 text-[10px]">The god-complex made audible. Absolute system protection.</td>
+                              </tr>
+                              <tr className="hover:bg-white/5 transition-colors">
+                                <td className="p-4 font-sans font-medium text-white">UNFINISHED. UNEDITED. UNTITLED</td>
+                                <td className="p-4 hidden md:table-cell text-white/50">2023</td>
+                                <td className="p-4 text-[#dcc57b]">Spotify</td>
+                                <td className="p-4 text-white">12.4K Plays</td>
+                                <td className="p-4 hidden sm:table-cell text-right text-white/40 text-[10px]">A raw study in unfinished brutalist architectures.</td>
+                              </tr>
+                              <tr className="hover:bg-white/5 transition-colors">
+                                <td className="p-4 font-sans font-medium text-white">GOD IS A WOMAN (Remix)</td>
+                                <td className="p-4 hidden md:table-cell text-white/50">2021</td>
+                                <td className="p-4 text-[#dcc57b]">SoundCloud</td>
+                                <td className="p-4 text-[#93000a] font-bold">63.2K Plays</td>
+                                <td className="p-4 hidden sm:table-cell text-right text-white/40 text-[10px]">A statement of royal presence. The female deity as absolute sovereign.</td>
+                              </tr>
+                              <tr className="hover:bg-white/5 transition-colors">
+                                <td className="p-4 font-sans font-medium text-white">MAINTAIN VELOCITY</td>
+                                <td className="p-4 hidden md:table-cell text-white/50">2022</td>
+                                <td className="p-4 text-[#dcc57b]">SoundCloud</td>
+                                <td className="p-4 text-white">8.9K Plays</td>
+                                <td className="p-4 hidden sm:table-cell text-right text-white/40 text-[10px]">High-speed transition track capturing deep Miami roots.</td>
+                              </tr>
+                              <tr className="hover:bg-white/5 transition-colors">
+                                <td className="p-4 font-sans font-medium text-white">Gilded Chaos // Manifest</td>
+                                <td className="p-4 hidden md:table-cell text-white/50">2020</td>
+                                <td className="p-4 text-[#dcc57b]">Audiomack</td>
+                                <td className="p-4 text-white">3.1K Plays</td>
+                                <td className="p-4 hidden sm:table-cell text-right text-white/40 text-[10px]">Early manifestations recorded on single-track freestyle nodes.</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SECTION 4: ARTIFACTS (Shopify Portfolio uniform boutique) */}
+                  {activeTab === "artifacts" && (
+                    <div
+                      id="section-artifacts"
+                      className="w-full min-h-[calc(100vh-200px)] py-24 mb-12 relative text-left"
+                    >
+                      <div className="absolute top-[88px] left-0 font-mono text-[8.5px] tracking-[5px] text-[#c6b89e]/30 uppercase select-none">
+                        04 // SACRED UNIFORMS & RELICS / ARTIFACTS
+                      </div>
+
+                      <div className="mt-16 bg-black/20 p-6 md:p-8 border border-white/5">
+                        <div className="mb-10 text-center md:text-left">
+                          <h3 className="font-serif text-3xl md:text-5xl font-light text-white mb-2 uppercase tracking-wide">
+                            Wear The Mythology
+                          </h3>
+                          <div className="font-mono text-[9px] uppercase tracking-[4px] text-[#c6b89e]">
+                            "Own a piece of the empire" // Uniform of the believers
+                          </div>
+                        </div>
+
+                        <ShopifyExport isInline={true} />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SECTION 5: LORE (Editorial Gallery Dossier) */}
+                  {activeTab === "lore" && (
+                    <div
+                      id="section-lore"
+                      className="w-full min-h-[calc(100vh-200px)] py-24 mb-12 relative text-left select-text"
+                    >
+                      <div className="absolute top-[88px] left-0 font-mono text-[8.5px] tracking-[5px] text-[#c6b89e]/30 uppercase select-none">
+                        05 // THEOLOGICAL ARCHIVE DOSSIER / LORE
+                      </div>
+
+                      <div className="mt-16 max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 pt-8">
+                        {/* Column 1: Who is KingShadP */}
+                        <div className="border border-[#c6b89e]/20 p-8 bg-black/60 backdrop-blur-md relative">
+                          <div className="absolute top-0 left-0 w-16 h-[1.5px] bg-[#93000a]" />
+                          <h4 className="font-mono text-[10px] tracking-[4px] text-[#c6b89e] uppercase mb-6 font-bold">
+                            // IDENTITY PROFILE
+                          </h4>
+                          <h3 className="font-serif text-3xl font-light text-white mb-6 italic">
+                            "Who is KingShadP?"
+                          </h3>
+                          <p className="font-sans text-[13.5px] text-white/50 leading-relaxed font-light text-justify">
+                            KingShadP represents a theater-driven DIY mythology where sound serves or functions as personal empire control. Unlike polished, commercialized modern rappers or corporate labels, KingShadP operates beneath high-end, cold systems. A raw, authentic, comical, and emotional blend of rap/pop designed for those ready to live inside customized mythic frames.
+                          </p>
+                        </div>
+
+                        {/* Column 2: Why This Music */}
+                        <div className="border border-[#c6b89e]/20 p-8 bg-black/60 backdrop-blur-md relative">
+                          <div className="absolute top-0 left-0 w-16 h-[1.5px] bg-[#dcc57b]" />
+                          <h4 className="font-mono text-[10px] tracking-[4px] text-[#c6b89e] uppercase mb-6 font-bold">
+                            // CRITIQUE OF CHAOS
+                          </h4>
+                          <h3 className="font-serif text-3xl font-light text-white mb-6 italic">
+                            "Why This Music?"
+                          </h3>
+                          <p className="font-sans text-[13.5px] text-white/50 leading-relaxed font-light text-justify">
+                            Because polished artifice is a lie. True craft stems from the unfinished, unedited freestyle recordings and demo loops tracked straight to high-fidelity storage inside Aegean beachfront or Miami sanctuaries. We document the construction of an empire in real-time, leaving raw traces for true followers to experience step-by-step.
+                          </p>
+                        </div>
+
+                        {/* Column 3: Miami Roots / God Complex */}
+                        <div className="border border-[#c6b89e]/20 p-8 bg-black/60 backdrop-blur-md relative">
+                          <div className="absolute top-0 left-0 w-16 h-[1.5px] bg-[#c9c6c5]" />
+                          <h4 className="font-mono text-[10px] tracking-[4px] text-[#c6b89e] uppercase mb-6 font-bold">
+                            // SPACE COORDINATES
+                          </h4>
+                          <h3 className="font-serif text-3xl font-light text-white mb-6 italic">
+                            "Miami Beach & God-Complex"
+                          </h3>
+                          <p className="font-sans text-[13.5px] text-white/50 leading-relaxed font-light text-justify">
+                            Born from the intense heat of Florida's southern coast, the mythology channels absolute Miami roots balanced by a grandiose god-complex humor. It is clean, hyper-minimalist execution of sound paired with protective titanium and luxury garments. It is menacing, cold, yet beautiful theatricality made solid.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SECTION 6: ARCHIVE (Duo Radar / Notes / Blueprint Suite) */}
+                  {activeTab === "archive" && (
+                    <div
+                      id="section-archive"
+                      className="w-full min-h-[calc(100vh-200px)] py-24 mb-12 relative text-left"
+                    >
+                      <div className="absolute top-[88px] left-0 font-mono text-[8.5px] tracking-[5px] text-[#c6b89e]/30 uppercase select-none">
+                        06 // GLOBAL COMMAND TERMINUS ARCHIVE
+                      </div>
+
+                      <div className="mt-16 grid grid-cols-1 xl:grid-cols-3 gap-12 pt-8">
+                        {/* Radar Widget */}
+                        <div className="flex flex-col gap-4">
+                          <div className="font-mono text-[9px] uppercase tracking-[4px] text-white/30 px-1">
+                            COORDINATES RADAR HUD
+                          </div>
+                          <div className="bg-black/60 backdrop-blur-2xl border border-[#c6b89e]/20 h-[380px] overflow-hidden relative shadow-2xl rounded-sm">
+                            <SatelliteRadar />
+                          </div>
+                        </div>
+
+                        {/* Scribe Notes */}
+                        <div className="flex flex-col gap-4">
+                          <div className="font-mono text-[9px] uppercase tracking-[4px] text-white/30 px-1">
+                            SCRIBE ATHENE DIARY NOTES
+                          </div>
+                          <div className="bg-black/60 backdrop-blur-2xl border border-[#c6b89e]/20 h-[380px] relative shadow-2xl rounded-sm">
+                            <ScribeNotes />
+                          </div>
+                        </div>
+
+                        {/* Previous Bluestreak Blueprints */}
+                        <div className="flex flex-col gap-4">
+                          <div className="font-mono text-[9px] uppercase tracking-[4px] text-white/30 px-1">
+                            ESTATE PREVIOUS BLUEPRINTS GALLERY
+                          </div>
+                          <div className="bg-black/60 backdrop-blur-2xl border border-[#c6b89e]/20 h-[380px] p-6 relative shadow-2xl rounded-sm overflow-y-auto">
+                            <div className="p-4 border border-teal-500/10 mb-4 bg-teal-500/5">
+                              <div className="text-[10px] font-mono tracking-[2px] text-[#dcc57b] uppercase mb-1">
+                                AEGEAN SEA SECTOR SECURE BLUEPRINTS // ACCESS
+                              </div>
+                              <div className="text-[11px] text-white/40 mb-3">
+                                Classic architectural portfolios of villas, yachts, and helicopter arrays are preserved for historical research.
+                              </div>
+                              <button
+                                onClick={() => {
+                                  window.dispatchEvent(new CustomEvent("telemetry-log", {
+                                    detail: { message: `AEGEAN ACCESSED: decryption and grid lock in progress...`, type: "FORGE_SYNC" }
+                                  }));
+                                  alert("System: Accessing Aegean Yacht and villa blueprints. Encryption decrypted.");
+                                }}
+                                className="px-3 py-1.5 border border-[#c9c6c5] text-[9px] font-mono text-white hover:bg-white/10 uppercase transition-all tracking-[2px]"
+                              >
+                                View Coordinates
+                              </button>
+                            </div>
+                            <AcquisitionGrid isInline={true} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}                    </div>
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
 
             </div>
 
