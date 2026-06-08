@@ -27,7 +27,8 @@ import {
   Cpu,
   Layers,
   Shield,
-  Activity
+  Activity,
+  RotateCw
 } from "lucide-react";
 import ScrambleText from "./ScrambleText";
 import Tooltip from "./Tooltip";
@@ -106,6 +107,48 @@ export default function ShopifyExport({ isInline }: ShopifyExportProps) {
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutComplete, setCheckoutComplete] = useState(false);
   const [checkoutSlip, setCheckoutSlip] = useState("");
+
+  // AR HUD SYSTEM STATE PARAMETERS
+  const [arProduct, setArProduct] = useState<Product | null>(null);
+  const [arAngle, setArAngle] = useState(0);
+  const [arColor, setArColor] = useState<"red" | "gold" | "emerald">("gold");
+  const [arScale, setArScale] = useState(1.0);
+  const [autoRotate, setAutoRotate] = useState(true);
+  const [scanStatus, setScanStatus] = useState<"calibrating" | "ready" | "projecting">("calibrating");
+  const [calibrationProgress, setCalibrationProgress] = useState(0);
+
+  useEffect(() => {
+    let animId: number;
+    if (arProduct) {
+      setScanStatus("calibrating");
+      setCalibrationProgress(0);
+      
+      const interval = setInterval(() => {
+        setCalibrationProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            setScanStatus("ready");
+            setTimeout(() => setScanStatus("projecting"), 1000);
+            return 100;
+          }
+          return prev + 5;
+        });
+      }, 50);
+
+      const rotateTick = () => {
+        if (autoRotate) {
+          setArAngle(prev => (prev + 0.5) % 360);
+        }
+        animId = requestAnimationFrame(rotateTick);
+      };
+      animId = requestAnimationFrame(rotateTick);
+
+      return () => {
+        clearInterval(interval);
+        cancelAnimationFrame(animId);
+      };
+    }
+  }, [arProduct, autoRotate]);
 
   // ATELIER FORGE STATE PARAMETERS
   const [forgeBase, setForgeBase] = useState<"watch" | "sanctuary" | "yacht" | "terminal">("watch");
@@ -931,15 +974,24 @@ export default function ShopifyExport({ isInline }: ShopifyExportProps) {
                   ))}
                 </div>
 
-                <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-1 select-none">
-                  <div className="font-mono text-sm tracking-widest text-[#c6b89e] font-bold">
-                    {product.price}
+                <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-1 select-none gap-2">
+                  <div className="flex flex-col items-start">
+                    <div className="font-mono text-xs tracking-widest text-[#c6b89e] font-bold">
+                      {product.price}
+                    </div>
+                    {/* Inline AR trigger button */}
+                    <button
+                      onClick={() => setArProduct(product)}
+                      className="font-mono text-[7px] text-[#ff4a00] hover:text-white mt-1 uppercase tracking-[1.5px] cursor-pointer flex items-center gap-1 bg-transparent border border-[#ff4a00]/25 hover:border-[#c6b89e] px-1.5 py-0.5 transition-all text-left w-fit font-bold"
+                    >
+                      ▲ PROJ_AR_HUD
+                    </button>
                   </div>
 
                   <Tooltip message={`SYS_DIAG: Request allocation sequence for boutique product ID ${product.id}.`}>
                     <button
                       onClick={() => addToCart(product)}
-                      className="font-mono text-[9px] text-white hover:text-[#ff4a00] hover:underline uppercase tracking-[2px] transition-all cursor-pointer flex items-center gap-1 bg-transparent border-0"
+                      className="font-mono text-[9px] text-white hover:text-[#ff4a00] hover:underline uppercase tracking-[2px] transition-all cursor-pointer flex items-center gap-1 bg-transparent border-0 shrink-0"
                     >
                       Select Item <ArrowRight className="w-3 h-3 text-[#ff4a00]" />
                     </button>
@@ -1154,6 +1206,350 @@ export default function ShopifyExport({ isInline }: ShopifyExportProps) {
 
               </motion.div>
             </div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* IMMERSIVE 4D AUGMENTED REALITY VIEWPORT PORTAL (AR HUD SYSTEM) */}
+      <AnimatePresence>
+        {arProduct && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 bg-black/90 backdrop-blur-md select-none font-mono">
+            {/* Ambient matrix style background grids */}
+            <div className="absolute inset-0 z-0 pointer-events-none opacity-20 bg-[linear-gradient(to_right,#111_1px,transparent_1px),linear-gradient(to_bottom,#111_1px,transparent_1px)] bg-[size:30px_30px]" />
+            <div className="absolute inset-0 z-0 pointer-events-none opacity-40 bg-radial-gradient from-transparent via-[#050505] to-[#010101]" />
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.94 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="relative w-full max-w-5xl h-[85vh] bg-[#020202] border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.95)] flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-white/5 overflow-hidden z-10 rounded-sm"
+              id="ARProjectionViewportContainer"
+            >
+              {/* Outer corner frame brackets */}
+              <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#ff4a00]/80" />
+              <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[#ff4a00]/80" />
+              <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-[#ff4a00]/80" />
+              <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#ff4a00]/80" />
+
+              {/* LEFT CHANNEL: Interactive Spatial Hologram Viewport */}
+              <div className="relative flex-grow h-1/2 md:h-full flex flex-col justify-between p-6 overflow-hidden">
+                {/* Coordinate scan alignment target borders */}
+                <div className="absolute inset-5 border border-white/[0.03] pointer-events-none flex items-center justify-center">
+                  <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-white/30" />
+                  <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-white/30" />
+                  <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-white/30" />
+                  <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-white/30" />
+                  
+                  {/* Glowing camera lens target indicators */}
+                  <div className="w-[1px] h-32 bg-white/[0.04] absolute" />
+                  <div className="w-32 h-[1px] bg-white/[0.04] absolute" />
+                  <div className="w-48 h-48 border border-dashed border-white/[0.04] rounded-full animate-spin-slow" />
+                </div>
+
+                {/* Top Telemetry Parameters */}
+                <div className="flex justify-between items-start pointer-events-none z-10 text-[9px] text-[#c6b89e]/80">
+                  <div className="space-y-1">
+                    <div className="text-[11px] font-bold text-white tracking-[2px] uppercase">
+                      ▲ SPECTRAL ASSEMBLY PREVIEW
+                    </div>
+                    <div className="text-white/40 uppercase">VALUATION: {arProduct.currency} {arProduct.price}</div>
+                  </div>
+                  <div className="text-right space-y-0.5 text-white/50">
+                    <div>RESOLUTION: VECTOR_4D_WIRE</div>
+                    <div>ANCHOR: {scanStatus === 'projecting' ? 'LOCKED_FLR_CALIB' : 'ACQUIRING_MARKERS'}</div>
+                  </div>
+                </div>
+
+                {/* CENTRAL ACTIVE HOLOGRAM VECTOR DISPLAY */}
+                <div className="flex-grow flex items-center justify-center relative select-none">
+                  <AnimatePresence mode="wait">
+                    {scanStatus === 'calibrating' && (
+                      <motion.div
+                        key="calibration"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="flex flex-col items-center gap-4 text-center z-10"
+                      >
+                        <RotateCw className="w-7 h-7 text-[#ff4a00] animate-spin" />
+                        <div className="text-[10px] tracking-[4px] uppercase text-[#ff4a00] font-bold animate-pulse">
+                          CALIBRATING GROUND COORDS...
+                        </div>
+                        <div className="w-48 h-1 bg-white/5 border border-white/10 relative overflow-hidden">
+                          <div className="h-full bg-[#ff4a00] transition-all duration-[80ms]" style={{ width: `${calibrationProgress}%` }} />
+                        </div>
+                        <div className="text-[8px] text-white/30 tracking-[1.5px] uppercase">
+                          MARKING DEPTH MATRICES // {calibrationProgress}%
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {scanStatus === 'ready' && (
+                      <motion.div
+                        key="ready"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="flex flex-col items-center gap-2 text-center z-10 text-green-400"
+                      >
+                        <Check className="w-8 h-8 p-1.5 border border-green-500 rounded-full animate-pulse" />
+                        <div className="text-[10px] tracking-[5px] uppercase font-bold text-green-400">
+                          CALIBRATION COMPLETE
+                        </div>
+                        <div className="text-[8px] text-white/40 tracking-[2px] uppercase mt-1">
+                          SYNCHRONIZING SECURE HOLOGRAPHIC STREAM...
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {scanStatus === 'projecting' && (
+                      <motion.div
+                        key="project"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.6 }}
+                        className="w-full h-full flex items-center justify-center absolute"
+                      >
+                        {/* Immersive glowing laser scan wave */}
+                        <div className="absolute w-[80%] h-0.5 bg-gradient-to-r from-transparent via-[#ff4a00]/30 to-transparent shadow-[0_0_12px_#ff4a00] animate-scanline pointer-events-none z-10" />
+
+                        {/* Interactive wireframe SVG assembly drawing */}
+                        <svg
+                          viewBox="0 0 400 400"
+                          className="w-[280px] h-[280px] filter drop-shadow-[0_0_20px_#ff4a00]"
+                          style={{
+                            transform: `rotateY(${arAngle}deg) scale(${arScale})`,
+                            transformStyle: "preserve-3d",
+                            color: arColor === 'red' ? '#ff4a00' : arColor === 'emerald' ? '#10b981' : '#c6b89e'
+                          }}
+                        >
+                          {/* Outer architectural compass axis elements */}
+                          <circle cx="200" cy="200" r="185" fill="none" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.1" />
+                          <circle cx="200" cy="200" r="175" fill="none" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.2" strokeDasharray="4 4" />
+                          <circle cx="200" cy="200" r="130" fill="none" stroke="currentColor" strokeWidth="0.5" strokeOpacity="0.15" />
+
+                          {/* Dynamic SVG wireframe outline blueprint based on product type */}
+                          {arProduct.id.includes("watch") || arProduct.title.toLowerCase().includes("watch") || arProduct.id.includes("forged") ? (
+                            /* Planetary gear tourbillon watch */
+                            <g stroke="currentColor" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="200" cy="200" r="95" strokeOpacity="0.6" />
+                              <circle cx="200" cy="200" r="85" strokeOpacity="0.4" />
+                              <circle cx="200" cy="200" r="30" strokeOpacity="0.75" />
+                              {/* Internal tourbillon mechanics cages */}
+                              <circle cx="200" cy="200" r="15" strokeDasharray="3 3" />
+                              {[0, 60, 120, 180, 240, 300].map((deg) => {
+                                const angle = (deg * Math.PI) / 180;
+                                return (
+                                  <line
+                                    key={deg}
+                                    x1={200 + Math.cos(angle) * 30}
+                                    y1={200 + Math.sin(angle) * 30}
+                                    x2={200 + Math.cos(angle) * 95}
+                                    y2={200 + Math.sin(angle) * 95}
+                                    strokeOpacity="0.3"
+                                  />
+                                );
+                              })}
+                              {/* Glowing hands */}
+                              <polyline points="200,200 240,140" strokeWidth="1.5" strokeOpacity="0.9" />
+                              <polyline points="200,200 160,195" strokeWidth="1.2" strokeOpacity="0.7" />
+                              {/* Outer gears */}
+                              <circle cx="200" cy="200" r="110" strokeDasharray="3 6" strokeOpacity="0.15" />
+                            </g>
+                          ) : arProduct.id.includes("chair") || arProduct.title.toLowerCase().includes("chair") ? (
+                            /* High-fidelity Lounge Chair mesh outline */
+                            <g stroke="currentColor" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                              <polygon points="120,110 280,110 260,220 140,220" strokeOpacity="0.6" />
+                              <line x1="120" y1="110" x2="260" y2="220" strokeOpacity="0.2" />
+                              <line x1="280" y1="110" x2="140" y2="220" strokeOpacity="0.2" />
+                              <polygon points="130,220 270,220 290,260 110,260" strokeOpacity="0.7" />
+                              <line x1="110" y1="260" x2="270" y2="220" strokeOpacity="0.3" />
+                              <line x1="140" y1="260" x2="160" y2="330" strokeOpacity="0.8" />
+                              <line x1="260" y1="260" x2="240" y2="330" strokeOpacity="0.8" />
+                              <line x1="110" y1="220" x2="110" y2="260" strokeOpacity="0.5" />
+                              <line x1="290" y1="220" x2="290" y2="260" strokeOpacity="0.5" />
+                              <ellipse cx="200" cy="330" rx="60" ry="12" strokeOpacity="0.4" />
+                            </g>
+                          ) : arProduct.title.toLowerCase().includes("sanctuary") || arProduct.id.includes("house") ? (
+                            /* Vault architectural rotunda */
+                            <g stroke="currentColor" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                              <ellipse cx="200" cy="280" rx="90" ry="25" strokeOpacity="0.6" />
+                              <ellipse cx="200" cy="220" rx="75" ry="20" strokeOpacity="0.4" />
+                              <ellipse cx="200" cy="160" rx="50" ry="13" strokeOpacity="0.3" />
+                              {[130, 160, 200, 240, 270].map((x) => (
+                                <line key={x} x1={x} y1={160} x2={x} y2={280} strokeOpacity="0.3" />
+                              ))}
+                              <rect x="90" y="280" width="220" height="15" strokeOpacity="0.8" />
+                              <rect x="70" y="295" width="260" height="15" strokeOpacity="0.9" />
+                            </g>
+                          ) : (
+                            /* Dual-hull yacht curves structural grid */
+                            <g stroke="currentColor" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                              <polygon points="200,80 290,260 110,260" strokeOpacity="0.6" />
+                              <polyline points="200,80 200,285" strokeOpacity="0.7" />
+                              <polygon points="100,260 300,260 270,312 130,312" strokeOpacity="0.7" />
+                              <polygon points="150,200 250,200 240,240 160,240" strokeOpacity="0.6" />
+                              <line x1="120" y1="312" x2="110" y2="340" />
+                              <line x1="280" y1="312" x2="290" y2="340" />
+                            </g>
+                          )}
+                        </svg>
+
+                        {/* Orbit axis label overlay */}
+                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 p-2 bg-black/60 border border-white/5 font-mono text-[8px] uppercase tracking-[3px] text-white/50 inline-block pointer-events-auto">
+                          PLANE_COORD: AXIS_Y_ROT // {Math.round(arAngle)}°
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Bottom Control buttons */}
+                <div className="flex justify-between items-center z-10 pointer-events-auto">
+                  <div className="space-y-0.5">
+                    <span className="text-[7.5px] text-white/40 block uppercase tracking-wider">Calibration Matrix Status</span>
+                    <div className="flex items-center gap-1.5 text-[9px] text-[#c6b89e] uppercase font-bold">
+                      <span className={`w-1.5 h-1.5 rounded-full ${scanStatus === 'projecting' ? 'bg-[#ff4a00] animate-pulse' : 'bg-yellow-500 animate-spin'}`} />
+                      STREAM_FEED: {scanStatus === 'projecting' ? 'ACTIVE' : 'COORDINATING_SENSORS'}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setScanStatus("calibrating");
+                      setCalibrationProgress(0);
+                      const interval = setInterval(() => {
+                        setCalibrationProgress(prev => {
+                          if (prev >= 100) {
+                            clearInterval(interval);
+                            setScanStatus("ready");
+                            setTimeout(() => setScanStatus("projecting"), 1000);
+                            return 100;
+                          }
+                          return prev + 5;
+                        });
+                      }, 50);
+                    }}
+                    className="font-mono text-[9px] text-white hover:text-[#ff4a00] hover:underline uppercase tracking-[2px] transition-all cursor-pointer bg-transparent border-0"
+                  >
+                    [ RE-CALIBRATE HUD ]
+                  </button>
+                </div>
+              </div>
+
+              {/* RIGHT CHANNEL: Diagnostics Controller Panel */}
+              <div className="relative w-full md:w-[350px] flex flex-col justify-between p-6 bg-black/[0.45] font-mono shrink-0">
+                
+                {/* Diagnostics details */}
+                <div className="space-y-6 flex-grow overflow-y-auto custom-scrollbar pr-1 select-text">
+                  <div className="flex justify-between items-start border-b border-white/5 pb-4 select-none">
+                    <div>
+                      <h3 className="font-serif text-[17px] tracking-wide text-white font-bold leading-tight line-clamp-1">
+                        {arProduct.title}
+                      </h3>
+                      <span className="text-[7px] text-[#ff4a00] uppercase tracking-[3px] block mt-1.5">
+                        AUGMENTED DIAGNOSTICS KEY
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => setArProduct(null)}
+                      className="text-white/40 hover:text-white font-mono text-[10px] tracking-widest border border-white/10 hover:border-white px-2.5 py-1 bg-black/60 cursor-pointer select-none"
+                    >
+                      [ CLOSE ]
+                    </button>
+                  </div>
+
+                  {/* Curated specifics parameters */}
+                  <div className="space-y-4">
+                    <div className="text-[8px] text-[#c6b89e] uppercase tracking-[4px] select-none">ATELIER PARAMETERS</div>
+                    <div className="space-y-2 text-[10px] text-white/70">
+                      {arProduct.specs.map((spec, idx) => (
+                        <div key={idx} className="flex items-start gap-2.5 border-b border-white/[0.03] pb-2 font-mono">
+                          <span className="text-[#ff4a00] shrink-0">▸</span>
+                          <span className="leading-normal">{spec}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Calibration controller configurations */}
+                  <div className="space-y-4 pt-1 select-none">
+                    <div className="text-[8px] text-[#c6b89e] uppercase tracking-[4px]">SPECTRAL CONTROLLER HUD</div>
+                    
+                    {/* Size and Scale parameters */}
+                    <div className="space-y-2.5 border border-white/5 px-3 py-3 bg-black/30">
+                      <div className="flex justify-between items-center text-[9px] text-white/55">
+                        <span>MAGNIFICATION SCALE</span>
+                        <span className="font-bold text-[#ff4a00]">{Math.round(arScale * 100)}%</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setArScale(prev => Math.max(0.6, prev - 0.1))}
+                          className="flex-grow py-1.5 bg-white/5 hover:bg-white/10 hover:text-[#ff4a00] border border-white/10 text-[9px] transition-all cursor-pointer"
+                        >
+                          [ ZOOM OUT ]
+                        </button>
+                        <button
+                          onClick={() => setArScale(prev => Math.min(1.5, prev + 0.1))}
+                          className="flex-grow py-1.5 bg-white/5 hover:bg-white/10 hover:text-[#ff4a00] border border-white/10 text-[9px] transition-all cursor-pointer"
+                        >
+                          [ ZOOM IN ]
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Laser Spectrum selectors */}
+                    <div className="space-y-2.5 border border-white/5 px-3 py-3 bg-black/30">
+                      <span className="text-[9px] text-white/55 block">LASER HARMONIC SPECTRUM</span>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { id: 'gold', label: 'ROYAL_GLD', col: '#c6b89e' },
+                          { id: 'red', label: 'VERMILION', col: '#ff4a00' },
+                          { id: 'emerald', label: 'EMERALD', col: '#10b981' }
+                        ].map((cl) => (
+                          <button
+                            key={cl.id}
+                            onClick={() => setArColor(cl.id as any)}
+                            className={`py-1.5 border font-mono text-[8.5px] uppercase tracking-wider text-center cursor-pointer transition-all ${
+                              arColor === cl.id 
+                                ? "border-white bg-white/10 text-white font-bold" 
+                                : "border-white/10 hover:border-white/30 text-white/50"
+                            }`}
+                          >
+                            <span className="inline-block w-1.5 h-1.5 rounded-full mr-1" style={{ backgroundColor: cl.col }} />
+                            {cl.id}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Auto rotation lock */}
+                    <div className="flex justify-between items-center bg-black/35 py-2 px-3 border border-white/5">
+                      <span className="text-[9px] text-white/55 uppercase tracking-wide">AUTO-ROTATE DIAGRAM</span>
+                      <button
+                        onClick={() => setAutoRotate(!autoRotate)}
+                        className={`text-[9px] uppercase tracking-widest px-2 py-0.5 border cursor-pointer ${autoRotate ? 'bg-green-500/10 border-green-500/50 text-green-400 font-bold' : 'bg-transparent border-white/15 text-white/40'}`}
+                      >
+                        {autoRotate ? "[ ENABLED ]" : "[ PAUSED ]"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Secure inquiry gateway projection link */}
+                <div className="border-t border-white/5 pt-4 mt-6 select-none bg-transparent">
+                  <button
+                    onClick={() => {
+                      addToCart(arProduct);
+                      setArProduct(null);
+                    }}
+                    className="w-full py-3.5 bg-white text-black font-sans font-bold text-[10px] tracking-[4px] uppercase hover:bg-[#ff4a00] hover:text-black transition-colors duration-300 cursor-pointer flex items-center justify-center gap-1.5 shadow-lg"
+                  >
+                    ALLOCATION PREFERENCE <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
           </div>
         )}
       </AnimatePresence>
