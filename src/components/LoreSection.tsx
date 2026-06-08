@@ -77,8 +77,36 @@ const itemVariants = {
 
 export default function LoreSection() {
   const [activeChapterId, setActiveChapterId] = useState<string>("chap-01");
+  const [bookmarkedChapters, setBookmarkedChapters] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("kingshadp-bookmarked-lore");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
 
   const selectedChapter = LORE_CHAPTERS_DATABASE.find((c) => c.id === activeChapterId) || LORE_CHAPTERS_DATABASE[0];
+
+  const isBookmarked = bookmarkedChapters.includes(selectedChapter.id);
+
+  const toggleBookmark = () => {
+    let nextBookmarks: string[];
+    if (isBookmarked) {
+      nextBookmarks = bookmarkedChapters.filter((id) => id !== selectedChapter.id);
+      window.dispatchEvent(new CustomEvent("telemetry-log", {
+        detail: { message: `LORE_REGISTRY: Evicted dossier '${selectedChapter.title.toUpperCase()}' from personal archive registry.`, type: "WARNING" }
+      }));
+    } else {
+      nextBookmarks = [...bookmarkedChapters, selectedChapter.id];
+      window.dispatchEvent(new CustomEvent("telemetry-log", {
+        detail: { message: `LORE_REGISTRY: Secured and locked dossier '${selectedChapter.title.toUpperCase()}' in digital archive vault.`, type: "FORGE_SYNC" }
+      }));
+    }
+    setBookmarkedChapters(nextBookmarks);
+    localStorage.setItem("kingshadp-bookmarked-lore", JSON.stringify(nextBookmarks));
+    window.dispatchEvent(new Event("lore-bookmarks-updated"));
+  };
 
   return (
     <motion.div
@@ -205,6 +233,23 @@ export default function LoreSection() {
               <p className="font-sans text-[13.5px] text-white/40 leading-relaxed font-light">
                 {selectedChapter.text}
               </p>
+
+              <div className="mt-8 flex flex-col sm:flex-row justify-between items-center gap-4 select-none bg-black/50 p-4 border border-dashed border-white/10">
+                <button
+                  type="button"
+                  onClick={toggleBookmark}
+                  className={`px-4 py-2 border text-[9px] font-mono uppercase tracking-[2px] transition-all cursor-pointer focus:outline-none ${
+                    isBookmarked
+                      ? "border-[#93000a] text-white bg-[#93000a]/20 hover:bg-[#93000a]/30"
+                      : "border-[#c6b89e]/30 text-[#c6b89e] hover:border-[#c6b89e] hover:bg-[#c6b89e]/10"
+                  }`}
+                >
+                  {isBookmarked ? "✖ EVICT FROM REGISTRY" : "✦ LOCK DOSSIER TO REGISTRY"}
+                </button>
+                <span className="text-[7.5px] font-mono text-[#c6b89e]/50 uppercase tracking-[1px]">
+                  {isBookmarked ? "// PRESERVED IN SECURITY CABINET" : "// PRE-DECRYPTED SECURITY STATUS"}
+                </span>
+              </div>
             </div>
 
             <div className="mt-8 pt-6 border-t border-white/5 text-[9.5px] font-mono text-[#c6b89e]/40 tracking-[2px] uppercase select-none">

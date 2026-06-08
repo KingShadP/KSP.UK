@@ -7,6 +7,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Play, Headphones, Sparkles, Radio, HelpCircle, ArrowRight, ExternalLink, RefreshCw, AudioLines } from "lucide-react";
 import AudioPlayer from "./AudioPlayer";
+import SanctuaryAmbient from "./SanctuaryAmbient";
 
 interface Release {
   id: string;
@@ -218,6 +219,11 @@ export default function ListenSection({ onNavigate }: ListenSectionProps) {
           </div>
         </div>
 
+      </div>
+
+      {/* --- SANCTUARY AMBIENT AUDIO ENVIRONMENT PANEL --- */}
+      <div className="mt-8">
+        <SanctuaryAmbient />
       </div>
 
       {/* --- FILTER & SORT OPTIONS TABS --- */}

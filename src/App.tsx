@@ -36,6 +36,27 @@ const SECTION_SELECTORS: Record<TabState, string> = {
   community: "section-community"
 };
 
+const ARCHIVE_LORE_LOOKUP: Record<string, { title: string; subtitle: string; era: string; desc: string }> = {
+  "chap-01": {
+    title: "The Miami Sanctuary Humid Isolation",
+    subtitle: "FOUNDATION OF THE MYTHOLOGY",
+    era: "2020 - 2021",
+    desc: "The initial psychological shield constructed in coastal Florida apartments amid extreme creative isolation of the Miami beachfront era."
+  },
+  "chap-02": {
+    title: "Aegean Gilt Velocity Transition",
+    subtitle: "HIGH-SPEED FLIGHT ARCHITECTURE",
+    era: "2022",
+    desc: "Escaping public velocity centers to relocate the creative crucible inside hidden sanctuary chambers on private Greek shores."
+  },
+  "chap-03": {
+    title: "Sovereign Digital Kingdom",
+    subtitle: "THE MATRICULATED FORTRESS",
+    era: "2023 - PRESENT",
+    desc: "Unveiling encrypted biometric interfaces, bespoke uniforms, and unreleased studio demo records in a central physical environment."
+  }
+};
+
 const SHIELD = 'aesthetic check';
 
 export default function App() {
@@ -57,6 +78,37 @@ export default function App() {
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [showNewsletterModal, setShowNewsletterModal] = useState(false);
+
+  // Archive and Lore registration states
+  const [archiveTab, setArchiveTab] = useState<"global" | "saved">("global");
+  const [bookmarkedLoreIds, setBookmarkedLoreIds] = useState<string[]>([]);
+
+  const syncBookmarks = () => {
+    try {
+      const saved = localStorage.getItem("kingshadp-bookmarked-lore");
+      setBookmarkedLoreIds(saved ? JSON.parse(saved) : []);
+    } catch (e) {
+      setBookmarkedLoreIds([]);
+    }
+  };
+
+  const removeBookmarkFromArchive = (id: string) => {
+    const next = bookmarkedLoreIds.filter((item) => item !== id);
+    setBookmarkedLoreIds(next);
+    localStorage.setItem("kingshadp-bookmarked-lore", JSON.stringify(next));
+    window.dispatchEvent(new Event("lore-bookmarks-updated"));
+    window.dispatchEvent(new CustomEvent("telemetry-log", {
+      detail: { message: `LORE_REGISTRY: Evicted dossier from within Archive systems dashboard.`, type: "WARNING" }
+    }));
+  };
+
+  useEffect(() => {
+    syncBookmarks();
+    window.addEventListener("lore-bookmarks-updated", syncBookmarks);
+    return () => {
+      window.removeEventListener("lore-bookmarks-updated", syncBookmarks);
+    };
+  }, []);
 
   // Monitor scroll depth of active page to highlight HUD scrollbars and logs
   useEffect(() => {
@@ -478,31 +530,56 @@ export default function App() {
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  className="absolute top-24 left-0 right-0 bg-black/57 backdrop-blur-3xl z-45 border-b border-[#c6b89e]/20 p-8 flex flex-col gap-5 md:hidden select-none"
+                  className="absolute top-24 left-0 right-0 bg-black/92 backdrop-blur-3xl z-45 border-b border-[#c6b89e]/20 p-8 flex flex-col gap-5 md:hidden select-none overflow-hidden"
                 >
-                  {[
-                    { id: "home", label: "01 HOME", hover: "THE ARCHIVE", diag: "🛡️ [GATEWAY] Mobile login registered." },
-                    { id: "listen", label: "02 LISTEN", hover: "STREAM MUSIC", diag: "🎵 [FREQUENCY] Buffering soundtrack." },
-                    { id: "vault", label: "03 VAULT", hover: "LOGS", diag: "🗄️ [VAULT] Historical releases synced." },
-                    { id: "artifacts", label: "04 ARTIFACTS", hover: "BUY CLOTHING", diag: "👕 [ITEMS] Secure mobile store active." },
-                    { id: "lore", label: "05 LORE", hover: "STORY", diag: "📖 [THEOLOGY] Reading Miami/Aegean biography." },
-                    { id: "community", label: "06 COMMUNITY", hover: "BELIEVERS", diag: "👥 [BELIEVERS] Accessing VIP email registry, live social outlets, FAQs, and event schedules." },
-                  ].map((tab, idx) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => {
-                        scrollToSection(`section-${tab.id}`);
-                        setMobileMenuOpen(false);
-                        window.dispatchEvent(new CustomEvent("telemetry-log", { 
-                          detail: { message: tab.diag, type: tab.id === "artifacts" || tab.id === "listen" ? "FORGE_SYNC" : "SYSTEM" } 
-                        }));
-                      }}
-                      className="text-left font-mono text-[10px] tracking-[6px] text-white/70 hover:text-[#c6b89e] transition-colors py-4 border-b border-white/5 flex justify-between items-center"
-                    >
-                      <span>{tab.label}</span>
-                      <span className="text-[8px] opacity-30">0{idx + 1}</span>
-                    </button>
-                  ))}
+                  {/* MOBILE PROCEDURAL MESH GLOW OVERLAY */}
+                  <div className="absolute inset-0 z-0 pointer-events-none opacity-30">
+                    <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                      <defs>
+                        <filter id="mobile-hud-mesh-glow" x="-20%" y="-20%" width="140%" height="140%">
+                          <feGaussianBlur stdDeviation="3" result="blur" />
+                          <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1.8 0" />
+                          <feMerge>
+                            <feMergeNode in="blur" />
+                            <feMergeNode in="SourceGraphic" />
+                          </feMerge>
+                        </filter>
+                      </defs>
+                      <g stroke="#c6b89e" strokeWidth="0.5" opacity="0.35" filter="url(#mobile-hud-mesh-glow)">
+                        <line x1="0" y1="25%" x2="100%" y2="25%" />
+                        <line x1="0" y1="50%" x2="100%" y2="50%" />
+                        <line x1="0" y1="75%" x2="100%" y2="75%" />
+                        <line x1="30%" y1="0" x2="30%" y2="100%" />
+                        <line x1="70%" y1="0" x2="70%" y2="100%" />
+                      </g>
+                    </svg>
+                  </div>
+
+                  <div className="relative z-10 flex flex-col gap-5">
+                    {[
+                      { id: "home", label: "01 HOME", hover: "THE ARCHIVE", diag: "🛡️ [GATEWAY] Mobile login registered." },
+                      { id: "listen", label: "02 LISTEN", hover: "STREAM MUSIC", diag: "🎵 [FREQUENCY] Buffering soundtrack." },
+                      { id: "vault", label: "03 VAULT", hover: "LOGS", diag: "🗄️ [VAULT] Historical releases synced." },
+                      { id: "artifacts", label: "04 ARTIFACTS", hover: "BUY CLOTHING", diag: "👕 [ITEMS] Secure mobile store active." },
+                      { id: "lore", label: "05 LORE", hover: "STORY", diag: "📖 [THEOLOGY] Reading Miami/Aegean biography." },
+                      { id: "community", label: "06 COMMUNITY", hover: "BELIEVERS", diag: "👥 [BELIEVERS] Accessing VIP email registry, live social outlets, FAQs, and event schedules." },
+                    ].map((tab, idx) => (
+                      <button
+                        key={tab.id}
+                        onClick={() => {
+                          scrollToSection(`section-${tab.id}`);
+                          setMobileMenuOpen(false);
+                          window.dispatchEvent(new CustomEvent("telemetry-log", { 
+                            detail: { message: tab.diag, type: tab.id === "artifacts" || tab.id === "listen" ? "FORGE_SYNC" : "SYSTEM" } 
+                          }));
+                        }}
+                        className="text-left font-mono text-[10px] tracking-[6px] text-white/70 hover:text-[#c6b89e] transition-colors py-4 border-b border-white/5 flex justify-between items-center relative focus:outline-none"
+                      >
+                        <span>{tab.label}</span>
+                        <span className="text-[8px] opacity-30">0{idx + 1}</span>
+                      </button>
+                    ))}
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -717,60 +794,144 @@ export default function App() {
                     </button>
                   </div>
 
-                  {/* Archival system bento array */}
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                    
-                    {/* Panel 1: Satellite Radar */}
-                    <div className="flex flex-col gap-3">
-                      <div className="font-mono text-[9px] uppercase tracking-[3px] text-white/50 px-1">
-                        // COORDINATES_RADAR_HUD [ACTIVE]
-                      </div>
-                      <div className="bg-black border border-white/10 h-[380px] overflow-hidden relative rounded-sm">
-                        <SatelliteRadar />
-                      </div>
-                    </div>
-
-                    {/* Panel 2: Scribe Diary Notes */}
-                    <div className="flex flex-col gap-3">
-                      <div className="font-mono text-[9px] uppercase tracking-[3px] text-white/50 px-1">
-                        // SCRIPT_ATHENA_RECORDS_LOG
-                      </div>
-                      <div className="bg-black border border-white/10 h-[380px] relative rounded-sm">
-                        <ScribeNotes />
-                      </div>
-                    </div>
-
-                    {/* Panel 3: Previous Blueprints Grid */}
-                    <div className="flex flex-col gap-3">
-                      <div className="font-mono text-[9px] uppercase tracking-[3px] text-white/50 px-1">
-                        // ARCHITECTURE_BLUEPRINT_VAULT
-                      </div>
-                      <div className="bg-black border border-white/10 h-[380px] p-6 relative rounded-sm overflow-y-auto">
-                        <div className="p-4 border border-teal-500/10 mb-4 bg-teal-500/5 text-justify select-text">
-                          <div className="text-[10px] font-mono tracking-[2px] text-[#dcc57b] uppercase mb-1 font-bold">
-                            AEGEAN SEA SESS COORDINATES
-                          </div>
-                          <div className="text-[11px] text-white/40 mb-3 leading-relaxed">
-                            Decrypted records of private villa drafts, sovereign custom yachts, and heavy aerial helicopters are kept securely on file.
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              window.dispatchEvent(new CustomEvent("telemetry-log", {
-                                detail: { message: "AEGEAN ACCESSED: decryption lock synced.", type: "FORGE_SYNC" }
-                              }));
-                              alert("System Decryption: Accessing historical Aegean beachfront estate drawings.");
-                            }}
-                            className="px-3 py-1.5 border border-white/20 text-[9px] font-mono text-white hover:bg-white/10 uppercase transition-all tracking-[2px] cursor-pointer"
-                          >
-                            Mount Blueprint File
-                          </button>
-                        </div>
-                        <AcquisitionGrid isInline={true} />
-                      </div>
-                    </div>
-
+                  {/* TAB SELECTORS FOR THE ARCHIVE MODULE */}
+                  <div className="flex gap-4 border-b border-white/10 pb-4 mb-10 select-none">
+                    <button
+                      onClick={() => setArchiveTab("global")}
+                      className={`px-5 py-3 border font-mono text-[9px] uppercase tracking-[3px] cursor-pointer transition-all focus:outline-none ${
+                        archiveTab === "global"
+                          ? "border-[#c6b89e] bg-[#c6b89e]/10 text-[#c6b89e]"
+                          : "border-white/10 text-white/40 hover:border-white/20"
+                      }`}
+                    >
+                      GLOBAL SYSTEMS TERMINAL
+                    </button>
+                    <button
+                      onClick={() => setArchiveTab("saved")}
+                      className={`px-5 py-3 border font-mono text-[9px] uppercase tracking-[3px] cursor-pointer transition-all focus:outline-none flex items-center gap-2 ${
+                        archiveTab === "saved"
+                          ? "border-red-600 bg-red-950/15 text-red-500"
+                          : "border-white/10 text-white/40 hover:border-white/20"
+                      }`}
+                    >
+                      Saved Dossiers Registry
+                      {bookmarkedLoreIds.length > 0 && (
+                        <span className="bg-red-600 text-white text-[8px] font-mono px-1.5 py-0.5 rounded-none font-bold">
+                          {bookmarkedLoreIds.length}
+                        </span>
+                      )}
+                    </button>
                   </div>
+
+                  {/* Tab Panes */}
+                  <AnimatePresence mode="wait">
+                    {archiveTab === "global" ? (
+                      <motion.div
+                        key="global"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="grid grid-cols-1 lg:grid-cols-3 gap-10"
+                      >
+                        {/* Panel 1: Satellite Radar */}
+                        <div className="flex flex-col gap-3">
+                          <div className="font-mono text-[9px] uppercase tracking-[3px] text-white/50 px-1">
+                            // COORDINATES_RADAR_HUD [ACTIVE]
+                          </div>
+                          <div className="bg-black border border-white/10 h-[380px] overflow-hidden relative rounded-sm">
+                            <SatelliteRadar />
+                          </div>
+                        </div>
+
+                        {/* Panel 2: Scribe Diary Notes */}
+                        <div className="flex flex-col gap-3">
+                          <div className="font-mono text-[9px] uppercase tracking-[3px] text-white/50 px-1">
+                            // SCRIPT_ATHENA_RECORDS_LOG
+                          </div>
+                          <div className="bg-black border border-white/10 h-[380px] relative rounded-sm">
+                            <ScribeNotes />
+                          </div>
+                        </div>
+
+                        {/* Panel 3: Previous Blueprints Grid */}
+                        <div className="flex flex-col gap-3">
+                          <div className="font-mono text-[9px] uppercase tracking-[3px] text-white/50 px-1">
+                            // ARCHITECTURE_BLUEPRINT_VAULT
+                          </div>
+                          <div className="bg-black border border-white/10 h-[380px] p-6 relative rounded-sm overflow-y-auto">
+                            <div className="p-4 border border-teal-500/10 mb-4 bg-teal-500/5 text-justify select-text">
+                              <div className="text-[10px] font-mono tracking-[2px] text-[#dcc57b] uppercase mb-1 font-bold">
+                                AEGEAN SEA SESS COORDINATES
+                              </div>
+                              <div className="text-[11px] text-white/40 mb-3 leading-relaxed">
+                                Decrypted records of private villa drafts, sovereign custom yachts, and heavy aerial helicopters are kept securely on file.
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  window.dispatchEvent(new CustomEvent("telemetry-log", {
+                                    detail: { message: "AEGEAN ACCESSED: decryption lock synced.", type: "FORGE_SYNC" }
+                                  }));
+                                  alert("System Decryption: Accessing historical Aegean beachfront estate drawings.");
+                                }}
+                                className="px-3 py-1.5 border border-white/20 text-[9px] font-mono text-white hover:bg-white/10 uppercase transition-all tracking-[2px] cursor-pointer"
+                              >
+                                Mount Blueprint File
+                              </button>
+                            </div>
+                            <AcquisitionGrid isInline={true} />
+                          </div>
+                        </div>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="saved"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="w-full"
+                      >
+                        {bookmarkedLoreIds.length === 0 ? (
+                          <div className="border border-dashed border-white/10 bg-black/40 py-24 text-center select-none text-[#ff4a00]">
+                            <div className="font-mono text-xs tracking-[4px] uppercase mb-2">NO SECURE DOSSIERS MARKED FOR PRESERVATION</div>
+                            <p className="font-sans text-[11.5px] text-white/30 font-light max-w-md mx-auto">
+                              Open the LORE section and click "LOCK DOSSIER TO REGISTRY" on any historical intelligence chapter to archive it securely here.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {bookmarkedLoreIds.map((id) => {
+                              const info = ARCHIVE_LORE_LOOKUP[id];
+                              if (!info) return null;
+                              return (
+                                <div key={id} className="border border-white/10 bg-black/60 p-6 flex flex-col justify-between relative rounded-none text-left select-text">
+                                  <div className="absolute top-2 right-2 text-white/20 font-mono text-[7.5px] select-none">// SECURE_ARCHIVE_LOCK</div>
+                                  <div>
+                                    <div className="font-mono text-[8.5px] text-[#ff4a00] tracking-[2.5px] uppercase mb-2 select-none">
+                                      {info.subtitle}
+                                    </div>
+                                    <h4 className="font-serif text-xl text-white font-normal mb-1">{info.title}</h4>
+                                    <div className="font-mono text-[9px] text-[#c6b89e] mb-4 select-none">MATRIX EPOCH: {info.era}</div>
+                                    <p className="font-sans text-[12.5px] text-white/50 leading-relaxed font-light mb-8 text-justify">
+                                      {info.desc}
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeBookmarkFromArchive(id)}
+                                    className="w-full py-2.5 border border-[#93000a] text-[#93000a] hover:bg-[#93000a] hover:text-white transition-all text-[9.5px] font-mono tracking-[3px] uppercase cursor-pointer focus:outline-none"
+                                  >
+                                    [ EVICT FROM CABINET ]
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
                 </div>
 
                 <div className="border-t border-white/5 pt-6 mt-16 font-mono text-[8.5px] uppercase tracking-[5px] text-white/20 flex flex-col md:flex-row justify-between pointer-events-none select-none">
