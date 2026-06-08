@@ -15,6 +15,58 @@ interface VirtualKingdomStageProps {
 export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStageProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [vrActive, setVrActive] = useState(false);
+  const [isLowPerformance, setIsLowPerformance] = useState(false);
+
+  // Performance-driven active downsampling manager for low-end specs and throttling rescue
+  useEffect(() => {
+    const checkInitialHardware = () => {
+      const ua = navigator.userAgent;
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+      const cores = navigator.hardwareConcurrency || 4;
+      
+      if (isMobileDevice) {
+        return true; // Proactively rescue mobile frameworks to preserve 60FPS WebGL integration
+      }
+      if (window.innerWidth < 1024 && cores < 6) {
+        return true;
+      }
+      return false;
+    };
+
+    if (checkInitialHardware()) {
+      setIsLowPerformance(true);
+      return;
+    }
+
+    let lastTime = performance.now();
+    let frames = 0;
+    let frameSamples: number[] = [];
+    let animId: number;
+
+    const sampleLoop = () => {
+      frames++;
+      const now = performance.now();
+      if (now - lastTime >= 1000) {
+        const fps = Math.round((frames * 1000) / (now - lastTime));
+        frameSamples.push(fps);
+        if (frameSamples.length > 3) frameSamples.shift();
+
+        if (frameSamples.length === 3) {
+          const avgFps = frameSamples.reduce((a, b) => a + b, 0) / 3;
+          if (avgFps < 48) {
+            setIsLowPerformance(true);
+            return;
+          }
+        }
+        frames = 0;
+        lastTime = now;
+      }
+      animId = requestAnimationFrame(sampleLoop);
+    };
+
+    animId = requestAnimationFrame(sampleLoop);
+    return () => cancelAnimationFrame(animId);
+  }, []);
 
   // Use elegant framer-motion scroll hooks for smooth updates
   const { scrollYProgress } = useScroll();
@@ -125,10 +177,10 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
         className="w-full h-full flex items-center justify-center absolute inset-0"
       >
         {/* --- ORGANIC PARTICULATE DUST MOTES CANVAS LAYER --- */}
-        <MotesCanvas eye={eye} containerRef={containerRef} />
+        <MotesCanvas eye={eye} containerRef={containerRef} isLowPerformance={isLowPerformance} />
 
         {/* --- CUSTOM 4D WEBGL SHADER DEPTH-BUFFER CORRIDOR SIMULATOR --- */}
-        <SovereignWebGLStage />
+        <SovereignWebGLStage isLowPerformance={isLowPerformance} />
 
         {/* --- 4D HOLOGRAPHIC GEOMETRICAL VOLUMETRIC CORRIDOR OVERLAY --- */}
         <VolumetricCorridor 
@@ -136,6 +188,7 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
           smoothProgress={smoothProgress} 
           springX={springX} 
           springY={springY} 
+          isLowPerformance={isLowPerformance}
         />
       </motion.div>
     );
@@ -201,7 +254,7 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
       />
 
       {/* Atmospheric Soft Volumetric Drift Dust backplate */}
-      <AtmosphericDustMotes />
+      <AtmosphericDustMotes isLowPerformance={isLowPerformance} />
 
       {/* High-blur animated fog layers drifting dynamically in depth space */}
       <div className="absolute inset-0 z-1 select-none pointer-events-none overflow-hidden opacity-35">
@@ -344,10 +397,12 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
 // Organic dust particles rendering function using standard interactive high-performance canvas
 function MotesCanvas({ 
   eye, 
-  containerRef 
+  containerRef,
+  isLowPerformance
 }: { 
   eye: 'left' | 'right' | 'center'; 
   containerRef: React.RefObject<HTMLDivElement | null>;
+  isLowPerformance: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -367,7 +422,8 @@ function MotesCanvas({
     resize();
     window.addEventListener('resize', resize);
 
-    const count = eye === 'center' ? 120 : 60; 
+    const baseCount = eye === 'center' ? 120 : 60;
+    const count = isLowPerformance ? Math.round(baseCount * 0.3) : baseCount; // 70% particle reduction
     const particles: Array<{
       x: number;
       y: number;
@@ -446,15 +502,18 @@ function MotesCanvas({
         const rSize = p.size * (p.depth * 0.6) * extraSizeFactor * (1.0 + currentPulse);
         const rAlpha = Math.max(0.08, Math.min(p.alpha * (p.depth / 2.2) + extraAlphaFactor, 0.85));
 
-        ctx.beginPath();
-        const glowRadius = rSize * 3.5;
-        const grad = ctx.createRadialGradient(rX, rY, 0, rX, rY, glowRadius);
-        grad.addColorStop(0, `rgba(${p.color}, ${rAlpha})`);
-        grad.addColorStop(0.3, `rgba(${p.color}, ${rAlpha * 0.35})`);
-        grad.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = grad;
-        ctx.arc(rX, rY, glowRadius, 0, Math.PI * 2);
-        ctx.fill();
+        // Skip heavy gradient drawing entirely on low performance to conserve pixel fill rates
+        if (!isLowPerformance) {
+          ctx.beginPath();
+          const glowRadius = rSize * 3.5;
+          const grad = ctx.createRadialGradient(rX, rY, 0, rX, rY, glowRadius);
+          grad.addColorStop(0, `rgba(${p.color}, ${rAlpha})`);
+          grad.addColorStop(0.3, `rgba(${p.color}, ${rAlpha * 0.35})`);
+          grad.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = grad;
+          ctx.arc(rX, rY, glowRadius, 0, Math.PI * 2);
+          ctx.fill();
+        }
 
         ctx.beginPath();
         ctx.arc(rX, rY, rSize, 0, Math.PI * 2);
@@ -473,16 +532,16 @@ function MotesCanvas({
       window.removeEventListener('resize', resize);
       window.removeEventListener('mousemove', handleMouse);
     };
-  }, [eye, containerRef]);
+  }, [eye, containerRef, isLowPerformance]);
 
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none mix-blend-screen z-15 opacity-85" />;
 }
 
 // Atmospheric volumetric drift dust motes layout
-function AtmosphericDustMotes() {
-  const moteCount = 35;
+function AtmosphericDustMotes({ isLowPerformance }: { isLowPerformance: boolean }) {
+  const moteCount = isLowPerformance ? 8 : 35; // Downscale SVG motes significantly on mobile/low performance
   const motes = useRef(
-    Array.from({ length: moteCount }).map((_, i) => {
+    Array.from({ length: 35 }).map((_, i) => { // keep static pre-initialized array structure safe
       const isGold = Math.random() > 0.45;
       return {
         id: i,
@@ -525,22 +584,25 @@ function AtmosphericDustMotes() {
         id="AtmosphericDustMotesLayer"
       >
         <svg className="w-full h-full">
-          <defs>
-            <filter id="mote-glow-filter-3d" x="-100%" y="-100%" width="300%" height="300%">
-              <feGaussianBlur stdDeviation="3.0" result="blur" />
-              <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1.5 0" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-          {motes.map((mote) => (
+          {/* Omit heavy filter definitions on mobile specs */}
+          {!isLowPerformance && (
+            <defs>
+              <filter id="mote-glow-filter-3d" x="-100%" y="-100%" width="300%" height="300%">
+                <feGaussianBlur stdDeviation="3.0" result="blur" />
+                <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1.5 0" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+          )}
+          {motes.slice(0, moteCount).map((mote) => (
             <circle
               key={mote.id}
               r={mote.size}
               fill={mote.color}
-              filter="url(#mote-glow-filter-3d)"
+              filter={isLowPerformance ? undefined : "url(#mote-glow-filter-3d)"}
               className="mote-emitter-element-3d"
               style={{
                 transformOrigin: "center",
@@ -563,9 +625,10 @@ interface VolumetricCorridorProps {
   smoothProgress: any;
   springX: any;
   springY: any;
+  isLowPerformance: boolean;
 }
 
-function VolumetricCorridor({ smoothVelocity, smoothProgress, springX, springY }: VolumetricCorridorProps) {
+function VolumetricCorridor({ smoothVelocity, smoothProgress, springX, springY, isLowPerformance }: VolumetricCorridorProps) {
   const displacementScale = useTransform(smoothVelocity, (v) => Math.min(32, Math.abs(v as number) * 0.045));
   
   const accelerationPull = useTransform(smoothVelocity, (v) => {
@@ -597,20 +660,22 @@ function VolumetricCorridor({ smoothVelocity, smoothProgress, springX, springY }
         transformStyle: "preserve-3d",
       }}
     >
-      <svg className="w-0 h-0 absolute">
-        <defs>
-          <filter id="corridorWarpFilter" x="-50%" y="-50%" width="200%" height="200%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.008" numOctaves="3" result="noise" />
-            <motion.feDisplacementMap 
-              in="SourceGraphic" 
-              in2="noise" 
-              scale={displacementScale} 
-              xChannelSelector="R" 
-              yChannelSelector="G" 
-            />
-          </filter>
-        </defs>
-      </svg>
+      {!isLowPerformance && (
+        <svg className="w-0 h-0 absolute">
+          <defs>
+            <filter id="corridorWarpFilter" x="-50%" y="-50%" width="200%" height="200%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.008" numOctaves="3" result="noise" />
+              <motion.feDisplacementMap 
+                in="SourceGraphic" 
+                in2="noise" 
+                scale={displacementScale} 
+                xChannelSelector="R" 
+                yChannelSelector="G" 
+              />
+            </filter>
+          </defs>
+        </svg>
+      )}
 
       <motion.div
         style={{
@@ -630,7 +695,7 @@ function VolumetricCorridor({ smoothVelocity, smoothProgress, springX, springY }
                 width: ring.width,
                 height: ring.height,
                 transformStyle: "preserve-3d",
-                filter: "url(#corridorWarpFilter)",
+                filter: isLowPerformance ? undefined : "url(#corridorWarpFilter)",
                 opacity: ring.opacity,
               }}
               className="absolute flex items-center justify-center border border-[#c6b89e]/15 shadow-inner transition-colors duration-500 rounded-lg pointer-events-none"

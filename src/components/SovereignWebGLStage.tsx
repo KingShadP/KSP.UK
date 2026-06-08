@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 
-export default function SovereignWebGLStage() {
+interface SovereignWebGLStageProps {
+  isLowPerformance?: boolean;
+}
+
+export default function SovereignWebGLStage({ isLowPerformance = false }: SovereignWebGLStageProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 1000, height: 1000 });
@@ -23,9 +27,11 @@ export default function SovereignWebGLStage() {
     const handleResize = () => {
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
+        // Conditionally downscale buffer width/height by 45% (which drops pixel burden by nearly 70%)
+        const scale = isLowPerformance ? 0.55 : 1.0;
         setDimensions({
-          width: Math.max(200, rect.width),
-          height: Math.max(200, rect.height),
+          width: Math.max(200, Math.round(rect.width * scale)),
+          height: Math.max(200, Math.round(rect.height * scale)),
         });
       }
     };
@@ -57,7 +63,7 @@ export default function SovereignWebGLStage() {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("scroll", handleScroll);
     };
-  }, []);
+  }, [isLowPerformance]);
 
   // Set up the WebGL engine & compile the custom 4D depth buffer shader
   useEffect(() => {
@@ -78,9 +84,9 @@ export default function SovereignWebGLStage() {
       }
     `;
 
-    // Fragment Shader Source embodying a true 4D screen-space depth buffer corridor
+    // Fragment Shader Source embodying a true 4D screen-space depth corridor with conditional optimizations
     const fsSource = `
-      precision highp float;
+      ${isLowPerformance ? "precision mediump float;" : "precision highp float;"}
       uniform vec2 u_resolution;
       uniform float u_time;
       uniform vec2 u_mouse;
@@ -156,8 +162,8 @@ export default function SovereignWebGLStage() {
         // Add procedural light sweeps emitting from the central depth focal point
         float focalSweep = 0.045 / (r + 0.002);
         
-        // Procedural volumetric drift fog using screen space noise patterns
-        float volumetricDrift = noise(uv * 12.0 + vec2(0.0, u_time * 0.8)) * 0.045 * (1.0 - r);
+        // Procedural volumetric drift fog using screen space noise patterns (skip noise math on low performance specs)
+        float volumetricDrift = ${isLowPerformance ? "0.0" : "noise(uv * 12.0 + vec2(0.0, u_time * 0.8)) * 0.045 * (1.0 - r)"};
 
         // Final wireframe architecture glow intensities
         vec3 structureColor = currentSecColor * (ribGrid * 1.4 + rings * 2.2);
@@ -288,7 +294,7 @@ export default function SovereignWebGLStage() {
       gl.deleteBuffer(positionBuffer);
       gl.deleteProgram(program);
     };
-  }, [dimensions]);
+  }, [dimensions, isLowPerformance]);
 
   return (
     <div
