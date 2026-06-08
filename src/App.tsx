@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowUpRight, Cpu, HelpCircle, Thermometer, Radio, Menu, X, Landmark, Compass, Droplet, ShieldAlert, Sparkles } from "lucide-react";
+import { ArrowUpRight, Cpu, HelpCircle, Thermometer, Radio, Menu, X, Landmark, Compass, Droplet, ShieldAlert, Sparkles, Lock } from "lucide-react";
 import ScrambleText from "./components/ScrambleText";
 import AudioPlayer from "./components/AudioPlayer";
 import AcquisitionGrid from "./components/AcquisitionGrid";
@@ -23,17 +23,19 @@ import ListenSection from "./components/ListenSection";
 import VaultSection from "./components/VaultSection";
 import LoreSection from "./components/LoreSection";
 import CommunitySection from "./components/CommunitySection";
+import AdminSection from "./components/AdminSection";
 
-type TabState = "home" | "listen" | "vault" | "artifacts" | "lore" | "community";
+type TabState = "home" | "listen" | "vault" | "artifacts" | "lore" | "community" | "admin";
 
-const SECTIONS_ORDER: TabState[] = ["home", "listen", "vault", "artifacts", "lore", "community"];
+const SECTIONS_ORDER: TabState[] = ["home", "listen", "vault", "artifacts", "lore", "community", "admin"];
 const SECTION_SELECTORS: Record<TabState, string> = {
   home: "section-home",
   listen: "section-listen",
   vault: "section-vault",
   artifacts: "section-artifacts",
   lore: "section-lore",
-  community: "section-community"
+  community: "section-community",
+  admin: "section-admin"
 };
 
 const ARCHIVE_LORE_LOOKUP: Record<string, { title: string; subtitle: string; era: string; desc: string }> = {
@@ -66,6 +68,31 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrollPercent, setScrollPercent] = useState(0);
 
+  // Paradox Universe state
+  const [paradoxMode, setParadoxMode] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("kingshadp-paradox-mode") === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleParadoxMode = () => {
+    const next = !paradoxMode;
+    setParadoxMode(next);
+    try {
+      localStorage.setItem("kingshadp-paradox-mode", String(next));
+    } catch (e) {}
+    window.dispatchEvent(new CustomEvent("telemetry-log", {
+      detail: { 
+        message: next 
+          ? "⚠️ SYS_MUTATION: Mutated timeline. OMEGA anti-matter void initialized. Shifted to the Parallel Universe." 
+          : "✓ SYS_NOMINAL: Timeline restored. ALPHA golden physical core active.", 
+        type: next ? "WARNING" : "SYSTEM" 
+      }
+    }));
+  };
+
   // Scroll dynamics parameters for 4D HUD acceleration tracker
   const [scrollSpeed, setScrollSpeed] = useState(0);
   const [scrollDirection, setScrollDirection] = useState<"up" | "down" | "none">("none");
@@ -78,6 +105,8 @@ export default function App() {
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [showNewsletterModal, setShowNewsletterModal] = useState(false);
+  const [newsletterSubmitted, setNewsletterSubmitted] = useState(false);
+  const [blueprintMounted, setBlueprintMounted] = useState(false);
 
   // Archive and Lore registration states
   const [archiveTab, setArchiveTab] = useState<"global" | "saved">("global");
@@ -155,12 +184,14 @@ export default function App() {
       "section-artifacts": "artifacts",
       "section-lore": "lore",
       "section-community": "community",
+      "section-admin": "admin",
       "home": "home",
       "listen": "listen",
       "vault": "vault",
       "artifacts": "artifacts",
       "lore": "lore",
-      "community": "community"
+      "community": "community",
+      "admin": "admin"
     };
     const targetTab = tabMap[sectionId] || "home";
     setActiveTab(targetTab);
@@ -232,18 +263,23 @@ export default function App() {
   };
 
   // Deep Oxblood Crimson (147, 0, 10) to Muted Gold (220, 197, 123) to Polished Platinum (201, 198, 197)
+  // Universe Omega: Purple-Violet (89, 42, 122) to Prism Ice (139, 185, 220) to Polished Platinum (197, 201, 203)
   const getInterpolatedColor = (pct: number) => {
+    const startColor = paradoxMode ? { r: 89, g: 42, b: 122 } : { r: 147, g: 0, b: 10 };
+    const midColor = paradoxMode ? { r: 139, g: 185, b: 220 } : { r: 220, g: 197, b: 123 };
+    const endColor = { r: 201, g: 198, b: 197 };
+
     if (pct < 50) {
       const t = pct / 50;
-      const r = Math.round(147 * (1 - t) + 220 * t);
-      const g = Math.round(0 * (1 - t) + 197 * t);
-      const b = Math.round(10 * (1 - t) + 123 * t);
+      const r = Math.round(startColor.r * (1 - t) + midColor.r * t);
+      const g = Math.round(startColor.g * (1 - t) + midColor.g * t);
+      const b = Math.round(startColor.b * (1 - t) + midColor.b * t);
       return `rgb(${r}, ${g}, ${b})`;
     } else {
       const t = (pct - 50) / 50;
-      const r = Math.round(220 * (1 - t) + 201 * t);
-      const g = Math.round(197 * (1 - t) + 198 * t);
-      const b = Math.round(123 * (1 - t) + 197 * t);
+      const r = Math.round(midColor.r * (1 - t) + endColor.r * t);
+      const g = Math.round(midColor.g * (1 - t) + endColor.g * t);
+      const b = Math.round(midColor.b * (1 - t) + endColor.b * t);
       return `rgb(${r}, ${g}, ${b})`;
     }
   };
@@ -252,6 +288,45 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#020202] text-white font-sans overflow-x-hidden selection:bg-[#93000a]/30 selection:text-white custom-aiming-reticle relative">
+      {/* High-fidelity CSS overrides for dynamic Universe Parallel Paradox Shift */}
+      <style>{`
+        ${paradoxMode ? `
+          /* Dynamic theme variables matching the mystical blue-silver-purple paradox */
+          .text-\\\\[\\\\#c6b89e\\\\] { color: #8bb9dc !important; }
+          .border-\\\\[\\\\#c6b89e\\\\] { border-color: #8bb9dc !important; }
+          .bg-\\\\[\\\\#c6b89e\\\\] { background-color: #8bb9dc !important; }
+          .text-\\\\[\\\\#93000a\\\\] { color: #9c7cf4 !important; }
+          .border-\\\\[\\\\#93000a\\\\] { border-color: #9c7cf4 !important; }
+          .bg-\\\\[\\\\#93000a\\\\] { background-color: #9c7cf4 !important; }
+          
+          /* Hover updates */
+          .hover\\\\:border-\\\\[\\\\#c6b89e\\\\]:hover { border-color: #8bb9dc !important; }
+          .hover\\\\:bg-\\\\[\\\\#c6b89e\\\\]:hover { background-color: #8bb9dc !important; }
+          .hover\\\\:text-\\\\[\\\\#c6b89e\\\\]:hover { color: #8bb9dc !important; }
+          
+          /* Transparent versions */
+          .text-\\\\[\\\\#c6b89e\\\\]\\\\/60 { color: rgba(139, 185, 220, 0.6) !important; }
+          .text-\\\\[\\\\#c6b89e\\\\]\\\\/40 { color: rgba(139, 185, 220, 0.4) !important; }
+          .text-\\\\[\\\\#c6b89e\\\\]\\\\/30 { color: rgba(139, 185, 220, 0.3) !important; }
+          .text-\\\\[\\\\#c6b89e\\\\]\\\\/70 { color: rgba(139, 185, 220, 0.7) !important; }
+          .border-\\\\[\\\\#c6b89e\\\\]\\\\/30 { border-color: rgba(139, 185, 220, 0.3) !important; }
+          .border-\\\\[\\\\#c6b89e\\\\]\\\\/20 { border-color: rgba(139, 185, 220, 0.2) !important; }
+          .border-\\\\[\\\\#c6b89e\\\\]\\\\/10 { border-color: rgba(139, 185, 220, 0.1) !important; }
+          .border-\\\\[\\\\#93000a\\\\]\\\\/30 { border-color: rgba(156, 124, 244, 0.3) !important; }
+          .bg-\\\\[\\\\#c6b89e\\\\]\\\\/10 { background-color: rgba(139, 185, 220, 0.1) !important; }
+          .bg-\\\\[\\\\#c6b89e\\\\]\\\\/5 { background-color: rgba(139, 185, 220, 0.05) !important; }
+          .bg-\\\\[\\\\#93000a\\\\]\\\\/20 { background-color: rgba(156, 124, 244, 0.2) !important; }
+          .selection\\\\:bg-\\\\[\\\\#93000a\\\\]\\\\/30::selection { background-color: rgba(156, 124, 244, 0.3) !important; }
+          
+          /* Shadow glowing filters */
+          .shadow-\\\\[0_0_20px_rgba\\\\(147\\\\,0\\\\,10\\\\,0\\\\.3\\\\)\\\\] { box-shadow: 0 0 20px rgba(156, 124, 244, 0.35) !important; }
+          .shadow-\\\\[0_0_20px_rgba\\\\(198\\\\,184\\\\,158\\\\,0\\\\.35\\\\)\\\\] { box-shadow: 0 0 20px rgba(139, 185, 220, 0.35) !important; }
+          
+          /* Glow filter tags */
+          #sanctum-global-cursor-ring > div { background-color: #9c7cf4 !important; }
+          #sanctum-global-cursor-ring { border-color: rgba(139, 185, 220, 0.3) !important; }
+        ` : ''}
+      `}</style>
       {/* Immersive Client custom cursor rings */}
       {accessGranted && (
         <div
@@ -281,7 +356,7 @@ export default function App() {
         <div className="min-h-screen flex flex-col md:flex-row relative">
           
           {/* Magnificent 3D Virtual Kingdom Scenic Background */}
-          <VirtualKingdomStage activeTab={activeTab} />
+          <VirtualKingdomStage activeTab={activeTab} paradoxMode={paradoxMode} />
 
           {/* System Telemetry Log HUD Terminal (JetBrains Mono Terminal style) */}
           <TelemetryTerminal />
@@ -456,14 +531,60 @@ export default function App() {
               </div>
 
               {/* Navigation Actions - Desktop viewports */}
-              <nav className="hidden md:flex gap-10 text-[9px] uppercase tracking-[6px] font-mono opacity-80 pointer-events-auto mt-2 items-center">
+              <nav className="hidden md:flex gap-8 text-[9px] uppercase tracking-[6px] font-mono opacity-80 pointer-events-auto mt-2 items-center">
+                {/* 4D Parallel Paradox Universe Switcher */}
+                <div className="flex items-center gap-2 border border-white/10 px-3 py-1.5 bg-black/55 backdrop-blur-md rounded-sm select-none">
+                  <span className="font-mono text-[6.5px] text-white/40 tracking-[2px] uppercase">TIMELINE:</span>
+                  <div className="flex items-center gap-1.5 text-[8px]">
+                    <button
+                      onClick={() => paradoxMode && toggleParadoxMode()}
+                      className={`font-mono tracking-[1px] px-1.5 py-0.5 transition-all text-left uppercase cursor-pointer rounded-[1px] focus:outline-none ${
+                        !paradoxMode
+                          ? "text-[#c6b89e] bg-[#c6b89e]/15 border border-[#c6b89e]/30 font-bold"
+                          : "text-white/40 border border-transparent hover:text-white"
+                      }`}
+                    >
+                      ALPHA (GOLD)
+                    </button>
+                    <span className="text-white/10 text-[7px]">|</span>
+                    <button
+                      onClick={() => !paradoxMode && toggleParadoxMode()}
+                      className={`font-mono tracking-[1px] px-1.5 py-0.5 transition-all text-left uppercase cursor-pointer rounded-[1px] focus:outline-none ${
+                        paradoxMode
+                          ? "text-[#8bb9dc] bg-[#8bb9dc]/15 border border-[#8bb9dc]/30 font-bold shadow-[0_0_8px_rgba(139,185,220,0.25)]"
+                          : "text-white/40 border border-transparent hover:text-white"
+                      }`}
+                    >
+                      OMEGA (PARADOX)
+                    </button>
+                  </div>
+                </div>
                 <Tooltip message="SYS_DIAG: Launch secure uplink proxy node and request live AI Concierge session.">
                   <button
                     onClick={() => setShowChatDrawer(!showChatDrawer)}
                     aria-label="Toggle executive AI system"
-                    className="px-4 py-2 border border-[#93000a]/30 hover:bg-[#93000a] hover:text-white font-semibold tracking-[3px] text-[#93000a] hover:shadow-[0_0_20px_rgba(147,0,10,0.3)] transition-all uppercase cursor-pointer mr-6 font-mono"
+                    className="px-4 py-2 border border-[#93000a]/30 hover:bg-[#93000a] hover:text-white font-semibold tracking-[3px] text-[#93000a] hover:shadow-[0_0_20px_rgba(147,0,10,0.3)] transition-all uppercase cursor-pointer mr-4 font-mono"
                   >
                     "CHAT CONCIERGE"
+                  </button>
+                </Tooltip>
+
+                <Tooltip message="ADMIN: Access the sovereign Virtual Kingdom Administrative control center (CMS) to make live changes.">
+                  <button
+                    onClick={() => {
+                      window.dispatchEvent(new CustomEvent("telemetry-log", {
+                        detail: { message: "🔑 ADMIN: Opening administrative passcode panel. Input system coordinates to decrypt records.", type: "WARNING" }
+                      }));
+                      scrollToSection("admin");
+                    }}
+                    aria-label="Admin Control Council"
+                    className={`p-2.5 mr-6 border transition-all cursor-pointer flex items-center justify-center rounded-sm focus:outline-none ${
+                      activeTab === "admin"
+                        ? "border-[#ff4a00] bg-[#ff4a00]/15 text-[#ff4a00] shadow-[0_0_12px_rgba(255,74,0,0.3)]"
+                        : "border-white/10 text-[#c6b89e]/60 hover:border-[#c6b89e] hover:text-white"
+                    }`}
+                  >
+                    <Lock className="w-3.5 h-3.5 shrink-0" />
                   </button>
                 </Tooltip>
 
@@ -555,6 +676,39 @@ export default function App() {
                     </svg>
                   </div>
 
+                  {/* Mobile Paradox Universe Selector */}
+                  <div className="relative z-10 border-b border-white/5 pb-4 mb-2 flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-[7px] text-white/50 tracking-[3px] uppercase">COSMOS DIMENSION:</span>
+                      <span className="font-mono text-[7px] text-[#c6b89e] tracking-[1px]">
+                        {paradoxMode ? "OMEGA_PARADOX_999" : "ALPHA_REALM_097"}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mt-1">
+                      <button
+                        onClick={() => paradoxMode && toggleParadoxMode()}
+                        className={`text-[8.5px] font-mono tracking-[2px] py-2 border text-center uppercase cursor-pointer focus:outline-none ${
+                          !paradoxMode
+                            ? "bg-[#c6b89e]/10 border-[#c6b89e] text-[#c6b89e] font-bold"
+                            : "border-white/10 text-white/55"
+                        }`}
+                      >
+                        ALPHA GOLD
+                      </button>
+                      <button
+                        onClick={() => !paradoxMode && toggleParadoxMode()}
+                        className={`text-[8.5px] font-mono tracking-[2px] py-2 border text-center uppercase cursor-pointer focus:outline-none ${
+                          paradoxMode
+                            ? "bg-[#8bb9dc]/10 border-[#8bb9dc] text-[#8bb9dc] font-bold shadow-[0_0_12px_rgba(139,185,220,0.15)]"
+                            : "border-white/10 text-white/55"
+                        }`}
+                      >
+                        OMEGA PARADOX
+                      </button>
+                    </div>
+                  </div>
+
                   <div className="relative z-10 flex flex-col gap-5">
                     {[
                       { id: "home", label: "01 HOME", hover: "THE ARCHIVE", diag: "🛡️ [GATEWAY] Mobile login registered." },
@@ -598,7 +752,7 @@ export default function App() {
                 >
                   {/* SECTION 1: HOME (Manifesto Threshold) */}
                   {activeTab === "home" && (
-                    <HomeSection onNavigate={(tab) => scrollToSection(`section-${tab}`)} />
+                    <HomeSection onNavigate={(tab) => scrollToSection(`section-${tab}`)} paradoxMode={paradoxMode} />
                   )}
 
                   {/* SECTION 2: LISTEN (Sovereign Channels) */}
@@ -638,12 +792,17 @@ export default function App() {
 
                   {/* SECTION 5: LORE (Editorial Gallery Dossier) */}
                   {activeTab === "lore" && (
-                    <LoreSection />
+                    <LoreSection paradoxMode={paradoxMode} />
                   )}
 
                   {/* SECTION 6: COMMUNITY (Citadel Portal / Believers Platform) */}
                   {activeTab === "community" && (
                     <CommunitySection />
+                  )}
+
+                  {/* SECTION 7: ADMIN CONSOLE (Sovereign CMS Dynamic Panel) */}
+                  {activeTab === "admin" && (
+                    <AdminSection />
                   )}
                 </motion.div>
               </AnimatePresence>
@@ -872,12 +1031,21 @@ export default function App() {
                                   window.dispatchEvent(new CustomEvent("telemetry-log", {
                                     detail: { message: "AEGEAN ACCESSED: decryption lock synced.", type: "FORGE_SYNC" }
                                   }));
-                                  alert("System Decryption: Accessing historical Aegean beachfront estate drawings.");
+                                  setBlueprintMounted(true);
                                 }}
-                                className="px-3 py-1.5 border border-white/20 text-[9px] font-mono text-white hover:bg-white/10 uppercase transition-all tracking-[2px] cursor-pointer"
+                                className={`px-3 py-1.5 border text-[9px] font-mono uppercase transition-all tracking-[2px] cursor-pointer ${
+                                  blueprintMounted 
+                                    ? "border-[#c6b89e] text-[#c6b89e] bg-[#c6b89e]/10 font-semibold"
+                                    : "border-white/20 text-white hover:bg-white/10"
+                                }`}
                               >
-                                Mount Blueprint File
+                                {blueprintMounted ? "✓ BLUEPRINTS MOUNTED" : "Mount Blueprint File"}
                               </button>
+                              {blueprintMounted && (
+                                <div className="text-[8.5px] font-mono text-[#c6b89e] mt-2 uppercase tracking-[1.5px] animate-pulse">
+                                  // MOUNT OK: Aegean beachfront estate drawings successfully projected below
+                                </div>
+                              )}
                             </div>
                             <AcquisitionGrid isInline={true} />
                           </div>
@@ -977,30 +1145,46 @@ export default function App() {
                     Submit your primary coordinate email address below to join the private fortress directory list. Get early audio demo cassette dispatches, behind-the-scenes beach room briefings, and physical gear launch updates.
                   </p>
 
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      window.dispatchEvent(new CustomEvent("telemetry-log", {
-                        detail: { message: "COORDINATE DISPATCHED: Registered via floating modal popup.", type: "SYSTEM" }
-                      }));
-                      alert("Secured Entrance: Biometric credential list lock complete.");
-                      setShowNewsletterModal(false);
-                    }}
-                    className="space-y-3"
-                  >
-                    <input
-                      type="email"
-                      required
-                      placeholder="BIOMETRIC_ID@DOMAIN.XYZ"
-                      className="w-full bg-[#030303] border border-white/10 px-4 py-3 font-mono text-[10px] text-white tracking-[2px] outline-none focus:border-[#c6b89e] transition-all rounded-none"
-                    />
-                    <button
-                      type="submit"
-                      className="w-full py-3.5 bg-white text-black text-[9px] font-mono font-semibold tracking-[4px] uppercase hover:bg-[#c6b89e] transition-all cursor-pointer"
+                  {!newsletterSubmitted ? (
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        window.dispatchEvent(new CustomEvent("telemetry-log", {
+                          detail: { message: "COORDINATE DISPATCHED: Registered via floating modal popup.", type: "SYSTEM" }
+                        }));
+                        setNewsletterSubmitted(true);
+                        setTimeout(() => {
+                          setShowNewsletterModal(false);
+                          // Reset state after close animation completes
+                          setTimeout(() => setNewsletterSubmitted(false), 500);
+                        }, 2000);
+                      }}
+                      className="space-y-3"
                     >
-                      REGISTER DIGITAL COORDINATE
-                    </button>
-                  </form>
+                      <input
+                        type="email"
+                        required
+                        placeholder="BIOMETRIC_ID@DOMAIN.XYZ"
+                        className="w-full bg-[#030303] border border-white/10 px-4 py-3 font-mono text-[10px] text-white tracking-[2px] outline-none focus:border-[#c6b89e] transition-all rounded-none"
+                      />
+                      <button
+                        type="submit"
+                        className="w-full py-3.5 bg-white text-black text-[9px] font-mono font-semibold tracking-[4px] uppercase hover:bg-[#c6b89e] transition-all cursor-pointer"
+                      >
+                        REGISTER DIGITAL COORDINATE
+                      </button>
+                    </form>
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="p-5 border border-[#c6b89e]/30 bg-[#c6b89e]/5 text-[#c6b89e] font-mono text-[10px] tracking-[1.5px] uppercase leading-relaxed text-center"
+                    >
+                      ✓ SECURED ENTRANCE:
+                      <br />
+                      Biometric credential list lock complete. Connecting signal...
+                    </motion.div>
+                  )}
                 </motion.div>
               </motion.div>
             )}

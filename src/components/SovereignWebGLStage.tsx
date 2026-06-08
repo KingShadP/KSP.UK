@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from "react";
 
 interface SovereignWebGLStageProps {
   isLowPerformance?: boolean;
+  paradoxMode?: boolean;
 }
 
-export default function SovereignWebGLStage({ isLowPerformance = false }: SovereignWebGLStageProps) {
+export default function SovereignWebGLStage({ isLowPerformance = false, paradoxMode = false }: SovereignWebGLStageProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 1000, height: 1000 });
@@ -21,6 +22,9 @@ export default function SovereignWebGLStage({ isLowPerformance = false }: Sovere
   // High-precision smooth trackers for jitter remediation
   const smoothScrollProgressRef = useRef(0);
   const depthScaleRef = useRef(1.0);
+
+  const targetParadoxRatioRef = useRef(0.0);
+  const currentParadoxRatioRef = useRef(0.0);
 
   // Set up listeners for resize and native tracking
   useEffect(() => {
@@ -94,6 +98,7 @@ export default function SovereignWebGLStage({ isLowPerformance = false }: Sovere
       uniform float u_mouse_velocity;
       uniform float u_scroll_speed;
       uniform float u_depth_scale;
+      uniform float u_paradox_ratio;
 
       // Pseudo-random noise for volumetric space mist and star distribution
       float noise(vec2 p) {
@@ -187,21 +192,31 @@ export default function SovereignWebGLStage({ isLowPerformance = false }: Sovere
         // Depth cueing opacity modulation to fade distant points gracefully
         float depthCue = smoothstep(1.5, 0.02, r);
 
-        // Map luxury theme colors: Oxblood Red (#93000a), Muted Gold (#dcc57b), Platinum (#c9c6c5)
+        // Universe Alpha Luxury Theme Colors: Oxblood Red (#93000a), Muted Gold (#dcc57b), Platinum (#c9c6c5)
         vec3 colOxblood = vec3(0.58, 0.00, 0.04);   // Deep Luxury Oxblood
         vec3 colGold = vec3(0.86, 0.77, 0.48);      // Muted Golden Glow
         vec3 colPlatinum = vec3(0.79, 0.78, 0.77);  // Polished Platinum
 
+        // Universe Omega Alternate Paradox Cosmology: Deep Cobalt Indigo, Quantum Teal, Spectrometer Purple
+        vec3 colCobaltIdx = vec3(0.04, 0.18, 0.46); // Royal Quantum Cobalt Deep
+        vec3 colTealIdx = vec3(0.24, 0.72, 0.68);   // Luminous Emerald/Teal Ion Node
+        vec3 colVioletIdx = vec3(0.54, 0.36, 0.72); // Spectra Aether Violet-Lilac
+
+        // Smoothly warp universes using u_paradox_ratio
+        vec3 finalOxblood = mix(colOxblood, colCobaltIdx, u_paradox_ratio);
+        vec3 finalGold = mix(colGold, colTealIdx, u_paradox_ratio);
+        vec3 finalPlatinum = mix(colPlatinum, colVioletIdx, u_paradox_ratio);
+
         vec3 currentSecColor;
         if (u_scroll < 0.33) {
           float t = u_scroll / 0.33;
-          currentSecColor = mix(colOxblood, colGold, t);
+          currentSecColor = mix(finalOxblood, finalGold, t);
         } else if (u_scroll < 0.66) {
           float t = (u_scroll - 0.33) / 0.33;
-          currentSecColor = mix(colGold, colPlatinum, t);
+          currentSecColor = mix(finalGold, finalPlatinum, t);
         } else {
           float t = (u_scroll - 0.66) / 0.34;
-          currentSecColor = mix(colPlatinum, colOxblood, t);
+          currentSecColor = mix(finalPlatinum, finalOxblood, t);
         }
 
         // 4. CENTRAL LUXURY SOLAR CORE Flare glow emitting from focus
@@ -216,6 +231,9 @@ export default function SovereignWebGLStage({ isLowPerformance = false }: Sovere
 
         // Modulate buffer opacity dynamically with real-time mouse/scroll variables
         float baseOpacity = 0.009 + (0.011 * (1.0 - accelerationFactor));
+        // Amplify opacity in Universe Omega for a slightly more immersive dreamlike field
+        baseOpacity += 0.004 * u_paradox_ratio;
+
         float finalAlpha = baseOpacity * depthCue;
 
         gl_FragColor = vec4(combinedColor, finalAlpha);
@@ -278,6 +296,7 @@ export default function SovereignWebGLStage({ isLowPerformance = false }: Sovere
     const mVelLoc = gl.getUniformLocation(program, "u_mouse_velocity");
     const sSpdLoc = gl.getUniformLocation(program, "u_scroll_speed");
     const depthScaleLoc = gl.getUniformLocation(program, "u_depth_scale");
+    const paradoxLoc = gl.getUniformLocation(program, "u_paradox_ratio");
 
     let animId: number;
     let startTime = Date.now();
@@ -285,6 +304,10 @@ export default function SovereignWebGLStage({ isLowPerformance = false }: Sovere
     const render = () => {
       const mX = mouseRef.current.x;
       const mY = mouseRef.current.y;
+
+      // Update smooth paradox interpolation state
+      targetParadoxRatioRef.current = paradoxMode ? 1.0 : 0.0;
+      currentParadoxRatioRef.current = currentParadoxRatioRef.current * 0.92 + targetParadoxRatioRef.current * 0.08;
 
       // Calculate dynamic mouse velocity damping between animation frames
       const dx = mX - lastMouseRef.current.x;
@@ -325,6 +348,7 @@ export default function SovereignWebGLStage({ isLowPerformance = false }: Sovere
       gl.uniform1f(mVelLoc, mouseVelocityRef.current);
       gl.uniform1f(sSpdLoc, Math.min(scrollSpeedRef.current * 0.06, 3.5)); // Normalized scroll speed
       gl.uniform1f(depthScaleLoc, depthScaleRef.current);
+      gl.uniform1f(paradoxLoc, currentParadoxRatioRef.current);
 
       // Execute vertex draw
       gl.drawArrays(gl.TRIANGLES, 0, 6);

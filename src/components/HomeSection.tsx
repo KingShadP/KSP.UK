@@ -3,16 +3,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { useState } from "react";
 import { motion } from "motion/react";
 import { ArrowUpRight, Radio, ShoppingBag, Compass, Users, Sparkles, Cpu, Send } from "lucide-react";
 import ScrambleText from "./ScrambleText";
 import Tooltip from "./Tooltip";
+import SovereignDragonSentinel from "./SovereignDragonSentinel";
+import BrandManifestoChronoPortal from "./BrandManifestoChronoPortal";
 
 interface HomeSectionProps {
   onNavigate: (tab: "home" | "listen" | "vault" | "artifacts" | "lore" | "community") => void;
+  paradoxMode: boolean;
 }
 
-export default function HomeSection({ onNavigate }: HomeSectionProps) {
+export default function HomeSection({ onNavigate, paradoxMode }: HomeSectionProps) {
+  const [isFormSubmitted, setIsFormSubmitted] = useState(false);
   return (
     <div id="section-home" className="w-full flex flex-col gap-16 pt-28 pb-16 text-left select-none relative">
       <div className="absolute top-[88px] left-0 font-mono text-[8.5px] tracking-[5px] text-[#c6b89e]/30 uppercase">
@@ -147,6 +152,12 @@ export default function HomeSection({ onNavigate }: HomeSectionProps) {
         </div>
       </div>
 
+      {/* --- BRAND MANIFESTO & CHROMO-PORTAL MULTIVERSE DECK --- */}
+      <BrandManifestoChronoPortal onNavigate={onNavigate} paradoxMode={paradoxMode} />
+
+      {/* --- SOVEREIGN DRAGON SENTINEL DIGITAL PORTAL --- */}
+      <SovereignDragonSentinel />
+
       {/* --- QUICK NAVIGATION DESK (3-4 Visual Cards) --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
         {[
@@ -257,30 +268,40 @@ export default function HomeSection({ onNavigate }: HomeSectionProps) {
             </p>
           </div>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              window.dispatchEvent(new CustomEvent("telemetry-log", {
-                detail: { message: `CREDENTIAL REGISTERED: Believer credentials recorded correctly. Broadcast channel open.`, type: "FORGE_SYNC" }
-              }));
-              alert("System: Believer credentials logged successfully.");
-            }}
-            className="space-y-3 mt-6"
-          >
-            <input
-              type="email"
-              required
-              placeholder="BIOMETRIC_ID@DOMAIN.XYZ"
-              className="w-full bg-[#030303] border border-white/10 px-4 py-3.5 font-mono text-[10px] text-white tracking-[2px] outline-none focus:border-[#93000a] transition-all rounded-none"
-            />
-            <button
-              type="submit"
-              className="w-full py-3.5 bg-[#93000a] text-white text-[9px] font-mono font-semibold tracking-[4px] uppercase hover:bg-red-700 transition-all hover:shadow-[0_0_15px_rgba(147,0,10,0.5)] cursor-pointer flex items-center justify-center gap-2"
+          {!isFormSubmitted ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                window.dispatchEvent(new CustomEvent("telemetry-log", {
+                  detail: { message: `CREDENTIAL REGISTERED: Believer credentials recorded correctly. Broadcast channel open.`, type: "FORGE_SYNC" }
+                }));
+                setIsFormSubmitted(true);
+              }}
+              className="space-y-3 mt-6"
             >
-              <Send className="w-3.5 h-3.5" />
-              TRANSMIT CREDENTIALS
-            </button>
-          </form>
+              <input
+                type="email"
+                required
+                placeholder="BIOMETRIC_ID@DOMAIN.XYZ"
+                className="w-full bg-[#030303] border border-white/10 px-4 py-3.5 font-mono text-[10px] text-white tracking-[2px] outline-none focus:border-[#93000a] transition-all rounded-none"
+              />
+              <button
+                type="submit"
+                className="w-full py-3.5 bg-[#93000a] text-white text-[9px] font-mono font-semibold tracking-[4px] uppercase hover:bg-red-700 transition-all hover:shadow-[0_0_15px_rgba(147,0,10,0.5)] cursor-pointer flex items-center justify-center gap-2"
+              >
+                <Send className="w-3.5 h-3.5" />
+                TRANSMIT CREDENTIALS
+              </button>
+            </form>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-6 p-5 border border-[#c6b89e]/35 bg-[#c6b89e]/5 text-[#c6b89e] font-mono text-[10px] tracking-[1.5px] uppercase"
+            >
+              ✓ SYSTEM TRANSMISSION SECURED: Your coordinates are marked inside the private district directory archives. Standby for unreleased demo dispatches.
+            </motion.div>
+          )}
         </div>
       </div>
 
@@ -301,9 +322,9 @@ export default function HomeSection({ onNavigate }: HomeSectionProps) {
         {/* Quick Grid previews referencing the defaults of shopify */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[
-            { id: "KSD-01", title: "ARMORED LS", price: "420.00", limit: "25 Units", img: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?q=80&w=600&auto=format&fit=crop" },
-            { id: "KSD-02", title: "CIPHER VEST", price: "580.00", limit: "Invoiced", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=600&auto=format&fit=crop" },
-            { id: "KSD-04", title: "SOCIETY MASK // L9", price: "1,850.00", limit: "1-of-1 Run", img: "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=600&auto=format&fit=crop" }
+            { id: "KSD-01", title: "ARMORED LS", price: "420.00", limit: "25 Units", img: "public/ChatGPT Image May 5, 2026, 11_25_04 PM.png" },
+            { id: "KSD-02", title: "CIPHER VEST", price: "580.00", limit: "Invoiced", img: "public/ChatGPT Image May 7, 2026, 09_50_46 PM (2).png" },
+            { id: "KSD-04", title: "SOCIETY MASK // L9", price: "1,850.00", limit: "1-of-1 Run", img: "public/ChatGPT Image May 16, 2026, 04_28_18 AM (4).png" }
           ].map((prod) => (
             <div key={prod.title} className="border border-white/5 bg-black/40 p-4 flex flex-col justify-between hover:border-white/10 transition-all select-text">
               <div className="relative aspect-[4/3] bg-black/80 overflow-hidden mb-4 border border-white/5">

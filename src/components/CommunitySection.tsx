@@ -39,6 +39,7 @@ export default function CommunitySection() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const [contributionSubmitted, setContributionSubmitted] = useState<boolean>(false);
   const [coordinateFormEmail, setCoordinateFormEmail] = useState<string>("");
+  const [coordinateSubmitted, setCoordinateSubmitted] = useState<boolean>(false);
 
   return (
     <div id="section-community" className="w-full flex flex-col gap-16 py-24 mb-12 text-left relative">
@@ -66,33 +67,42 @@ export default function CommunitySection() {
             </p>
           </div>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              window.dispatchEvent(new CustomEvent("telemetry-log", {
-                detail: { message: `COORDINATE UPDATE: Registered '${coordinateFormEmail}' inside Citadel database.`, type: "FORGE_SYNC" }
-              }));
-              alert("Citadel Registration: Coordinates compiled successfully.");
-              setCoordinateFormEmail("");
-            }}
-            className="space-y-3 mt-6"
-          >
-            <input
-              type="email"
-              required
-              value={coordinateFormEmail}
-              onChange={(e) => setCoordinateFormEmail(e.target.value)}
-              placeholder="BIOMETRIC_ID@DOMAIN.XYZ"
-              className="w-full bg-[#030303] border border-white/10 px-4 py-3.5 font-mono text-[10px] text-white tracking-[2px] outline-none focus:border-[#c6b89e] transition-all rounded-none"
-            />
-            <button
-              type="submit"
-              className="w-full py-3.5 bg-white text-black text-[9px] font-mono font-semibold tracking-[4px] uppercase hover:bg-[#c6b89e] transition-all hover:shadow-[0_0_15px_rgba(198,184,158,0.5)] cursor-pointer flex items-center justify-center gap-2"
+          {!coordinateSubmitted ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                window.dispatchEvent(new CustomEvent("telemetry-log", {
+                  detail: { message: `COORDINATE UPDATE: Registered '${coordinateFormEmail}' inside Citadel database.`, type: "FORGE_SYNC" }
+                }));
+                setCoordinateSubmitted(true);
+              }}
+              className="space-y-3 mt-6"
             >
-              <Send className="w-3.5 h-3.5" />
-              TRANSMIT COORDINATE VALUE
-            </button>
-          </form>
+              <input
+                type="email"
+                required
+                value={coordinateFormEmail}
+                onChange={(e) => setCoordinateFormEmail(e.target.value)}
+                placeholder="BIOMETRIC_ID@DOMAIN.XYZ"
+                className="w-full bg-[#030303] border border-white/10 px-4 py-3.5 font-mono text-[10px] text-white tracking-[2px] outline-none focus:border-[#c6b89e] transition-all rounded-none"
+              />
+              <button
+                type="submit"
+                className="w-full py-3.5 bg-white text-black text-[9px] font-mono font-semibold tracking-[4px] uppercase hover:bg-[#c6b89e] transition-all hover:shadow-[0_0_15px_rgba(198,184,158,0.5)] cursor-pointer flex items-center justify-center gap-2"
+              >
+                <Send className="w-3.5 h-3.5" />
+                TRANSMIT COORDINATE VALUE
+              </button>
+            </form>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mt-6 p-6 border border-[#c6b89e]/30 bg-[#c6b89e]/5 text-[#c6b89e] font-mono text-[11px] tracking-[1.5px] uppercase"
+            >
+              ✓ CITADEL COORDINATES SECURED: Location compiled successfully. System database updated.
+            </motion.div>
+          )}
         </div>
 
         {/* Social Link Panels */}

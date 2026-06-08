@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Play, Headphones, Sparkles, Radio, HelpCircle, ArrowRight, ExternalLink, RefreshCw, AudioLines } from "lucide-react";
 import AudioPlayer from "./AudioPlayer";
@@ -118,8 +118,39 @@ export default function ListenSection({ onNavigate }: ListenSectionProps) {
   const [selectedMood, setSelectedMood] = useState<string>("All");
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
+  const [releases, setReleases] = useState<Release[]>(RELEASES_DATABASE);
+
+  // Hook up CMS database real-time loading
+  useEffect(() => {
+    // Primary retrieval from file database
+    fetch("/api/cms")
+      .then((res) => {
+        if (res.ok) return res.json();
+        throw new Error("Local API read fallback.");
+      })
+      .then((data) => {
+        if (data && Array.isArray(data.releases)) {
+          setReleases(data.releases);
+        }
+      })
+      .catch((err) => console.log("Releases Fallback Active:", err));
+
+    // Listen for live updates dispatched by the administrative desk
+    const handleCmsUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail && Array.isArray(customEvent.detail.releases)) {
+        setReleases(customEvent.detail.releases);
+      }
+    };
+
+    window.addEventListener("cms-data-updated", handleCmsUpdate);
+    return () => {
+      window.removeEventListener("cms-data-updated", handleCmsUpdate);
+    };
+  }, []);
+
   // Filter computation
-  const filteredReleases = RELEASES_DATABASE.filter((rel) => {
+  const filteredReleases = releases.filter((rel) => {
     if (activeFilterTab === "drafts") {
       return rel.type === "Draft";
     }
@@ -366,13 +397,27 @@ export default function ListenSection({ onNavigate }: ListenSectionProps) {
                         {isExpanded ? "[ HIDE LORE ]" : "[ VIEW FULL LORE ]"}
                       </button>
 
-                      <button
+                       <button
                         onClick={() => {
                           window.dispatchEvent(new CustomEvent("telemetry-log", {
                             detail: { message: `Playing track buffer: '${release.title}'`, type: "FORGE_SYNC" }
                           }));
-                          // Simulate playing state
-                          alert(`Streaming frequency: ${release.title}`);
+                          
+                          let streamIndex = -1;
+                          if (release.id === "rel-01") streamIndex = 0;
+                          else if (release.id === "rel-02") streamIndex = 1;
+                          else if (release.id === "rel-03") streamIndex = 2;
+
+                          if (streamIndex >= 0) {
+                            window.dispatchEvent(new CustomEvent("play-track-index", {
+                              detail: { index: streamIndex }
+                            }));
+                          } else {
+                            // If they play a different track, log it inside telemetry as buffering from custom servers
+                            window.dispatchEvent(new CustomEvent("telemetry-log", {
+                              detail: { message: `BUFF FEED UNKNOWN: Loading external frequency wave for '${release.title}'`, type: "SYSTEM" }
+                            }));
+                          }
                         }}
                         className="px-4 py-2 bg-white text-black font-semibold text-[8.5px] font-mono uppercase tracking-[2px] hover:bg-[#c6b89e] transition-colors cursor-pointer text-center whitespace-nowrap focus:outline-none flex items-center justify-center gap-1.5"
                       >

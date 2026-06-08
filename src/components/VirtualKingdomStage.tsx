@@ -8,14 +8,232 @@ import { motion, useScroll, useTransform, useMotionValue, useSpring, useVelocity
 import { Landmark, Tv, Compass, Activity } from "lucide-react";
 import SovereignWebGLStage from "./SovereignWebGLStage";
 
-interface VirtualKingdomStageProps {
-  activeTab?: string;
+interface ChamberData {
+  idx: number;
+  id: string;
+  name: string;
+  sub: string;
+  imgUrl: string;
+  imgRegen: string;
+  brightness: number;
+  blur: string;
+  accentColor: string;
+  lightSweepColor: string;
 }
 
-export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStageProps) {
+const CHAMBERS: ChamberData[] = [
+  {
+    idx: 0,
+    id: "atrium",
+    name: "THE ATRIUM KEYWAY",
+    sub: "GATEWAY TO THE EMPIRE // ALPHA CORE",
+    imgUrl: "/ChatGPT Image May 7, 2026, 09_55_04 PM.png",
+    imgRegen: "/regenerated_image_1780886685578.png",
+    brightness: 0.5,
+    blur: "2px",
+    accentColor: "rgba(198, 184, 158, 0.45)",
+    lightSweepColor: "linear-gradient(135deg, rgba(198, 184, 158, 0.08) 0%, transparent 60%)"
+  },
+  {
+    idx: 1,
+    id: "sanctum",
+    name: "THE SONIC SANCTUM",
+    sub: "CHAMBER FOR INTENSIVE PLAYBACK",
+    imgUrl: "/ChatGPT Image May 12, 2026, 05_20_18 PM.png",
+    imgRegen: "/regenerated_image_1780886688598.png",
+    brightness: 0.45,
+    blur: "1.5px",
+    accentColor: "rgba(147, 0, 10, 0.5)",
+    lightSweepColor: "linear-gradient(45deg, rgba(147, 0, 10, 0.08) 0%, transparent 50%)"
+  },
+  {
+    idx: 2,
+    id: "exhibition",
+    name: "THE EXHIBITION VAULT",
+    sub: "PHYSICAL COZY BOUTIQUE ARCHIVE",
+    imgUrl: "/ChatGPT Image May 16, 2026, 04_28_18 AM (5).png",
+    imgRegen: "/regenerated_image_1780886692001.png",
+    brightness: 0.5,
+    blur: "2px",
+    accentColor: "rgba(198, 184, 158, 0.45)",
+    lightSweepColor: "linear-gradient(90deg, rgba(198, 184, 158, 0.07) 30%, transparent 70%)"
+  },
+  {
+    idx: 3,
+    id: "temple",
+    name: "TEMPLE OF BELIEVERS",
+    sub: "SOVEREIGN SACRED COMMUNITY CORE",
+    imgUrl: "/ChatGPT Image May 16, 2026, 04_16_44 AM (5).png",
+    imgRegen: "/regenerated_image_1780886695981.png",
+    brightness: 0.42,
+    blur: "2.5px",
+    accentColor: "rgba(147, 0, 10, 0.45)",
+    lightSweepColor: "linear-gradient(225deg, rgba(147, 0, 10, 0.08) 10%, transparent 80%)"
+  }
+];
+
+function StagedImage({ primary, fallback, className, style }: { primary: string, fallback: string, className?: string, style?: any }) {
+  const [src, setSrc] = useState(primary);
+  const [hasError, setHasError] = useState(false);
+
+  return (
+    <img
+      src={src}
+      className={className}
+      style={style}
+      referrerPolicy="no-referrer"
+      onError={() => {
+        if (!hasError) {
+          setSrc(fallback);
+          setHasError(true);
+        }
+      }}
+    />
+  );
+}
+
+function ChamberEnvironmentPlate({
+  chamber,
+  smoothProgress,
+  springX,
+  springY,
+  isLowPerformance,
+  paradoxMode
+}: {
+  chamber: ChamberData,
+  smoothProgress: any,
+  springX: any,
+  springY: any,
+  isLowPerformance: boolean,
+  paradoxMode: boolean
+}) {
+  // Parallax background scale & offset
+  const bgScale = useTransform(smoothProgress, [0, 1], [1.02, 1.18]);
+  const bgX = useTransform(springX, [-0.5, 0.5], ["-25px", "25px"]);
+  const bgY = useTransform(springY, [-0.5, 0.5], ["-20px", "20px"]);
+
+  // Foreground Entry Portal frame (zooms pass fast)
+  const portalScale = useTransform(smoothProgress, [0, 1], [1.0, 1.70]);
+  const portalOpacity = useTransform(smoothProgress, [0, 0.65, 0.85], [1.0, 0.25, 0.05]);
+  const portalX = useTransform(springX, [-0.5, 0.5], ["-40px", "40px"]);
+  const portalY = useTransform(springY, [-0.5, 0.5], ["-35px", "35px"]);
+
+  // Dynamically moving light sweeps
+  const sweepX = useTransform(smoothProgress, [0, 1], ["-85%", "185%"]);
+  const sweepY = useTransform(springY, [-0.5, 0.5], ["-15%", "15%"]);
+
+  return (
+    <div className="absolute inset-0 w-full h-full overflow-hidden flex items-center justify-center">
+      {/* 1. REAR WALL ENVIRONMENT IMAGE PLATE */}
+      <motion.div
+        style={{
+          scale: bgScale,
+          x: bgX,
+          y: bgY,
+          filter: `brightness(${chamber.brightness}) blur(${isLowPerformance ? "0px" : chamber.blur}) contrast(1.08)`,
+          transformStyle: "preserve-3d"
+        }}
+        className="absolute inset-[-40px] w-[calc(100%+80px)] h-[calc(100%+80px)]"
+      >
+        <StagedImage
+          primary={chamber.imgRegen}
+          fallback={chamber.imgUrl}
+          className="w-full h-full object-cover select-none pointer-events-none"
+        />
+      </motion.div>
+
+      {/* 2. PROCEDURAL GOLD LIGHT SWEEP */}
+      <motion.div
+        style={{
+          x: sweepX,
+          y: sweepY,
+          background: chamber.lightSweepColor,
+        }}
+        className="absolute inset-0 w-[180%] h-full pointer-events-none mix-blend-screen opacity-25 z-10"
+      />
+
+      {/* 3. ATMOSPHERIC VOLUMETRIC DRIFT FOG */}
+      <div className="absolute inset-0 z-20 select-none pointer-events-none overflow-hidden mix-blend-screen opacity-15">
+        <motion.div
+          animate={{
+            x: ["-5%", "5%"],
+            y: ["-4%", "4%"],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            repeatType: "mirror",
+            ease: "easeInOut",
+          }}
+          className="absolute inset-[-60px] filter blur-2xl w-[calc(100%+120px)] h-[calc(100%+120px)]"
+          style={{
+            backgroundImage: `radial-gradient(circle at 40% 50%, ${chamber.accentColor} 0%, transparent 70%)`
+          }}
+        />
+      </div>
+
+      {/* 4. HIGH-VALUE FOREGROUND GEOMETRIC MARBLE PORTAL CUTOUT */}
+      <motion.div
+        style={{
+          scale: portalScale,
+          opacity: portalOpacity,
+          x: portalX,
+          y: portalY,
+          transformStyle: "preserve-3d"
+        }}
+        className="absolute inset-x-8 inset-y-12 pointer-events-none z-30 border border-white/5 shadow-[0_0_80px_rgba(0,0,0,0.85)] flex items-center justify-center rounded-sm"
+      >
+        {/* Symmetric left/right gold architectural pillars */}
+        <div className="absolute top-0 bottom-0 left-0 w-1 sm:w-2 bg-gradient-to-b from-[#c6b89e]/10 via-[#c6b89e]/45 to-[#c6b89e]/10 border-r border-[#c6b89e]/20 opacity-80" />
+        <div className="absolute top-0 bottom-0 right-0 w-1 sm:w-2 bg-gradient-to-b from-[#c6b89e]/10 via-[#c6b89e]/45 to-[#c6b89e]/10 border-l border-[#c6b89e]/20 opacity-80" />
+        
+        {/* Fine HUD-style margins and ticks */}
+        <div className="absolute top-4 left-6 font-mono text-[7px] text-[#c6b89e]/40 tracking-[4px] uppercase">
+          COUNCIL_PORTAL // {chamber.name}
+        </div>
+        <div className="absolute bottom-4 right-6 font-mono text-[7px] text-[#c6b89e]/30 tracking-[3px] uppercase">
+          {chamber.sub}
+        </div>
+
+        {/* Framing inner ambient depth vignette */}
+        <div 
+          className="absolute inset-0 bg-transparent" 
+          style={{
+            boxShadow: `inset 0 0 100px rgba(0,0,0,0.92)`,
+          }}
+        />
+      </motion.div>
+    </div>
+  );
+}
+
+interface VirtualKingdomStageProps {
+  activeTab?: string;
+  paradoxMode?: boolean;
+}
+
+export default function VirtualKingdomStage({ activeTab, paradoxMode = false }: VirtualKingdomStageProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [vrActive, setVrActive] = useState(false);
   const [isLowPerformance, setIsLowPerformance] = useState(false);
+  const [bgProjectedVideo, setBgProjectedVideo] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem("kingshadp-projected-bgvideo") || null;
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    const handleProj = (e: Event) => {
+      const customEvent = e as CustomEvent<{ url: string | null }>;
+      if (customEvent.detail) {
+        setBgProjectedVideo(customEvent.detail.url);
+      }
+    };
+    window.addEventListener("toggle-bg-video-projection", handleProj);
+    return () => window.removeEventListener("toggle-bg-video-projection", handleProj);
+  }, []);
 
   // Performance-driven active downsampling manager for low-end specs and throttling rescue
   useEffect(() => {
@@ -124,14 +342,18 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
   // Dynamic Camera zoom in state that adapts to active tab landmarks with spring physics
   const cameraBaseZoom = useSpring(1.0, { stiffness: 40, damping: 15 });
   useEffect(() => {
-    if (activeTab === "main" || !activeTab) {
+    if (activeTab === "home" || !activeTab) {
       cameraBaseZoom.set(1.0);
-    } else if (activeTab === "assets") {
-      cameraBaseZoom.set(1.10);
-    } else if (activeTab === "command") {
-      cameraBaseZoom.set(1.18);
-    } else if (activeTab === "shopify") {
-      cameraBaseZoom.set(1.24);
+    } else if (activeTab === "listen") {
+      cameraBaseZoom.set(1.08);
+    } else if (activeTab === "vault") {
+      cameraBaseZoom.set(1.15);
+    } else if (activeTab === "artifacts") {
+      cameraBaseZoom.set(1.22);
+    } else if (activeTab === "lore") {
+      cameraBaseZoom.set(1.28);
+    } else if (activeTab === "community") {
+      cameraBaseZoom.set(1.34);
     }
   }, [activeTab, cameraBaseZoom]);
 
@@ -157,6 +379,18 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
     [0.9, 0.95, 1.15, 1.3,  0.95, 1.15, 1.3,  0.95, 1.15, 1.3,  1.0]
   );
 
+  // Map active tab state to index corresponding to each digital chamber
+  const getChamberIndex = (tab: string | undefined): number => {
+    if (!tab) return 0;
+    if (tab === "home") return 0;
+    if (tab === "listen" || tab === "vault") return 1;
+    if (tab === "artifacts") return 2;
+    if (tab === "lore" || tab === "community") return 3;
+    return 0;
+  };
+
+  const currentChamberIdx = getChamberIndex(activeTab);
+
   // Shared VR twin eye renderer to feed left/right eye depth nodes dynamically
   const renderAtelierWorld = (eye: 'left' | 'right' | 'center') => {
     const spatialXOffset = eye === 'left' ? "-14px" : eye === 'right' ? "14px" : "0px";
@@ -176,11 +410,33 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
         }}
         className="w-full h-full flex items-center justify-center absolute inset-0"
       >
+        {/* --- LAYERED ENVIRONMENT CHAMBERS --- */}
+        {CHAMBERS.map((chamber) => {
+          const isActive = chamber.idx === currentChamberIdx;
+          return (
+            <div
+              key={chamber.id}
+              className={`absolute inset-0 w-full h-full pointer-events-none select-none transition-all duration-1000 ${
+                isActive ? "opacity-100 z-10 visible" : "opacity-0 z-0 invisible"
+              }`}
+            >
+              <ChamberEnvironmentPlate
+                chamber={chamber}
+                smoothProgress={smoothProgress}
+                springX={springX}
+                springY={springY}
+                isLowPerformance={isLowPerformance}
+                paradoxMode={paradoxMode}
+              />
+            </div>
+          );
+        })}
+
         {/* --- ORGANIC PARTICULATE DUST MOTES CANVAS LAYER --- */}
         <MotesCanvas eye={eye} containerRef={containerRef} isLowPerformance={isLowPerformance} />
 
         {/* --- CUSTOM 4D WEBGL SHADER DEPTH-BUFFER CORRIDOR SIMULATOR --- */}
-        <SovereignWebGLStage isLowPerformance={isLowPerformance} />
+        <SovereignWebGLStage isLowPerformance={isLowPerformance} paradoxMode={paradoxMode} />
 
         {/* --- 4D HOLOGRAPHIC GEOMETRICAL VOLUMETRIC CORRIDOR OVERLAY --- */}
         <VolumetricCorridor 
@@ -245,11 +501,44 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
       className="fixed inset-0 w-full h-full z-0 overflow-hidden bg-[#010101]"
       id="VirtualKingdomStageContainer"
     >
+      {/* Projected Background Video Sentinel Portal */}
+      {bgProjectedVideo && (
+        <video
+          key={bgProjectedVideo}
+          src={bgProjectedVideo}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-12 pointer-events-none z-0 mix-blend-screen scale-105"
+          style={{
+            filter: "brightness(0.65) contrast(1.15) blur(1.5px)",
+          }}
+        />
+      )}
+
+      {/* Living Archive: Resting Double-Pulse Heartbeat Aura Overlay */}
+      <motion.div
+        animate={{
+          opacity: [0.08, 0.24, 0.14, 0.30, 0.08, 0.08],
+          scale: [1.0, 1.022, 1.01, 1.042, 1.0, 1.0],
+          backgroundColor: ["rgba(0,0,0,0)", "rgba(147,0,10,0.015)", "rgba(0,0,0,0)", "rgba(198,184,158,0.01)", "rgba(0,0,0,0)", "rgba(0,0,0,0)"]
+        }}
+        transition={{
+          duration: 4.5, // restful ~53 bpm heart cycle
+          repeat: Infinity,
+          ease: "easeInOut",
+          times: [0, 0.14, 0.28, 0.42, 0.65, 1.0] // Double-beat sequence (lub-dub) followed by rest window
+        }}
+        className="absolute inset-0 pointer-events-none select-none z-[1] bg-[radial-gradient(circle_at_center,_rgba(147,0,10,0.07)_0%,_rgba(198,184,158,0.03)_55%,_transparent_100%)] mix-blend-screen"
+        id="HeartbeatAuraOverlay"
+      />
+
       {/* Immersive Film Grain overlay to preserve authentic corporate/luxury textures */}
       <div 
         className="absolute inset-0 z-30 opacity-[0.02] mix-blend-screen pointer-events-none"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.80' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='public/ChatGPT Image May 16, 2026, 04_16_44 AM (5).png'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.80' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
         }}
       />
 

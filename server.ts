@@ -5,6 +5,7 @@
 
 import express, { Request, Response } from "express";
 import path from "path";
+import fs from "fs";
 import dotenv from "dotenv";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
@@ -15,6 +16,46 @@ const app = express();
 const PORT = 3000;
 
 app.use(express.json());
+
+const CMS_FILE_PATH = path.join(process.cwd(), "src", "data", "cmsData.json");
+
+// API to fetch CMS contents
+app.get("/api/cms", (req: Request, res: Response): void => {
+  try {
+    if (fs.existsSync(CMS_FILE_PATH)) {
+      const data = fs.readFileSync(CMS_FILE_PATH, "utf-8");
+      res.json(JSON.parse(data));
+    } else {
+      res.status(404).json({ error: "CMS database file not found on disk." });
+    }
+  } catch (err: any) {
+    res.status(500).json({ error: "Failed reading CMS configuration: " + err.message });
+  }
+});
+
+// API to save CMS contents with passcode verification
+app.post("/api/cms", (req: Request, res: Response): void => {
+  try {
+    const passcode = req.headers["x-admin-passcode"];
+    const expectedPasscode = process.env.ADMIN_PASSCODE || "kingshadp_admin";
+
+    if (!passcode || passcode !== expectedPasscode) {
+      res.status(401).json({ error: "ACCESS_DENIED: Invalid administrative passcode credential." });
+      return;
+    }
+
+    const newCmsData = req.body;
+    if (!newCmsData || typeof newCmsData !== "object" || !newCmsData.releases || !newCmsData.lore) {
+      res.status(400).json({ error: "Invalid CMS database schema." });
+      return;
+    }
+
+    fs.writeFileSync(CMS_FILE_PATH, JSON.stringify(newCmsData, null, 2), "utf-8");
+    res.json({ success: true, message: "Sovereign CMS configuration securely written to file database." });
+  } catch (err: any) {
+    res.status(500).json({ error: "Failed to save CMS configuration: " + err.message });
+  }
+});
 
 // Initialize secure server-side Gemini Client
 let geminiClient: GoogleGenAI | null = null;

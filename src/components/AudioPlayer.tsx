@@ -16,7 +16,7 @@ const AUDIO_TRACKS = [
     location: "MIAMI BEACH, FL [HQ]",
     codec: ".WAV",
     kbps: "1411 KBPS",
-    url: "https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=beethoven-moonlight-sonata-1st-movement-114-9983.mp3"
+    url: "public/LLC (Visualizer).mp3"
   },
   {
     id: "unfinished_untitled",
@@ -25,7 +25,7 @@ const AUDIO_TRACKS = [
     location: "AEGEAN CROWN, GR [VAULT]",
     codec: ".FLAC",
     kbps: "4608 KBPS",
-    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    url: "public/Dancing With The Dealer (Visualizer).mp3"
   },
   {
     id: "god_is_woman",
@@ -34,7 +34,25 @@ const AUDIO_TRACKS = [
     location: "VAULT STUDIO ARCHIVE",
     codec: ".AIFF",
     kbps: "2304 KBPS",
-    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    url: "public/K. I. N. G SHAD SHIT! (Visualizer).mp3"
+  },
+  {
+    id: "pope_religiously_high",
+    title: "THE POPE AND I RELIGIOUSLY HIGH (VISUALIZER)",
+    channel: '"CHANNEL 04"',
+    location: "ROMAN VATICAN // PARADOX VOID",
+    codec: ".MP3",
+    kbps: "320 KBPS",
+    url: "/The Pope and I Religiously High (Visualizer).mp3"
+  },
+  {
+    id: "liturgy_shad_p",
+    title: "THE LITURGY OF SHÁD P I",
+    channel: '"CHANNEL 05"',
+    location: "TEMPLE OF SACRIFICE // OMEGA RECTIFIER",
+    codec: ".WAV",
+    kbps: "1411 KBPS",
+    url: "/The Liturgy of Shád P I.wav"
   }
 ];
 
@@ -98,6 +116,22 @@ export default function AudioPlayer() {
     globalAudio.addEventListener("seeked", onSeeked);
     globalAudio.addEventListener("loadedmetadata", onLoadedMetadata);
 
+    const handleRemotePlayTrack = (e: Event) => {
+      const customEvent = e as CustomEvent<{ index: number }>;
+      if (customEvent.detail && typeof customEvent.detail.index === "number") {
+        const targetIdx = customEvent.detail.index;
+        if (targetIdx >= 0 && targetIdx < AUDIO_TRACKS.length) {
+          globalTrackIndex = targetIdx;
+          setTrackIndex(targetIdx);
+          if (globalAudio) {
+            globalAudio.src = AUDIO_TRACKS[targetIdx].url;
+            globalAudio.play().catch(err => console.error("Audio remote playback error:", err));
+          }
+        }
+      }
+    };
+    window.addEventListener("play-track-index", handleRemotePlayTrack);
+
     // Read initial values & sync track index in case changed in other routes/re-mounts
     setTrackIndex(globalTrackIndex);
     updatePlayState();
@@ -113,6 +147,7 @@ export default function AudioPlayer() {
       globalAudio.removeEventListener("pause", onPause);
       globalAudio.removeEventListener("seeked", onSeeked);
       globalAudio.removeEventListener("loadedmetadata", onLoadedMetadata);
+      window.removeEventListener("play-track-index", handleRemotePlayTrack);
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
   }, [trackIndex]);
