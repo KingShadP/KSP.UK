@@ -14,7 +14,11 @@ export default function SovereignWebGLStage() {
   const lastScrollYRef = useRef(0);
   const scrollSpeedRef = useRef(0);
 
-  // Set up listeners for resize
+  // High-precision smooth trackers for jitter remediation
+  const smoothScrollProgressRef = useRef(0);
+  const depthScaleRef = useRef(1.0);
+
+  // Set up listeners for resize and native tracking
   useEffect(() => {
     const handleResize = () => {
       if (containerRef.current) {
@@ -28,7 +32,6 @@ export default function SovereignWebGLStage() {
     handleResize();
     window.addEventListener("resize", handleResize);
 
-    // Native mouse tracker
     const handleMouseMove = (e: MouseEvent) => {
       // Normalize mouse positions to -0.5 to 0.5 coordinate space
       const xNorm = e.clientX / window.innerWidth - 0.5;
@@ -37,7 +40,6 @@ export default function SovereignWebGLStage() {
     };
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
 
-    // Native scroll and speed tracker
     const handleScroll = () => {
       const scrollY = window.scrollY;
       const maxScroll = (document.documentElement.scrollHeight - window.innerHeight) || 1;
@@ -62,7 +64,6 @@ export default function SovereignWebGLStage() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Use WebGL1/WebGL2 with alpha channel
     const gl = canvas.getContext("webgl", { alpha: true });
     if (!gl) {
       console.warn("WebGL not supported in host environment context.");
@@ -86,6 +87,12 @@ export default function SovereignWebGLStage() {
       uniform float u_scroll;
       uniform float u_mouse_velocity;
       uniform float u_scroll_speed;
+      uniform float u_depth_scale;
+
+      // Pseudo-random noise for volumetric drift simulation
+      float noise(vec2 p) {
+        return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+      }
 
       void main() {
         // Compute screen-space normalized coordinates
@@ -93,45 +100,74 @@ export default function SovereignWebGLStage() {
         vec2 p = uv - 0.5;
         p.x *= u_resolution.x / u_resolution.y;
 
+        // Perspective-based mouse parallax offset & drift
+        vec2 mouseOffset = u_mouse * 0.15;
+        
+        // Volumetric drift cycle
+        float driftAngle = u_time * 0.15;
+        vec2 drift = vec2(sin(driftAngle), cos(driftAngle)) * 0.04;
+        
+        // Apply camera shift warp
+        p += mouseOffset + drift;
+
         // Spherical polar coordinate mappings mapping perspective
         float r = length(p);
         float theta = atan(p.y, p.x);
 
         // Simulated infinite depth corridor calculation (true virtual room entrance corridor)
-        float depth = 1.0 / (r + 0.015);
+        // Guard against division by zero at the center point
+        float depth = 1.0 / (r + 0.008);
         
-        // Offset deep layers by scroll progression
-        float depthLayers = depth - u_scroll * 5.5;
-
-        // Perspective-based mouse parallax offsets
-        vec2 mouseOffset = u_mouse * 0.12;
-        p += mouseOffset;
-
-        // Modulate depth and opacity based on user interactivity velocity (interstitial depth warp)
-        float totalVelocity = mix(u_mouse_velocity, u_scroll_speed, 0.45);
-        float velocityWarp = clamp(totalVelocity * 0.12, 0.0, 0.95);
-
-        // Vector grid line divisions for stereoscopic depth buffer
-        float radialSectors = step(0.92, sin(theta * 10.0)) * step(0.95 + velocityWarp * 0.03, fract(depthLayers));
+        // Real-time interactive warp speed modulations
+        float kineticImpact = mix(u_mouse_velocity * 0.8, u_scroll_speed * 1.5, 0.5);
+        float accelerationFactor = clamp(kineticImpact * 0.12, 0.0, 0.85);
         
-        // Circular room transition threshold rings
-        float portalBands = smoothstep(0.965, 0.992, sin(depthLayers * 1.5707));
+        // Offset deep layers by scroll progression + kinetic warp acceleration with high precision, mouse velocity guided depth scaling
+        float depthLayers = (depth * u_depth_scale) - u_scroll * 6.5 - (u_time * 0.25) * (1.0 + accelerationFactor * 2.0);
 
-        // Shift color profile dynamically between Room Stages (Deep space cobalt at start, Amber gold, searing Boutique orange at terminal depth)
-        vec3 colAtrium = vec3(0.01, 0.15, 0.42);    // Blue Space
-        vec3 colBoutique = vec3(0.99, 0.29, 0.0);   // Searing Orange Gold
-        vec3 ambientColor = mix(colAtrium, colBoutique, u_scroll);
+        // Grid-based structural divisions mapping luxurious portal lines
+        // 8-way architectural support ribs extending into depth center
+        float ribGrid = step(0.965, cos(theta * 8.0)) * step(0.2, r);
 
-        // Draw structural wireframe contours with high light intensity
-        vec3 wireframeGlow = ambientColor * (radialSectors * 1.6 + portalBands * 2.5);
+        // Circular geometric portal rings pulsing through high accuracy depth coordinates
+        float rings = step(0.94 - (accelerationFactor * 0.05), fract(depthLayers * 0.4));
+
+        // Depth cueing opacity modulation to fade distant points to absolute blackness
+        float depthCue = smoothstep(1.3, 0.04, r);
+
+        // Shift color profile dynamically between Room Stages:
+        // Section 1: Deep Aegean Blue -> Section 2-3: Gold -> Section 4: Searing Boutique Orange
+        vec3 colAegean = vec3(0.06, 0.37, 0.71);    // Aegean Blue
+        vec3 colGold = vec3(0.77, 0.72, 0.62);      // Champagne Gold
+        vec3 colBoutique = vec3(1.0, 0.29, 0.0);    // Searing Boutique Orange
+
+        vec3 currentSecColor;
+        if (u_scroll < 0.33) {
+          float t = u_scroll / 0.33;
+          currentSecColor = mix(colAegean, colGold, t);
+        } else if (u_scroll < 0.66) {
+          float t = (u_scroll - 0.33) / 0.33;
+          currentSecColor = mix(colGold, colGold * 1.1, t);
+        } else {
+          float t = (u_scroll - 0.66) / 0.34;
+          currentSecColor = mix(colGold * 1.1, colBoutique, t);
+        }
+
+        // Add procedural light sweeps emitting from the central depth focal point
+        float focalSweep = 0.045 / (r + 0.002);
         
-        // Depth-dependent glow falloff
-        float intensityFalloff = smoothstep(1.35, 0.05, r);
-        float bufferOpacity = (0.05 + 0.14 * (1.0 - velocityWarp)) * intensityFalloff;
+        // Procedural volumetric drift fog using screen space noise patterns
+        float volumetricDrift = noise(uv * 12.0 + vec2(0.0, u_time * 0.8)) * 0.045 * (1.0 - r);
 
-        // Consolidate final texture output showing WebGL spatial portal depth
-        vec3 finalOutput = wireframeGlow + ambientColor * (0.045 / (r + 0.002));
-        gl_FragColor = vec4(finalOutput, bufferOpacity);
+        // Final wireframe architecture glow intensities
+        vec3 structureColor = currentSecColor * (ribGrid * 1.4 + rings * 2.2);
+        vec3 combinedColor = structureColor + currentSecColor * (focalSweep + volumetricDrift);
+
+        // Modulate buffer opacity dynamically with real-time mouse/scroll acceleration sparks
+        float baseOpacity = 0.04 + (0.16 * (1.0 - accelerationFactor));
+        float finalAlpha = baseOpacity * depthCue;
+
+        gl_FragColor = vec4(combinedColor, finalAlpha);
       }
     `;
 
@@ -142,7 +178,7 @@ export default function SovereignWebGLStage() {
       gl.shaderSource(shader, source);
       gl.compileShader(shader);
       if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        console.error("Shader compiles failed: ", gl.getShaderInfoLog(shader));
+        console.error("Shader compilation issue found: ", gl.getShaderInfoLog(shader));
         gl.deleteShader(shader);
         return null;
       }
@@ -160,7 +196,7 @@ export default function SovereignWebGLStage() {
     gl.attachShader(program, fs);
     gl.linkProgram(program);
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      console.error("WebGL linkage issue found:", gl.getProgramInfoLog(program));
+      console.error("WebGL linkage failed:", gl.getProgramInfoLog(program));
       return;
     }
 
@@ -190,6 +226,7 @@ export default function SovereignWebGLStage() {
     const scrollLoc = gl.getUniformLocation(program, "u_scroll");
     const mVelLoc = gl.getUniformLocation(program, "u_mouse_velocity");
     const sSpdLoc = gl.getUniformLocation(program, "u_scroll_speed");
+    const depthScaleLoc = gl.getUniformLocation(program, "u_depth_scale");
 
     let animId: number;
     let startTime = Date.now();
@@ -210,6 +247,21 @@ export default function SovereignWebGLStage() {
       // Slow scroll speed decay
       scrollSpeedRef.current *= 0.94;
 
+      // Higher precision linear interpolation function based on mouse velocity
+      // to compute depth-scaling to avoid scrolling jitter.
+      const targetDepthScale = 1.0 + scrollProgressRef.current * 2.5; 
+      
+      // Interpolation speed is dynamically shaped by mouse velocity to prevent high-frequency jitter
+      const kLerp = Math.max(0.005, Math.min(0.15, 0.05 - mouseVelocityRef.current * 0.2));
+      
+      // Perform 64-bit precision linear interpolation
+      depthScaleRef.current = depthScaleRef.current * (1.0 - kLerp) + targetDepthScale * kLerp;
+
+      // High-precision smooth scroll tracking
+      const targetScroll = scrollProgressRef.current;
+      const scrollLerp = Math.max(0.01, Math.min(0.15, 0.06 - mouseVelocityRef.current * 0.15));
+      smoothScrollProgressRef.current = smoothScrollProgressRef.current * (1.0 - scrollLerp) + targetScroll * scrollLerp;
+
       // Set viewport frame clear
       gl.viewport(0, 0, dimensions.width, dimensions.height);
       gl.clear(gl.COLOR_BUFFER_BIT);
@@ -218,9 +270,10 @@ export default function SovereignWebGLStage() {
       gl.uniform2f(resLoc, dimensions.width, dimensions.height);
       gl.uniform1f(timeLoc, (Date.now() - startTime) * 0.001);
       gl.uniform2f(mouseLoc, mX, mY);
-      gl.uniform1f(scrollLoc, scrollProgressRef.current);
+      gl.uniform1f(scrollLoc, smoothScrollProgressRef.current);
       gl.uniform1f(mVelLoc, mouseVelocityRef.current);
       gl.uniform1f(sSpdLoc, Math.min(scrollSpeedRef.current * 0.06, 3.5)); // Normalized scroll speed
+      gl.uniform1f(depthScaleLoc, depthScaleRef.current);
 
       // Execute vertex draw
       gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -246,7 +299,7 @@ export default function SovereignWebGLStage() {
         ref={canvasRef}
         width={dimensions.width}
         height={dimensions.height}
-        className="w-full h-full opacity-65 pointer-events-none block"
+        className="w-full h-full pointer-events-none block"
       />
     </div>
   );

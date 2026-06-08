@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowUpRight, Cpu, HelpCircle, Thermometer, Radio, Menu, X, Landmark, Compass, Droplet, ShieldAlert, Sparkles } from "lucide-react";
 import ScrambleText from "./components/ScrambleText";
@@ -56,23 +56,6 @@ export default function App() {
         setScrollPercent((currentScrollY / totalHeight) * 100);
       }
 
-      const dossierEl = document.getElementById("section-dossier");
-      const assetsEl = document.getElementById("section-assets");
-      const commandEl = document.getElementById("section-command");
-      const shopifyEl = document.getElementById("section-shopify");
-
-      const scrollPos = currentScrollY + window.innerHeight / 3;
-
-      if (shopifyEl && scrollPos >= shopifyEl.offsetTop) {
-        setActiveTab("shopify");
-      } else if (commandEl && scrollPos >= commandEl.offsetTop) {
-        setActiveTab("command");
-      } else if (assetsEl && scrollPos >= assetsEl.offsetTop) {
-        setActiveTab("assets");
-      } else if (dossierEl) {
-        setActiveTab("main");
-      }
-
       lastScrollY = currentScrollY;
 
       if (timeoutId) clearTimeout(timeoutId);
@@ -87,6 +70,47 @@ export default function App() {
     return () => {
       window.removeEventListener("scroll", handleScroll);
       if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [accessGranted]);
+
+  // Unified high-precision Intersection Observer to sync active tab boundaries beautifully
+  useEffect(() => {
+    if (!accessGranted) return;
+
+    const sections = [
+      { id: "main", selector: "section-dossier" },
+      { id: "assets", selector: "section-assets" },
+      { id: "command", selector: "section-command" },
+      { id: "shopify", selector: "section-shopify" }
+    ];
+
+    const observerOptions = {
+      root: null,
+      rootMargin: "-45% 0px -45% 0px", // Trigger when entering the central screen focus region
+      threshold: 0.01
+    };
+
+    const handleIntersection = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const sectionId = entry.target.id;
+          const matched = sections.find((s) => s.selector === sectionId);
+          if (matched) {
+            setActiveTab(matched.id as TabState);
+          }
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(handleIntersection, observerOptions);
+
+    sections.forEach((sec) => {
+      const el = document.getElementById(sec.selector);
+      if (el) observer.observe(el);
+    });
+
+    return () => {
+      observer.disconnect();
     };
   }, [accessGranted]);
 
@@ -111,26 +135,61 @@ export default function App() {
     return () => window.removeEventListener("mousemove", handler);
   }, [accessGranted]);
 
+  const prevTabRef = useRef<string>("");
+
+  useEffect(() => {
+    if (!accessGranted) return;
+    
+    // Initial load sets the base ref state
+    if (!prevTabRef.current) {
+      prevTabRef.current = activeTab;
+      return;
+    }
+
+    if (activeTab !== prevTabRef.current) {
+      const leavingName = prevTabRef.current.toUpperCase();
+      const enteringName = activeTab.toUpperCase();
+
+      const messages: { [key: string]: string } = {
+        main: "SYSTEM DECK TRACE: ENTERED SOVEREIGN ATRIUM CHAMBER. BIOMETRIC RESIDENCY LEVEL-9 CONFIRMED.",
+        assets: "SYSTEM DECK TRACE: TRANSITIONED TO SOVEREIGN ASSETS EXHIBITION DECK. STAGE PERSPECTIVES SYNCHRONIZED.",
+        command: "SYSTEM DECK TRACE: LINKED TO CORE COMMAND CONTROL PLATFORM. HIGH-SEC GRID BUFFERS ENGAGED.",
+        shopify: "SYSTEM DECK TRACE: ACTIVE SHOP COMMERCE VAULT SECURED. PREPARING INDIVIDUAL PORTAL CAMERA EMITTERS."
+      };
+
+      const leavingMsg = `SYS_ROUTE: EXITED SECTOR CONTAINER [${leavingName}]. SHUTTING DOWN LOCAL MATRIX.`;
+      const enteringMsg = messages[activeTab] || `SYS_ROUTE: ACQUIRED INTERFACE COORDINATES FOR [${enteringName}].`;
+
+      // Dispatch 'warning/leaving' state
+      window.dispatchEvent(new CustomEvent("telemetry-log", {
+        detail: { message: leavingMsg, type: "WARNING" }
+      }));
+
+      // Dispatch 'system/entering' state shortly after for visual rhythm and elite feedback
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent("telemetry-log", {
+          detail: { message: enteringMsg, type: "SYSTEM" }
+        }));
+      }, 150);
+
+      prevTabRef.current = activeTab;
+    }
+  }, [activeTab, accessGranted]);
+
   const handleInitiateDeploy = () => {
     setShowChatDrawer(true);
   };
 
-  // Atrium (deeper blue) to Boutique (searing orange) interpolation
+  // Aegean blue (16, 95, 180) to Champagne Gold (198, 184, 158) to Boutique searing orange (255, 74, 0)
   const getInterpolatedColor = (pct: number) => {
-    if (pct < 33) {
-      const t = pct / 33;
-      const r = Math.round(10 * (1 - t) + 16 * t);
-      const g = Math.round(50 * (1 - t) + 115 * t);
-      const b = Math.round(250 * (1 - t) + 220 * t);
-      return `rgb(${r}, ${g}, ${b})`;
-    } else if (pct < 66) {
-      const t = (pct - 33) / 33;
+    if (pct < 50) {
+      const t = pct / 50;
       const r = Math.round(16 * (1 - t) + 198 * t);
-      const g = Math.round(115 * (1 - t) + 184 * t);
-      const b = Math.round(220 * (1 - t) + 158 * t);
+      const g = Math.round(95 * (1 - t) + 184 * t);
+      const b = Math.round(180 * (1 - t) + 158 * t);
       return `rgb(${r}, ${g}, ${b})`;
     } else {
-      const t = (pct - 66) / 34;
+      const t = (pct - 50) / 50;
       const r = Math.round(198 * (1 - t) + 255 * t);
       const g = Math.round(184 * (1 - t) + 74 * t);
       const b = Math.round(158 * (1 - t) + 0 * t);
@@ -164,6 +223,23 @@ export default function App() {
         <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-[#ff4a00] to-transparent animate-scanline" />
       </div>
 
+      {/* GPU Accelerated Mobile CSS Scroll-Snapping Stylesheet */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media (max-width: 768px) {
+          html, body {
+            scroll-snap-type: y mandatory !important;
+            scroll-behavior: smooth !important;
+          }
+          #section-dossier,
+          #section-assets,
+          #section-command,
+          #section-shopify {
+            scroll-snap-align: start !important;
+            scroll-snap-stop: always !important;
+          }
+        }
+      `}} />
+
       {/* Main Container workspace */}
       {accessGranted && (
         <div className="min-h-screen flex flex-col md:flex-row relative">
@@ -176,22 +252,57 @@ export default function App() {
 
           {/* FIXED VERTICAL SCROLL PROGRESS & HUD LOCATION LOCATOR (RIGHT SIDE) WITH DYNAMIC MESH GLOW FILTER */}
           <div 
-            className="fixed right-6 lg:right-10 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center gap-6 select-none backdrop-blur-3xl p-4 md:p-5 border shadow-2xl rounded-sm pointer-events-auto"
+            className="fixed right-6 lg:right-10 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center gap-6 select-none backdrop-blur-3xl p-4 md:p-5 border shadow-2xl rounded-sm pointer-events-auto overflow-hidden"
             style={{
               perspective: "500px",
               transformStyle: "preserve-3d",
               transform: `perspective(500px) rotateY(-18deg) rotateX(${
                 scrollDirection === "down" ? 14 : scrollDirection === "up" ? -14 : 0
               }deg) scale(${1 + scrollSpeed * 0.0025})`,
-              boxShadow: `0 0 10px rgba(0,0,0,0.8), inset 0 0 16px ${depthColor}33, 0 0 ${18 + scrollSpeed * 2.0}px ${depthColor}66`,
+              boxShadow: `0 0 12px rgba(0,0,0,0.85), inset 0 0 20px ${depthColor}44, 0 0 ${15 + scrollSpeed * 3.5}px ${depthColor}`,
               borderColor: scrollSpeed > 8 ? depthColor : `${depthColor}44`,
-              backgroundImage: `radial-gradient(at 0% 0%, ${depthColor}22 0%, transparent 60%), radial-gradient(at 100% 100%, ${depthColor}33 0%, transparent 70%), linear-gradient(to bottom, rgba(6,6,6,0.94), rgba(0,0,0,0.97))`,
+              backgroundImage: `radial-gradient(at 0% 0%, ${depthColor}22 0%, transparent 60%), radial-gradient(at 100% 100%, ${depthColor}33 0%, transparent 70%), linear-gradient(to bottom, rgba(6,6,6,0.95), rgba(0,0,0,0.98))`,
               transition: "transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms ease-out, border-color 180ms ease-out, background-image 250ms ease-out",
             } as any}
           >
-            <div className="text-[7.5px] font-mono text-[#c6b89e]/60 uppercase tracking-[3px] font-bold">L_SEC</div>
+            {/* PROCEDURAL MESH GLOW FILTER SYSTEM */}
+            <div className="absolute inset-0 z-0 pointer-events-none opacity-30">
+              <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <filter id="hud-mesh-glow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="3" result="blur" />
+                    <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 2.0 0" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+                {/* Tactical grid background lines */}
+                <g stroke={depthColor} strokeWidth="0.5" opacity="0.4" filter="url(#hud-mesh-glow)">
+                  <line x1="0" y1="20" x2="100%" y2="20" />
+                  <line x1="0" y1="50%" x2="100%" y2="50%" />
+                  <line x1="0" y1="90%" x2="100%" y2="90%" />
+                  <line x1="25%" y1="0" x2="25%" y2="100%" />
+                  <line x1="75%" y1="0" x2="75%" y2="100%" />
+                </g>
+                {/* Acceleration tracking scanner sweeping vertically */}
+                <line 
+                  x1="0" 
+                  y1={`${scrollPercent}%`} 
+                  x2="100%" 
+                  y2={`${scrollPercent}%`} 
+                  stroke="#ff4a00" 
+                  strokeWidth="1.5" 
+                  opacity="0.8" 
+                  filter="url(#hud-mesh-glow)" 
+                />
+              </svg>
+            </div>
+
+            <div className="text-[7.5px] font-mono text-[#c6b89e]/60 uppercase tracking-[3px] font-bold z-10">L_SEC</div>
             
-            <div className="h-44 w-[2px] bg-white/5 relative flex flex-col justify-between items-center py-2 animate-glow">
+            <div className="h-44 w-[2px] bg-white/5 relative flex flex-col justify-between items-center py-2 z-10">
               {/* Dynamic scroll sliding height marker node */}
               <div 
                 className="absolute left-0 right-0 top-0 transition-all duration-[80ms] ease-out"
@@ -258,7 +369,7 @@ export default function App() {
               })}
             </div>
 
-            <div className="text-[8.5px] font-mono text-[#c6b89e] font-semibold flex flex-col items-center leading-none">
+            <div className="text-[8.5px] font-mono text-[#c6b89e] font-semibold flex flex-col items-center leading-none z-10">
               <span className="text-[6px] opacity-40 mb-0.5">DEP</span>
               <span>{Math.round(scrollPercent)}%</span>
             </div>
