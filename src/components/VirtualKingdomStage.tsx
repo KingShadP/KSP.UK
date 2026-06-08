@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState, useRef } from "react";
-import { motion, useScroll, useTransform, useMotionValue, useSpring } from "motion/react";
+import { motion, useScroll, useTransform, useMotionValue, useSpring, useVelocity } from "motion/react";
 import { Landmark, Tv, Eye, Compass, Activity, Shield, RotateCw } from "lucide-react";
 
 interface VirtualKingdomStageProps {
@@ -103,22 +103,6 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
   const room3MarbleY = useTransform(smoothProgress, [0.45, 0.88], [-100, 100]);
   const room4MarbleY = useTransform(smoothProgress, [0.65, 1.0], [120, 0]);
 
-  // --- 4D VOLUMETRIC SPATIAL LAYERS DEF (MOUSE MOVEMENT PARALLAX INDICES) ---
-  const bgShiftX = useTransform(springX, (v) => `${v * -15}px`);
-  const bgShiftY = useTransform(springY, (v) => `${v * -15}px`);
-
-  const midShiftX = useTransform(springX, (v) => `${v * -32}px`);
-  const midShiftY = useTransform(springY, (v) => `${v * -32}px`);
-
-  const lightShiftX = useTransform(springX, (v) => `${v * 70}px`);
-  const lightShiftY = useTransform(springY, (v) => `${v * 70}px`);
-
-  const foreShiftX = useTransform(springX, (v) => `${v * -55}px`);
-  const foreShiftY = useTransform(springY, (v) => `${v * -55}px`);
-
-  const dustShiftX = useTransform(springX, (v) => `${v * -100}px`);
-  const dustShiftY = useTransform(springY, (v) => `${v * -100}px`);
-
   // Chamber 1: The Sovereign Threshold
   const room1Scale = useTransform(smoothProgress, [0, 0.35], [1.0, 3.4]);
   const room1Opacity = useTransform(smoothProgress, [0, 0.28, 0.35], [1, 0.9, 0]);
@@ -141,6 +125,95 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
   const room4Scale = useTransform(smoothProgress, [0.65, 0.93], [0.42, 1.0]);
   const room4Opacity = useTransform(smoothProgress, [0.65, 0.88], [0, 1]);
   const room4Z = useTransform(smoothProgress, [0.65, 0.95], [-250, 0]);
+
+  // --- 4D VOLUMETRIC SPATIAL LAYERS DEF (MOUSE MOVEMENT PARALLAX INDICES VIA TRANSLATE3D) ---
+  const room1Backdrop3d = useTransform(
+    [springX, springY, room1MarbleY],
+    ([mx, my, sy]) => `translate3d(${(mx as number) * -16}px, ${(my as number) * -16 + (sy as number)}px, -35px)`
+  );
+  const room1Mid3d = useTransform(
+    [springX, springY],
+    ([mx, my]) => `translate3d(${(mx as number) * -35}px, ${(my as number) * -35}px, 25px)`
+  );
+  const room1Fore3d = useTransform(
+    [springX, springY],
+    ([mx, my]) => `translate3d(${(mx as number) * -60}px, ${(my as number) * -60}px, 75px)`
+  );
+  const room1Light3d = useTransform(
+    [springX, springY, room1GoldY],
+    ([mx, my, gy]) => `translate3d(${(mx as number) * 75}px, ${(my as number) * 75 + (gy as number)}px, 10px)`
+  );
+
+  const room2Backdrop3d = useTransform(
+    [springX, springY, room2MarbleY],
+    ([mx, my, sy]) => `translate3d(${(mx as number) * -16}px, ${(my as number) * -16 + (sy as number)}px, -35px)`
+  );
+  const room2Mid3d = useTransform(
+    [springX, springY],
+    ([mx, my]) => `translate3d(${(mx as number) * -35}px, ${(my as number) * -35}px, 25px)`
+  );
+  const room2Light3d = useTransform(
+    [springX, springY, room2GoldY],
+    ([mx, my, gy]) => `translate3d(${(mx as number) * 75}px, ${(my as number) * 75 + (gy as number)}px, 75px)`
+  );
+
+  const room3Backdrop3d = useTransform(
+    [springX, springY, room3MarbleY],
+    ([mx, my, sy]) => `translate3d(${(mx as number) * -16}px, ${(my as number) * -16 + (sy as number)}px, -35px)`
+  );
+  const room3Mid3d = useTransform(
+    [springX, springY],
+    ([mx, my]) => `translate3d(${(mx as number) * -35}px, ${(my as number) * -35}px, 25px)`
+  );
+  const room3Light3d = useTransform(
+    [springX, springY],
+    ([mx, my]) => `translate3d(${(mx as number) * 75}px, ${(my as number) * 75}px, 75px)`
+  );
+
+  const room4Backdrop3d = useTransform(
+    [springX, springY, room4MarbleY],
+    ([mx, my, sy]) => `translate3d(${(mx as number) * -16}px, ${(my as number) * -16 + (sy as number)}px, -35px)`
+  );
+  const room4Fore3d = useTransform(
+    [springX, springY],
+    ([mx, my]) => `translate3d(${(mx as number) * -60}px, ${(my as number) * -60}px, 95px)`
+  );
+  const room4Light3d = useTransform(
+    [springX, springY],
+    ([mx, my]) => `translate3d(${(mx as number) * 75}px, ${(my as number) * 75}px, 135px)`
+  );
+  const room4Dust3d = useTransform(
+    [springX, springY],
+    ([mx, my]) => `translate3d(${(mx as number) * -110}px, ${(my as number) * -110}px, 160px)`
+  );
+
+  // Velocity calculation for dynamic high-precision 4D depth offsets
+  const scrollVelocity = useVelocity(scrollYProgress);
+  const smoothVelocity = useSpring(scrollVelocity, { stiffness: 45, damping: 15 });
+
+  // Calculate mouse distance from center as a motion value for responsive depth expansion
+  const mouseCenterDist = useTransform([springX, springY], ([x, y]) => {
+    const dx = x as number;
+    const dy = y as number;
+    return Math.sqrt(dx * dx + dy * dy); // Range 0 to ~0.707
+  });
+
+  // Calculate distinct Z-axis offsets for every background layer chamber combining both scroll velocity and mouse position
+  const room1VelocityZ = useTransform(smoothVelocity, (v) => Math.min(Math.abs(v as number) * 850, 200));
+  const room1MouseZ = useTransform(mouseCenterDist, (dist) => (dist as number) * -120);
+  const room1CombinedZ = useTransform([room1Z, room1VelocityZ, room1MouseZ], ([base, vel, mouse]) => (base as number) + (vel as number) + (mouse as number));
+
+  const room2VelocityZ = useTransform(smoothVelocity, (v) => Math.min(Math.abs(v as number) * 1100, 250));
+  const room2MouseZ = useTransform(mouseCenterDist, (dist) => (dist as number) * -160);
+  const room2CombinedZ = useTransform([room2Z, room2VelocityZ, room2MouseZ], ([base, vel, mouse]) => (base as number) + (vel as number) + (mouse as number));
+
+  const room3VelocityZ = useTransform(smoothVelocity, (v) => Math.min(Math.abs(v as number) * 1300, 290));
+  const room3MouseZ = useTransform(mouseCenterDist, (dist) => (dist as number) * -200);
+  const room3CombinedZ = useTransform([room3Z, room3VelocityZ, room3MouseZ], ([base, vel, mouse]) => (base as number) + (vel as number) + (mouse as number));
+
+  const room4VelocityZ = useTransform(smoothVelocity, (v) => Math.min(Math.abs(v as number) * 1500, 350));
+  const room4MouseZ = useTransform(mouseCenterDist, (dist) => (dist as number) * -240);
+  const room4CombinedZ = useTransform([room4Z, room4VelocityZ, room4MouseZ], ([base, vel, mouse]) => (base as number) + (vel as number) + (mouse as number));
 
   // Cinematic portal gate fade flash screen triggers
   const portalFlash = useTransform(
@@ -183,7 +256,7 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
           style={{
             scale: room1Scale,
             opacity: room1Opacity,
-            z: room1Z,
+            z: room1CombinedZ,
             transformStyle: "preserve-3d",
           }}
           className="absolute inset-0 flex items-center justify-center pointer-events-none"
@@ -191,8 +264,7 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
           {/* Parallax Marble Plate Backdrop 1 with golden details */}
           <motion.div
             style={{
-              y: room1MarbleY,
-              x: bgShiftX,
+              transform: room1Backdrop3d,
               transformStyle: "preserve-3d",
               backgroundImage: "radial-gradient(circle at center, rgba(16,16,16,0.94) 0%, rgba(4,4,4,1.0) 100%)",
             }}
@@ -215,7 +287,7 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
 
           {/* Deep Tunnel Perspective Lines */}
           <motion.div 
-            style={{ x: midShiftX, y: midShiftY, transformStyle: "preserve-3d" }}
+            style={{ transform: room1Mid3d, transformStyle: "preserve-3d" }}
             className="absolute inset-0 pointer-events-none flex items-center justify-center z-1"
           >
             <svg viewBox="0 0 1000 600" className="w-[120%] h-[120%] opacity-35 mix-blend-screen">
@@ -230,7 +302,7 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
 
           {/* Golden Column Pillars Left & Right */}
           <motion.div 
-            style={{ x: foreShiftX, y: foreShiftY, transformStyle: "preserve-3d" }}
+            style={{ transform: room1Fore3d, transformStyle: "preserve-3d" }}
             className="absolute inset-0 pointer-events-none z-10"
           >
             <div className="absolute inset-y-0 left-[8%] w-[80px] bg-gradient-to-r from-black via-[#080808] to-[#11100e] border-r border-[#c6b89e]/20 flex flex-col justify-between py-16 opacity-85 shadow-[15px_0_35px_rgba(0,0,0,0.95)]">
@@ -250,7 +322,7 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
 
           {/* Ground Reflective Floor */}
           <motion.div 
-            style={{ x: midShiftX, y: midShiftY, transformStyle: "preserve-3d" }}
+            style={{ transform: room1Mid3d, transformStyle: "preserve-3d" }}
             className="absolute bottom-0 left-[10%] right-[10%] h-[35%] opacity-15 pointer-events-none mix-blend-screen z-5"
           >
             <div 
@@ -266,7 +338,7 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
 
           {/* Central Portal Gate frame */}
           <motion.div 
-            style={{ x: foreShiftX, y: foreShiftY, transformStyle: "preserve-3d" }}
+            style={{ transform: room1Fore3d, transformStyle: "preserve-3d" }}
             className="w-[430px] h-[520px] border border-[#c6b89e]/25 bg-[#030303]/80 flex items-center justify-center relative overflow-hidden shadow-[0_0_120px_rgba(0,0,0,0.95)] rounded-t-full rounded-b-none backdrop-blur-xs z-20"
           >
             <div className="absolute inset-[3px] border border-[#c6b89e]/10 rounded-t-full pointer-events-none" />
@@ -275,8 +347,7 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
             {/* Focal glow backlight */}
             <motion.div
               style={{
-                y: room1GoldY,
-                x: lightShiftX,
+                transform: room1Light3d,
                 boxShadow: "0 0 100px 30px rgba(198, 184, 158, 0.16)",
               }}
               className="absolute w-24 h-24 rounded-full bg-gradient-to-r from-[#c6b89e]/15 to-[#c6b89e]/5 top-1/4"
@@ -294,15 +365,14 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
           style={{
             scale: room2Scale,
             opacity: room2Opacity,
-            z: room2Z,
+            z: room2CombinedZ,
             transformStyle: "preserve-3d",
           }}
           className="absolute inset-0 flex items-center justify-center pointer-events-none"
         >
           <motion.div
             style={{
-              y: room2MarbleY,
-              x: bgShiftX,
+              transform: room2Backdrop3d,
               transformStyle: "preserve-3d",
               backgroundImage: "radial-gradient(circle at center, rgba(10,10,10,0.96) 0%, rgba(2,2,2,1.0) 100%)",
             }}
@@ -323,7 +393,7 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
           </motion.div>
 
           <motion.div 
-            style={{ x: midShiftX, y: midShiftY, transformStyle: "preserve-3d" }}
+            style={{ transform: room2Mid3d, transformStyle: "preserve-3d" }}
             className="absolute inset-0 flex items-center justify-center z-1"
           >
             <div className="absolute w-[80%] h-[1px] bg-[#c6b89e]/10 pointer-events-none" />
@@ -349,16 +419,13 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
 
           <motion.div
             style={{
-              x: lightShiftX,
-              y: lightShiftY,
+              transform: room2Light3d,
               transformStyle: "preserve-3d",
-              z: 60
             }}
             className="absolute flex items-center justify-center z-10"
           >
             <motion.div
               style={{
-                y: room2GoldY,
                 boxShadow: "0 0 120px 40px rgba(198, 184, 158, 0.18)",
               }}
               className="w-32 h-32 rounded-full bg-[#1c1813] opacity-60 border border-[#c6b89e]/15 flex items-center justify-center"
@@ -373,15 +440,14 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
           style={{
             scale: room3Scale,
             opacity: room3Opacity,
-            z: room3Z,
+            z: room3CombinedZ,
             transformStyle: "preserve-3d",
           }}
           className="absolute inset-0 flex items-center justify-center pointer-events-none"
         >
           <motion.div
             style={{
-              y: room3MarbleY,
-              x: bgShiftX,
+              transform: room3Backdrop3d,
               transformStyle: "preserve-3d",
               backgroundImage: "radial-gradient(circle at center, rgba(12,12,12,0.96) 0%, rgba(1,1,1,1.0) 100%)",
             }}
@@ -403,7 +469,7 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
 
           <div className="relative w-full h-full flex items-center justify-center">
             <motion.div
-              style={{ x: midShiftX, y: midShiftY, transformStyle: "preserve-3d" }}
+              style={{ transform: room3Mid3d, transformStyle: "preserve-3d" }}
               className="absolute inset-0 flex items-center justify-center z-1 pointer-events-none"
             >
               <svg viewBox="0 0 800 800" className="w-[620px] h-[620px] opacity-20 stroke-[#ff4a00] fill-none max-w-full">
@@ -422,7 +488,7 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
             </motion.div>
 
             <motion.div
-              style={{ x: lightShiftX, y: lightShiftY, transformStyle: "preserve-3d" }}
+              style={{ transform: room3Light3d, transformStyle: "preserve-3d" }}
               className="absolute w-[450px] h-[450px] bg-gradient-radial from-[#ff4a00]/[0.025] to-transparent pointer-events-none rounded-full z-10"
             />
           </div>
@@ -433,15 +499,14 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
           style={{
             scale: room4Scale,
             opacity: room4Opacity,
-            z: room4Z,
+            z: room4CombinedZ,
             transformStyle: "preserve-3d",
           }}
           className="absolute inset-0 flex items-center justify-center pointer-events-none"
         >
           <motion.div
             style={{
-              y: room4MarbleY,
-              x: bgShiftX,
+              transform: room4Backdrop3d,
               transformStyle: "preserve-3d",
               backgroundImage: "radial-gradient(circle at center, rgba(6,6,6,0.99) 0%, rgba(0,0,0,1.0) 100%)",
             }}
@@ -463,7 +528,7 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
 
           <div className="relative w-full h-full flex items-center justify-center">
             <motion.div 
-              style={{ x: foreShiftX, y: foreShiftY, transformStyle: "preserve-3d" }}
+              style={{ transform: room4Fore3d, transformStyle: "preserve-3d" }}
               className="z-10 relative flex items-center justify-center"
             >
               <div className="w-[360px] h-[450px] border-t border-x border-[#c6b89e]/30 bg-gradient-to-b from-[#050403] to-black rounded-t-full flex flex-col justify-end items-center pb-12 relative shadow-[0_-50px_100px_rgba(198,184,158,0.12)] overflow-hidden">
@@ -471,7 +536,7 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
                 <div className="w-[1.5px] h-3/4 bg-gradient-to-t from-transparent via-[#c6b89e] to-transparent opacity-80" />
                 
                 <motion.div 
-                  style={{ x: lightShiftX, y: lightShiftY, transformStyle: "preserve-3d" }}
+                  style={{ transform: room4Light3d, transformStyle: "preserve-3d" }}
                   className="w-14 h-14 rounded-full border border-[#c6b89e]/30 flex items-center justify-center mt-4 relative z-10 bg-black/80"
                 >
                   <div className="w-3 h-3 rounded-full bg-[#ff4a00]" />
@@ -481,7 +546,7 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
             </motion.div>
 
             <motion.div 
-              style={{ x: dustShiftX, y: dustShiftY, transformStyle: "preserve-3d" }}
+              style={{ transform: room4Dust3d, transformStyle: "preserve-3d" }}
               className="absolute inset-0 pointer-events-none z-20"
             >
               <div className="absolute inset-y-0 left-[15%] w-[3px] bg-gradient-to-b from-transparent via-[#c6b89e]/40 to-transparent shadow-[0_0_12px_#c6b89e]" />
@@ -555,6 +620,9 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
         }}
       />
 
+      {/* --- ADDITION: Soft Atmospheric Volumetric Dust Motes backplate layer --- */}
+      <AtmosphericDustMotes />
+
       {/* --- UPGRADE: High-blur animated fog layer drifting dynamically --- */}
       <div className="absolute inset-0 z-1 select-none pointer-events-none overflow-hidden opacity-35">
         <motion.div
@@ -580,17 +648,43 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
 
       {/* RENDER THE MAJESTIC VIRTUAL ATMOSPHERE OR STEREOSCOPIC VR TWIN LAYOUT */}
       {vrActive ? (
-        <div className="absolute inset-0 w-full h-full flex flex-row pointer-events-auto overflow-hidden divide-x divide-white/5 scale-105">
+        <div 
+          className="absolute inset-0 w-full h-full flex flex-row pointer-events-auto overflow-hidden bg-black scale-105"
+          style={{
+            perspective: "1000px",
+            transformStyle: "preserve-3d"
+          }}
+        >
           {/* LEFT EYE CONTAINER */}
-          <div className="relative w-1/2 h-full overflow-hidden bg-black">
+          <motion.div 
+            style={{
+              perspective: "1000px",
+              transformStyle: "preserve-3d",
+              rotateY: useTransform(springX, (x) => 4.5 + (x as number) * 8),
+              rotateX: useTransform(springY, (y) => -(y as number) * 8),
+              translateZ: -40,
+              scale: 0.97
+            }}
+            className="relative w-1/2 h-full overflow-hidden border-r border-white/5"
+          >
             {renderAtelierWorld('left')}
             {renderVRHUD('LEFT EYE')}
-          </div>
+          </motion.div>
           {/* RIGHT EYE CONTAINER */}
-          <div className="relative w-1/2 h-full overflow-hidden bg-black">
+          <motion.div 
+            style={{
+              perspective: "1000px",
+              transformStyle: "preserve-3d",
+              rotateY: useTransform(springX, (x) => -4.5 + (x as number) * 8),
+              rotateX: useTransform(springY, (y) => -(y as number) * 8),
+              translateZ: -40,
+              scale: 0.97
+            }}
+            className="relative w-1/2 h-full overflow-hidden"
+          >
             {renderAtelierWorld('right')}
             {renderVRHUD('RIGHT EYE')}
-          </div>
+          </motion.div>
         </div>
       ) : (
         <div className="absolute inset-0 w-full h-full flex items-center justify-center">
@@ -811,3 +905,88 @@ function MotesCanvas({
 
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none mix-blend-screen z-15 opacity-85" />;
 }
+
+// Sub-component for background drifting dust motes using high-contrast volumetric filter
+function AtmosphericDustMotes() {
+  const moteCount = 35;
+  // Generate stable coordinates and random animation properties for pristine, reproducible rendering
+  const motes = useRef(
+    Array.from({ length: moteCount }).map((_, i) => {
+      const isGold = Math.random() > 0.45;
+      return {
+        id: i,
+        left: `${Math.random() * 100}%`,
+        top: `${Math.random() * 100}%`,
+        size: 1.2 + Math.random() * 4.5,
+        delay: `${Math.random() * -45}s`,
+        duration: `${35 + Math.random() * 65}s`,
+        color: isGold ? "rgba(198, 184, 158, 0.42)" : "rgba(255, 74, 0, 0.30)",
+      };
+    })
+  ).current;
+
+  return (
+    <>
+      <style>{`
+        @keyframes drift-up-angle {
+          0% {
+            transform: translateY(12vh) translateX(-20px) scale(0.85);
+            opacity: 0;
+          }
+          15% {
+            opacity: 1;
+          }
+          85% {
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(-112vh) translateX(65px) scale(1.15);
+            opacity: 0;
+          }
+        }
+        .mote-emitter-element {
+          animation: drift-up-angle linear infinite;
+          will-change: transform, opacity;
+        }
+      `}</style>
+      <div 
+        className="absolute inset-0 z-[2] select-none pointer-events-none overflow-hidden opacity-50 mix-blend-screen"
+        id="AtmosphericDustMotesLayer"
+      >
+        <svg className="w-full h-full">
+          <defs>
+            <filter id="mote-glow-filter-3d" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur stdDeviation="3.0" result="blur" />
+              <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1.5 0" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          {motes.map((mote) => (
+            <circle
+              key={mote.id}
+              r={mote.size}
+              fill={mote.color}
+              filter="url(#mote-glow-filter-3d)"
+              className="mote-emitter-element"
+              style={{
+                transformOrigin: "center",
+                transformBox: "fill-box",
+                animationDelay: mote.delay,
+                animationDuration: mote.duration,
+                top: mote.top,
+                left: mote.left,
+                position: "absolute",
+                cx: mote.left,
+                cy: mote.top,
+              } as React.CSSProperties}
+            />
+          ))}
+        </svg>
+      </div>
+    </>
+  );
+}
+

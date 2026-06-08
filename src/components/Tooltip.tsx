@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface TooltipProps {
@@ -15,6 +15,19 @@ interface TooltipProps {
 export default function Tooltip({ message, children, position = "top" }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const triggerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isVisible) {
+      window.dispatchEvent(
+        new CustomEvent("telemetry-log", {
+          detail: {
+            message: `${message}`,
+            type: "HOVER_DIAGNOSTIC"
+          }
+        })
+      );
+    }
+  }, [isVisible, message]);
 
   // Parse direct position coordinates offsets for absolute placement
   const getPositionClasses = () => {

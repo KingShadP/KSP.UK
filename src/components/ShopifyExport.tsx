@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Store, 
@@ -116,6 +116,46 @@ export default function ShopifyExport({ isInline }: ShopifyExportProps) {
   const [autoRotate, setAutoRotate] = useState(true);
   const [scanStatus, setScanStatus] = useState<"calibrating" | "ready" | "projecting">("calibrating");
   const [calibrationProgress, setCalibrationProgress] = useState(0);
+
+  // Webcam video elements state parameters
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [streamActive, setStreamActive] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let activeStream: MediaStream | null = null;
+    if (arProduct && scanStatus === "projecting") {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then(stream => {
+          activeStream = stream;
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            videoRef.current.play().catch(err => console.log("Video output interrupted", err));
+          }
+          setStreamActive(true);
+          setCameraError(null);
+          
+          window.dispatchEvent(new CustomEvent("telemetry-log", {
+            detail: { message: `Camera stream engaged successfully: FACING_ENVIRONMENT [ACTIVE]`, type: "CAMERA_RAW" }
+          }));
+        })
+        .catch(err => {
+          console.warn("Camera request blocked or failed", err);
+          setStreamActive(false);
+          setCameraError("Camera access denied or unsupported - using simulated environment plate");
+          
+          window.dispatchEvent(new CustomEvent("telemetry-log", {
+            detail: { message: `Camera stream failed: Permission Denied or Unsupported. Reverting to environment map.`, type: "WARNING" }
+          }));
+        });
+    }
+    return () => {
+      if (activeStream) {
+        activeStream.getTracks().forEach(track => track.stop());
+      }
+      setStreamActive(false);
+    };
+  }, [arProduct, scanStatus]);
 
   useEffect(() => {
     let animId: number;
@@ -1234,8 +1274,30 @@ export default function ShopifyExport({ isInline }: ShopifyExportProps) {
 
               {/* LEFT CHANNEL: Interactive Spatial Hologram Viewport */}
               <div className="relative flex-grow h-1/2 md:h-full flex flex-col justify-between p-6 overflow-hidden">
+                {/* User Active Video Feed Stream */}
+                {streamActive ? (
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-screen pointer-events-none z-0"
+                  />
+                ) : (
+                  /* Ambient grid fallback placeholder of dynamic scanning visual spaces */
+                  <div className="absolute inset-0 bg-radial-gradient from-transparent to-black/90 opacity-80 pointer-events-none z-0 flex items-center justify-center">
+                    <div className="text-[9px] tracking-[4px] uppercase text-[#ff4a00]/30 font-bold select-none text-center">
+                      [ REAL_WORLD_FEED_STANDBY ]<br />
+                      <span className="text-[7px] text-white/20 mt-1 block">ACTIVATE ACCESS MATRIX BY PERMISSION</span>
+                      {cameraError && (
+                        <span className="text-[6.5px] text-[#ff4a00] uppercase tracking-normal mt-2 block mx-8 font-mono">{cameraError}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Coordinate scan alignment target borders */}
-                <div className="absolute inset-5 border border-white/[0.03] pointer-events-none flex items-center justify-center">
+                <div className="absolute inset-5 border border-white/[0.03] pointer-events-none flex items-center justify-center z-10">
                   <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-white/30" />
                   <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-white/30" />
                   <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-white/30" />

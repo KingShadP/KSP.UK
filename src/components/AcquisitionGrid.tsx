@@ -12,13 +12,23 @@ import { Asset } from "../types";
 const VAL_HISTORY = "Valuation History";
 const ACQ_COST = "Acquisition Cost";
 
+const getImgSrc = (imgStr: string, width = 1200) => {
+  if (imgStr.startsWith("src/") || imgStr.startsWith("/src")) {
+    return imgStr.startsWith("/") ? imgStr : `/${imgStr}`;
+  }
+  if (imgStr.startsWith("http")) {
+    return imgStr;
+  }
+  return `https://images.unsplash.com/photo-${imgStr}?q=80&w=${width}&auto=format&fit=crop`;
+};
+
 const ASSETS_LIST: Asset[] = [
   {
     id: "OBJ-01",
     name: '"MEDITERRANEAN CRUISER"',
     specs: "HYBRID HULL / 86M / BESPOKE OUTLAY",
     price: "€ 142.000.000",
-    img: "1569085812234-fc03d368e592",
+    img: "src/assets/images/regenerated_image_1780886692001.png",
     fullSpecs: [
       "86M L.O.A. Custom Hull",
       "Hybrid Propulsion Unit",
@@ -37,7 +47,7 @@ const ASSETS_LIST: Asset[] = [
     name: '"EXECUTIVE TRANSIT JET"',
     specs: "G700 / EXTENDED RANGE / ACU-CABIN",
     price: "€ 88.500.000",
-    img: "1540962222-1f4cc06994fb",
+    img: "src/assets/images/regenerated_image_1780886695981.png",
     fullSpecs: [
       "Extended Range Fuel Configuration",
       "Custom Chronos Flight Cabin Suite",
@@ -56,7 +66,7 @@ const ASSETS_LIST: Asset[] = [
     name: '"AEGEAN SANCTUM COMPLEX"',
     specs: "CLIFFSIDE RESIDENCY / GEOTHERMAL",
     price: "€ 112.500.000",
-    img: "1503387762-592deb58ef4e",
+    img: "src/assets/images/regenerated_image_1780886685578.png",
     fullSpecs: [
       "Self-sustaining Geothermal Plant",
       "Off-grid Seismic Damping Protection",
@@ -75,7 +85,7 @@ const ASSETS_LIST: Asset[] = [
     name: '"CREATIVE ATELIER WORKSTATION"',
     specs: "ATELIER HUB / DIGITAL COMMS",
     price: "€ 24.000.000",
-    img: "1558494949-ef010cbdcc31",
+    img: "src/assets/images/regenerated_image_1780886688598.png",
     fullSpecs: [
       "Bespoke High-bandwidth Fiber Trunks",
       "Precision Solar Thermal Grid Backups",
@@ -330,7 +340,7 @@ export default function AcquisitionGrid({ onClose, isInline }: AcquisitionGridPr
 
               {/* Dynamic Image */}
               <img
-                src={`https://images.unsplash.com/photo-${asset.img}?q=80&w=1200&auto=format&fit=crop`}
+                src={getImgSrc(asset.img)}
                 alt={asset.name}
                 loading="lazy"
                 decoding="async"
@@ -399,7 +409,7 @@ export default function AcquisitionGrid({ onClose, isInline }: AcquisitionGridPr
                   exit={{ scale: 1.1, filter: "grayscale(100%) blur(10px)" }}
                   transition={{ duration: 1.8 }}
                   referrerPolicy="no-referrer"
-                  src={`https://images.unsplash.com/photo-${selectedAsset.img}?q=80&w=1600&auto=format&fit=crop`}
+                  src={getImgSrc(selectedAsset.img, 1600)}
                   alt={selectedAsset.name}
                   className="w-full h-full object-cover mix-blend-screen opacity-70 group-hover/img:scale-110 group-hover/img:opacity-100 group-hover/img:filter-none transition-all duration-[4s] ease-out"
                 />

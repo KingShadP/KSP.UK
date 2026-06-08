@@ -17,6 +17,7 @@ import SatelliteRadar from "./components/SatelliteRadar";
 import VirtualKingdomStage from "./components/VirtualKingdomStage";
 import SanctuaryAmbient from "./components/SanctuaryAmbient";
 import Tooltip from "./components/Tooltip";
+import TelemetryTerminal from "./components/TelemetryTerminal";
 
 type TabState = "main" | "assets" | "command" | "shopify";
 
@@ -121,6 +122,9 @@ export default function App() {
           
           {/* Magnificent 3D Virtual Kingdom Scenic Background */}
           <VirtualKingdomStage activeTab={activeTab} />
+
+          {/* System Telemetry Log HUD Terminal (JetBrains Mono Terminal style) */}
+          <TelemetryTerminal />
 
           {/* FIXED VERTICAL SCROLL PROGRESS & HUD LOCATION LOCATOR (RIGHT SIDE) */}
           <div className="fixed right-6 lg:right-10 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center gap-6 select-none bg-black/60 backdrop-blur-3xl p-4 md:p-5 border border-[#c6b89e]/20 shadow-[0_0_50px_rgba(0,0,0,0.85)] rounded-sm pointer-events-auto">
