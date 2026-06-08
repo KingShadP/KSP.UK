@@ -115,6 +115,31 @@ export default function App() {
     setShowChatDrawer(true);
   };
 
+  // Atrium (deeper blue) to Boutique (searing orange) interpolation
+  const getInterpolatedColor = (pct: number) => {
+    if (pct < 33) {
+      const t = pct / 33;
+      const r = Math.round(10 * (1 - t) + 16 * t);
+      const g = Math.round(50 * (1 - t) + 115 * t);
+      const b = Math.round(250 * (1 - t) + 220 * t);
+      return `rgb(${r}, ${g}, ${b})`;
+    } else if (pct < 66) {
+      const t = (pct - 33) / 33;
+      const r = Math.round(16 * (1 - t) + 198 * t);
+      const g = Math.round(115 * (1 - t) + 184 * t);
+      const b = Math.round(220 * (1 - t) + 158 * t);
+      return `rgb(${r}, ${g}, ${b})`;
+    } else {
+      const t = (pct - 66) / 34;
+      const r = Math.round(198 * (1 - t) + 255 * t);
+      const g = Math.round(184 * (1 - t) + 74 * t);
+      const b = Math.round(158 * (1 - t) + 0 * t);
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+  };
+
+  const depthColor = getInterpolatedColor(scrollPercent);
+
   return (
     <div className="min-h-screen bg-[#020202] text-white font-sans overflow-x-hidden selection:bg-[#ff4a00]/30 selection:text-white custom-aiming-reticle relative">
       {/* Immersive Client custom cursor rings */}
@@ -149,27 +174,32 @@ export default function App() {
           {/* System Telemetry Log HUD Terminal (JetBrains Mono Terminal style) */}
           <TelemetryTerminal />
 
-          {/* FIXED VERTICAL SCROLL PROGRESS & HUD LOCATION LOCATOR (RIGHT SIDE) */}
+          {/* FIXED VERTICAL SCROLL PROGRESS & HUD LOCATION LOCATOR (RIGHT SIDE) WITH DYNAMIC MESH GLOW FILTER */}
           <div 
-            className="fixed right-6 lg:right-10 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center gap-6 select-none bg-black/75 backdrop-blur-3xl p-4 md:p-5 border shadow-2xl rounded-sm pointer-events-auto"
+            className="fixed right-6 lg:right-10 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center gap-6 select-none backdrop-blur-3xl p-4 md:p-5 border shadow-2xl rounded-sm pointer-events-auto"
             style={{
               perspective: "500px",
               transformStyle: "preserve-3d",
               transform: `perspective(500px) rotateY(-18deg) rotateX(${
                 scrollDirection === "down" ? 14 : scrollDirection === "up" ? -14 : 0
               }deg) scale(${1 + scrollSpeed * 0.0025})`,
-              boxShadow: `0 0 ${18 + scrollSpeed * 1.5}px rgba(255, 74, 0, ${0.12 + scrollSpeed * 0.012})`,
-              borderColor: scrollSpeed > 8 ? "rgba(255, 74, 0, 0.45)" : "rgba(198, 184, 158, 0.2)",
-              transition: "transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms ease-out, border-color 180ms ease-out",
+              boxShadow: `0 0 10px rgba(0,0,0,0.8), inset 0 0 16px ${depthColor}33, 0 0 ${18 + scrollSpeed * 2.0}px ${depthColor}66`,
+              borderColor: scrollSpeed > 8 ? depthColor : `${depthColor}44`,
+              backgroundImage: `radial-gradient(at 0% 0%, ${depthColor}22 0%, transparent 60%), radial-gradient(at 100% 100%, ${depthColor}33 0%, transparent 70%), linear-gradient(to bottom, rgba(6,6,6,0.94), rgba(0,0,0,0.97))`,
+              transition: "transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms ease-out, border-color 180ms ease-out, background-image 250ms ease-out",
             } as any}
           >
             <div className="text-[7.5px] font-mono text-[#c6b89e]/60 uppercase tracking-[3px] font-bold">L_SEC</div>
             
-            <div className="h-44 w-[2px] bg-white/5 relative flex flex-col justify-between items-center py-2">
+            <div className="h-44 w-[2px] bg-white/5 relative flex flex-col justify-between items-center py-2 animate-glow">
               {/* Dynamic scroll sliding height marker node */}
               <div 
-                className="absolute left-0 right-0 top-0 bg-gradient-to-b from-[#ff4a00] to-[#c6b89e] transition-all duration-[80ms] ease-out shadow-[0_0_8px_#ff4a00]"
-                style={{ height: `${scrollPercent}%` }}
+                className="absolute left-0 right-0 top-0 transition-all duration-[80ms] ease-out"
+                style={{ 
+                  height: `${scrollPercent}%`,
+                  background: `linear-gradient(to bottom, ${depthColor}, rgba(0,0,0,0.15))`,
+                  boxShadow: `0 0 12px ${depthColor}`,
+                }}
               />
 
               {[
@@ -204,9 +234,23 @@ export default function App() {
 
                       <div className="w-4 h-4 flex items-center justify-center relative">
                         {/* Glow indicator line */}
-                        <div className={`absolute w-3 h-3 border transition-all duration-300 scale-50 group-hover:scale-100 rotate-45 ${isActive ? "border-[#ff4a00] scale-100 rotate-45 shadow-[0_0_12px_rgba(255,74,0,0.5)]" : "border-[#c6b89e]/40"}`} />
+                        <div 
+                          className="absolute w-3 h-3 border transition-all duration-300 scale-50 group-hover:scale-100 rotate-45"
+                          style={{
+                            borderColor: isActive ? depthColor : "rgba(198, 184, 158, 0.4)",
+                            boxShadow: isActive ? `0 0 12px ${depthColor}` : "none",
+                            transform: `rotate(45deg) scale(${isActive ? 1.0 : 0.5})`,
+                          }}
+                        />
                         {/* Status core dot */}
-                        <div className={`w-1 h-1 rounded-full transition-all duration-300 ${isActive ? "bg-[#ff4a00] scale-125 shadow-[0_0_6px_#ff4a00]" : "bg-[#c6b89e]/70 group-hover:bg-[#c6b89e]"}`} />
+                        <div 
+                          className="w-1 h-1 rounded-full transition-all duration-300"
+                          style={{
+                            backgroundColor: isActive ? depthColor : "rgba(198, 184, 158, 0.7)",
+                            transform: `scale(${isActive ? 1.25 : 1.0})`,
+                            boxShadow: isActive ? `0 0 6px ${depthColor}` : "none",
+                          }}
+                        />
                       </div>
                     </button>
                   </Tooltip>

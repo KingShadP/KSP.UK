@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import ProductWireframePortal from "./ProductWireframePortal";
 import { 
   Store, 
   Key, 
@@ -1032,6 +1033,12 @@ export default function ShopifyExport({ isInline }: ShopifyExportProps) {
                   decoding="async"
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-85 group-hover:scale-105 transition-all duration-[1.2s] ease-out mix-blend-screen"
+                />
+
+                {/* Perspective-Corrected, Real-Time 3D Volumetric Portal Projection Overlay */}
+                <ProductWireframePortal 
+                  productId={product.id} 
+                  themeColor={pIdx % 3 === 0 ? "red" : pIdx % 3 === 1 ? "gold" : "emerald"} 
                 />
 
                 {/* Laser hover horizontal line */}

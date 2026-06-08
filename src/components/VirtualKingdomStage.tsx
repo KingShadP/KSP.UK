@@ -6,6 +6,7 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, useScroll, useTransform, useMotionValue, useSpring, useVelocity } from "motion/react";
 import { Landmark, Tv, Eye, Compass, Activity, Shield, RotateCw } from "lucide-react";
+import SovereignWebGLStage from "./SovereignWebGLStage";
 
 interface VirtualKingdomStageProps {
   activeTab?: string;
@@ -250,6 +251,9 @@ export default function VirtualKingdomStage({ activeTab }: VirtualKingdomStagePr
       >
         {/* --- DUST MOTES HIGH-PERFORMANCE INTERACTIVE CANVAS LAYER --- */}
         <MotesCanvas eye={eye} containerRef={containerRef} />
+
+        {/* --- CUSTOM 4D WEBGL SHADER DEPTH-BUFFER CORRIDOR SIMULATOR --- */}
+        <SovereignWebGLStage />
 
         {/* --- 4D VOLUMETRIC CORRIDOR DEPTH MAP OVERLAY --- */}
         <VolumetricCorridor 
