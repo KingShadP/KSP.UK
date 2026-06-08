@@ -506,7 +506,10 @@ export default function App() {
                   initial={{ opacity: 0, y: 70, scale: 0.985, filter: "blur(10px)" }}
                   animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
                   exit={{ opacity: 0, y: -70, scale: 0.985, filter: "blur(10px)" }}
-                  transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1]                   {/* SECTION 1: HOME (Manifesto Threshold) */}
+                  transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+                  className="w-full flex flex-col"
+                >
+                  {/* SECTION 1: HOME (Manifesto Threshold) */}
                   {activeTab === "home" && (
                     <div
                       id="section-home"
@@ -973,8 +976,6 @@ export default function App() {
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )}                    </div>
                     </div>
                   )}
                 </motion.div>
