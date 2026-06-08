@@ -21,6 +21,14 @@ import TelemetryTerminal from "./components/TelemetryTerminal";
 
 type TabState = "main" | "assets" | "command" | "shopify";
 
+const SECTIONS_ORDER: TabState[] = ["main", "assets", "command", "shopify"];
+const SECTION_SELECTORS: Record<TabState, string> = {
+  main: "section-dossier",
+  assets: "section-assets",
+  command: "section-command",
+  shopify: "section-shopify"
+};
+
 const SHIELD = 'aesthetic check';
 
 export default function App() {
@@ -29,6 +37,7 @@ export default function App() {
   const [showChatDrawer, setShowChatDrawer] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrollPercent, setScrollPercent] = useState(0);
+  const [touchTransitionActive, setTouchTransitionActive] = useState(false);
 
   // Scroll dynamics parameters for 4D HUD acceleration tracker
   const [scrollSpeed, setScrollSpeed] = useState(0);
@@ -37,6 +46,116 @@ export default function App() {
   // High-fidelity interactive dashboard states
   const [climateUnit, setClimateUnit] = useState<"F" | "C" | "H">("F");
   const [shieldLevel, setShieldLevel] = useState<1 | 5 | 9>(5);
+
+  // High-precision touch event tracker for mobile flick-velocity detection
+  const touchStateRef = useRef({
+    startY: 0,
+    startTime: 0,
+    transitioning: false,
+    activeTab: "main" as TabState,
+  });
+
+  useEffect(() => {
+    touchStateRef.current.activeTab = activeTab;
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (!accessGranted) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (window.innerWidth >= 768) return; 
+      if (touchStateRef.current.transitioning) return;
+
+      const touch = e.touches[0];
+      touchStateRef.current.startY = touch.clientY;
+      touchStateRef.current.startTime = Date.now();
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (window.innerWidth >= 768) return;
+      // If currently transitioning, prevent default behavior to avoid scroll clashes and jitter
+      if (touchStateRef.current.transitioning) {
+        if (e.cancelable) e.preventDefault();
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (window.innerWidth >= 768) return;
+      if (touchStateRef.current.transitioning) return;
+
+      if (e.changedTouches.length === 0) return;
+      
+      const touch = e.changedTouches[0];
+      const endY = touch.clientY;
+      const endTime = Date.now();
+
+      const deltaY = endY - touchStateRef.current.startY;
+      const deltaTime = endTime - touchStateRef.current.startTime;
+
+      if (deltaTime <= 0) return;
+
+      const distance = Math.abs(deltaY);
+      const velocity = distance / deltaTime; // pixels per millisecond
+
+      const minDistance = 40; // minimum touch swiped distance (px)
+      const flickSensitivityMultiplier = 0.38; // fine-tuned flick velocity multiplier sensitivity (px/ms)
+
+      if (distance >= minDistance && velocity >= flickSensitivityMultiplier) {
+        const isSwipeUp = deltaY < 0; // Swipe up moves the page DOWN (next section)
+        const currentTab = touchStateRef.current.activeTab;
+        const currentIndex = SECTIONS_ORDER.indexOf(currentTab);
+
+        let targetIndex = currentIndex;
+        if (isSwipeUp) {
+          if (currentIndex < SECTIONS_ORDER.length - 1) {
+            targetIndex = currentIndex + 1;
+          }
+        } else {
+          if (currentIndex > 0) {
+            targetIndex = currentIndex - 1;
+          }
+        }
+
+        if (targetIndex !== currentIndex) {
+          if (e.cancelable) e.preventDefault();
+
+          const targetTab = SECTIONS_ORDER[targetIndex];
+          const targetSelector = SECTION_SELECTORS[targetTab];
+
+          setTouchTransitionActive(true);
+          touchStateRef.current.transitioning = true;
+
+          window.dispatchEvent(new CustomEvent("telemetry-log", {
+            detail: { 
+              message: `📱 VELOCITY_SWIPE: FLICK METRIC [${velocity.toFixed(2)} px/ms] SURPASSED MULTIPLIER [${flickSensitivityMultiplier} px/ms]. DISENGAGING SCROLL-SNAP. INITIATING HIGH-PRECISION CAMERA PUSH COORDS JUMP TO [${targetTab.toUpperCase()}].`, 
+              type: "SYSTEM" 
+            }
+          }));
+
+          const el = document.getElementById(targetSelector);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+
+          // Dynamic cool-down to allow webGL camera corridor pushes to ease in perfectly
+          setTimeout(() => {
+            touchStateRef.current.transitioning = false;
+            setTouchTransitionActive(false);
+          }, 850);
+        }
+      }
+    };
+
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.addEventListener("touchend", handleTouchEnd, { passive: false });
+
+    return () => {
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [accessGranted]);
 
   // Monitor real scroll depth to highlight the headers links appropriately
   useEffect(() => {
@@ -227,14 +346,15 @@ export default function App() {
       <style dangerouslySetInnerHTML={{ __html: `
         @media (max-width: 768px) {
           html, body {
-            scroll-snap-type: y mandatory !important;
+            scroll-snap-type: ${touchTransitionActive ? "none" : "y mandatory"} !important;
             scroll-behavior: smooth !important;
+            overscroll-behavior-y: none !important;
           }
           #section-dossier,
           #section-assets,
           #section-command,
           #section-shopify {
-            scroll-snap-align: start !important;
+            scroll-snap-align: ${touchTransitionActive ? "none" : "start"} !important;
             scroll-snap-stop: always !important;
           }
         }
