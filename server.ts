@@ -31,6 +31,23 @@ function getGeminiClient(): GoogleGenAI {
   return geminiClient;
 }
 
+// Secure shopify environment configuration readout endpoint
+app.get("/api/shopify-config", (req: Request, res: Response): void => {
+  const domain = process.env.SHOPIFY_DOMAIN || 
+                 process.env.SHOPIFY_STORE_DOMAIN || 
+                 process.env.VITE_SHOPIFY_DOMAIN || 
+                 process.env.SHOPIFY_SHOP_DOMAIN || 
+                 "";
+  const token = process.env.SHOPIFY_TOKEN || 
+                process.env.SHOPIFY_ACCESS_TOKEN || 
+                process.env.SHOPIFY_STORE_ACCESS_TOKEN ||
+                process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN || 
+                process.env.VITE_SHOPIFY_TOKEN || 
+                process.env.VITE_SHOPIFY_ACCESS_TOKEN || 
+                "";
+  res.json({ domain: domain.trim(), token: token.trim() });
+});
+
 // REST Secure API Chat Endpoint
 app.post("/api/chat", async (req: Request, res: Response): Promise<void> => {
   try {

@@ -15,16 +15,16 @@ const ACQ_COST = "Acquisition Cost";
 const ASSETS_LIST: Asset[] = [
   {
     id: "OBJ-01",
-    name: '"STEALTH VESSEL"',
-    specs: "RADAR-ABSORBENT / 86M / HYBRID / CLASS 4",
+    name: '"MEDITERRANEAN CRUISER"',
+    specs: "HYBRID HULL / 86M / BESPOKE OUTLAY",
     price: "€ 142.000.000",
     img: "1569085812234-fc03d368e592",
     fullSpecs: [
-      "86M L.O.A.",
-      "Hybrid Propulsion",
-      "Radar-Absorbent Coating",
-      "Submersible Tender Bay",
-      "Class 4 EMP Shielding",
+      "86M L.O.A. Custom Hull",
+      "Hybrid Propulsion Unit",
+      "Zero-noise Cruise Dynamics",
+      "Submersible Yacht Tender",
+      "Acoustic Stabilization Systems",
     ],
     history: [
       { year: "2022", val: "€ 130.5M" },
@@ -34,16 +34,16 @@ const ASSETS_LIST: Asset[] = [
   },
   {
     id: "OBJ-02",
-    name: '"TACTICAL AERO"',
-    specs: "G700 / COUNTERMEASURES / REFITTED",
+    name: '"EXECUTIVE TRANSIT JET"',
+    specs: "G700 / EXTENDED RANGE / ACU-CABIN",
     price: "€ 88.500.000",
     img: "1540962222-1f4cc06994fb",
     fullSpecs: [
-      "Mach 0.925",
-      "Active Missile Countermeasures",
-      "Encrypted Comm Suite",
-      "Extended Range Tanks",
-      "Aural Signature Reduction",
+      "Extended Range Fuel Configuration",
+      "Custom Chronos Flight Cabin Suite",
+      "Acoustic Signature Dampening",
+      "In-flight Secure Broadband Hub",
+      "Carbon-neutral Aviation Certified",
     ],
     history: [
       { year: "2021", val: "€ 75.0M" },
@@ -53,16 +53,16 @@ const ASSETS_LIST: Asset[] = [
   },
   {
     id: "OBJ-03",
-    name: '"ISOLATION COMPOUND"',
-    specs: "AEGEAN / EMP-HARDENED / LEVEL 9",
+    name: '"AEGEAN SANCTUM COMPLEX"',
+    specs: "CLIFFSIDE RESIDENCY / GEOTHERMAL",
     price: "€ 112.500.000",
     img: "1503387762-592deb58ef4e",
     fullSpecs: [
-      "Geothermal Power",
-      "Seismic Isolation",
-      "12m Concrete Shell",
-      "Automated Defense Perimeter",
-      "Self-Sustaining Biosphere",
+      "Self-sustaining Geothermal Plant",
+      "Off-grid Seismic Damping Protection",
+      "Cast Concrete Brutalist Geometry",
+      "Automated Custom Climatic Balance",
+      "Private Coastal Deep-water Access",
     ],
     history: [
       { year: "2019", val: "€ 95.0M" },
@@ -72,16 +72,16 @@ const ASSETS_LIST: Asset[] = [
   },
   {
     id: "OBJ-04",
-    name: '"QUANTUM NODE"',
-    specs: "OFF-GRID / SUBMERGED / CRYPT-0",
+    name: '"CREATIVE ATELIER WORKSTATION"',
+    specs: "ATELIER HUB / DIGITAL COMMS",
     price: "€ 24.000.000",
     img: "1558494949-ef010cbdcc31",
     fullSpecs: [
-      "1000 Qubit Processor",
-      "Liquid Helium Cooling",
-      "Deep-sea Fiber Tap",
-      "Kinetic Battery Backup",
-      "Crypt-0 Encrypted",
+      "Bespoke High-bandwidth Fiber Trunks",
+      "Precision Solar Thermal Grid Backups",
+      "Submerged Closed-loop Cooling Suite",
+      "Monolithic Custom Cast Concrete Layout",
+      "Unified Creative Design Server Stack",
     ],
     history: [
       { year: "2024", val: "€ 18.0M" },
@@ -98,6 +98,7 @@ interface AcquisitionGridProps {
 
 export default function AcquisitionGrid({ onClose, isInline }: AcquisitionGridProps) {
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+  const [dossierTab, setDossierTab] = useState<"specs" | "blueprint" | "materials">("specs");
   
   // Custom interactive secure gateway state
   const [showGateway, setShowGateway] = useState(false);
@@ -223,18 +224,20 @@ export default function AcquisitionGrid({ onClose, isInline }: AcquisitionGridPr
             )}
 
             <div className="inline-flex items-center gap-3 md:gap-4 border border-[#c6b89e] px-4 py-1.5 opacity-80">
-              <ShieldAlert className="w-3.5 h-3.5 text-[#c6b89e]" />
               <span className="font-mono text-[8px] md:text-[10px] tracking-[4px] md:tracking-[6px] uppercase text-[#c6b89e]">
-                <ScrambleText text="BLACK MARKET" />
+                <ScrambleText text="PREVUE SUITE" />
               </span>
             </div>
           </div>
 
           <h2 className="font-serif text-3xl md:text-5xl lg:text-6xl tracking-widest text-[#c6b89e] font-light leading-none">
-            <ScrambleText text="VAULT REGISTRY" duration={1200} />
+            <ScrambleText text="LUXURY LANDMARKS" duration={1200} />
           </h2>
           <p className="font-mono text-[9px] md:text-[10px] tracking-[3px] md:tracking-[5px] text-[#ff4a00]/70 mt-3 md:mt-4 uppercase">
-            "VOL. 4 / LISBON / GENEVA"
+            "ARCHITECTURAL PORTFOLIO & SPECIFICATION DEMOS"
+          </p>
+          <p className="font-sans text-[13px] md:text-sm text-white/50 tracking-normal leading-relaxed mt-4 max-w-4xl font-light">
+            A curated virtual exhibition of our premium residential, transit, and structural commissions. KingShadP delivers self-sustaining brutalist cliffside compounds, state-of-the-art hybrid maritime vessels, and private design laboratories designed for discerning patrons worldwide.
           </p>
         </div>
       </div>
@@ -304,7 +307,7 @@ export default function AcquisitionGrid({ onClose, isInline }: AcquisitionGridPr
                   {asset.name}
                 </h3>
                 <span className="font-mono text-[10px] tracking-[3px] text-white/40 uppercase">
-                  CLASSIFIED OPERATIONAL LEDGER
+                  ESTATE SPECS & DEVELOPMENT DOSSIER
                 </span>
               </div>
               <div className="text-xl font-mono tracking-wider text-white bg-[#020202] py-1 border-b border-[#c6b89e]/30 group-hover:text-[#ff4a00] transition-colors">
@@ -376,34 +379,216 @@ export default function AcquisitionGrid({ onClose, isInline }: AcquisitionGridPr
                   <div className="font-mono text-[9px] tracking-[4px] text-white/30 uppercase mb-2">
                     System Asset Number
                   </div>
-                  <div className="text-white text-3xl font-mono tracking-widest mb-10 border-b border-white/10 pb-6">
-                    {selectedAsset.id}
+                  <div className="text-white text-3xl font-mono tracking-widest mb-6 border-b border-white/10 pb-6 flex justify-between items-end">
+                    <span>{selectedAsset.id}</span>
+                    <span className="text-[#ff4a00] text-[10px] tracking-[3px] font-bold uppercase animate-pulse">CLASSIFIED DOSSIER</span>
                   </div>
 
-                  <div className="mb-10">
-                    <h3 className="text-[#c6b89e]/50 font-mono text-[9px] tracking-[5px] mb-6 uppercase">
-                      Classified Technical Specs
-                    </h3>
-                    <ul className="space-y-4">
-                      {selectedAsset.fullSpecs.map((spec, s_i) => (
-                        <li
-                          key={s_i}
-                          className="flex items-center gap-4 text-white text-[12px] md:text-[14px] font-sans font-extralight group border-b border-[#c6b89e]/5 pb-3 hover:border-[#c6b89e]/30 transition-colors"
-                        >
-                          <span className="text-[#ff4a00]/30 group-hover:text-[#ff4a00] transition-colors font-bold">
-                            {String(s_i + 1).padStart(2, "0")}
-                          </span>
-                          <span className="text-white/80 group-hover:text-white transition-colors">
-                            {spec}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
+                  {/* HIGH-FIDELITY ARCHITECTURAL SUBTABS */}
+                  <div className="flex border-b border-white/10 mb-8 pb-[1px] gap-2 md:gap-4 select-none">
+                    {[
+                      { id: "specs", label: "TECHNICAL SPECS" },
+                      { id: "blueprint", label: "ARCHITECTURAL BLUEPRINT" },
+                      { id: "materials", label: "GEOTECH LEDGER" }
+                    ].map((tab) => (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setDossierTab(tab.id as any)}
+                        className={`pb-3 text-[9px] font-mono tracking-[2px] md:tracking-[3px] uppercase cursor-pointer transition-all relative ${
+                          dossierTab === tab.id ? "text-[#c6b89e] font-bold" : "text-white/40 hover:text-white/80"
+                        }`}
+                      >
+                        {tab.label}
+                        {dossierTab === tab.id && (
+                          <motion.div
+                            layoutId="activeSubtabLine"
+                            className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-[#c6b89e]"
+                          />
+                        )}
+                      </button>
+                    ))}
                   </div>
+
+                  <AnimatePresence mode="wait">
+                    {dossierTab === "specs" && (
+                      <motion.div
+                        key="specs"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.25 }}
+                        className="mb-10"
+                      >
+                        <h3 className="text-[#c6b89e]/50 font-mono text-[9px] tracking-[5px] mb-6 uppercase">
+                          Classified Technical Specs
+                        </h3>
+                        <ul className="space-y-4">
+                          {selectedAsset.fullSpecs.map((spec, s_i) => (
+                            <li
+                              key={s_i}
+                              className="flex items-center gap-4 text-white text-[12px] md:text-[14px] font-sans font-extralight group border-b border-[#c6b89e]/5 pb-3 hover:border-[#c6b89e]/30 transition-colors"
+                            >
+                              <span className="text-[#ff4a00]/30 group-hover:text-[#ff4a00] transition-colors font-bold">
+                                {String(s_i + 1).padStart(2, "0")}
+                              </span>
+                              <span className="text-white/80 group-hover:text-white transition-colors">
+                                {spec}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </motion.div>
+                    )}
+
+                    {dossierTab === "blueprint" && (
+                      <motion.div
+                        key="blueprint"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.25 }}
+                        className="mb-10"
+                      >
+                        <h4 className="text-[#c6b89e]/50 font-mono text-[9px] tracking-[5px] mb-4 uppercase">
+                          Structural Projection Drawing
+                        </h4>
+                        
+                        <div className="border border-[#c6b89e]/20 bg-black/60 p-5 rounded-sm select-none relative overflow-hidden mb-6">
+                          <div className="absolute top-2 right-4 text-[7px] font-mono text-[#ff4a00]/50 tracking-[2px] uppercase">SYS_GRID_BLUEPRINT</div>
+                          
+                          {/* Laser blueprint vector layout drawing */}
+                          <div className="h-44 w-full border border-dashed border-[#c6b89e]/10 relative mb-4 flex items-center justify-center bg-[#010101]/80">
+                            <svg viewBox="0 0 400 200" className="w-5/6 h-5/6 stroke-[#c6b89e]/40 fill-none stroke-1">
+                              {/* Grid lines in bg */}
+                              <g stroke="rgba(198,184,158,0.05)" strokeWidth="0.5">
+                                <line x1="50" y1="0" x2="50" y2="200" />
+                                <line x1="100" y1="0" x2="100" y2="200" />
+                                <line x1="150" y1="0" x2="150" y2="200" />
+                                <line x1="200" y1="0" x2="200" y2="200" />
+                                <line x1="250" y1="0" x2="250" y2="200" />
+                                <line x1="300" y1="0" x2="300" y2="200" />
+                                <line x1="350" y1="0" x2="350" y2="200" />
+                                <line x1="0" y1="50" x2="400" y2="50" />
+                                <line x1="0" y1="100" x2="400" y2="100" />
+                                <line x1="0" y1="150" x2="400" y2="150" />
+                              </g>
+                              
+                              {/* Dynamic shape depending on active asset ID */}
+                              {selectedAsset.id === "OBJ-01" ? (
+                                <>
+                                  <path d="M 20 100 Q 80 100 120 110 L 320 110 L 360 85 L 320 85 Q 200 75 120 90 Z" strokeWidth="0.8" />
+                                  <path d="M 120 90 L 260 90 L 290 85 L 150 85 Z" strokeWidth="0.5" strokeDasharray="3 2" />
+                                  <circle cx="290" cy="98" r="5" stroke="#ff4a00" />
+                                  <circle cx="160" cy="98" r="5" stroke="#ff4a00" />
+                                  <line x1="20" y1="100" x2="380" y2="100" strokeWidth="0.5" strokeDasharray="6 6" strokeOpacity="0.2" />
+                                </>
+                              ) : selectedAsset.id === "OBJ-02" ? (
+                                <>
+                                  <path d="M 40 100 L 150 90 L 240 70 L 330 70 L 300 100 L 150 110 Z" strokeWidth="0.8" />
+                                  <path d="M 150 90 L 300 100 M 180 90 L 220 130 L 210 135 L 160 90 Z" strokeWidth="0.5" />
+                                  <line x1="330" y1="70" x2="350" y2="55" strokeWidth="0.5" />
+                                  <circle cx="150" cy="100" r="4" stroke="#ff4a00" />
+                                  <line x1="10" y1="100" x2="390" y2="100" strokeWidth="0.5" strokeDasharray="4 4" strokeOpacity="0.2" />
+                                </>
+                              ) : selectedAsset.id === "OBJ-03" ? (
+                                <>
+                                  <path d="M 10 140 L 110 140 L 140 90 L 180 90 L 180 50 L 280 50 L 280 90 L 320 90 L 350 140 Z" strokeWidth="0.8" />
+                                  <line x1="140" y1="90" x2="320" y2="90" strokeWidth="0.5" strokeDasharray="3 3" />
+                                  <path d="M 230 50 L 230 160" stroke="#ff4a00" strokeWidth="0.5" strokeDasharray="4 4" />
+                                  <rect x="210" y="70" width="40" height="25" stroke="#ff4a00" strokeWidth="0.5" />
+                                  <line x1="10" y1="140" x2="390" y2="140" strokeWidth="0.75" strokeOpacity="0.4" />
+                                </>
+                              ) : (
+                                <>
+                                  <rect x="120" y="40" width="160" height="120" rx="4" strokeWidth="0.8" />
+                                  <line x1="120" y1="80" x2="280" y2="80" strokeWidth="0.5" />
+                                  <line x1="120" y1="120" x2="280" y2="120" strokeWidth="0.5" />
+                                  <circle cx="200" cy="100" r="20" stroke="#ff4a00" strokeWidth="0.5" strokeDasharray="3 2" />
+                                  <circle cx="200" cy="100" r="2.5" fill="#ff4a00" />
+                                </>
+                              )}
+                            </svg>
+                          </div>
+
+                          {/* Technical blueprints measurements specifications mapping */}
+                          <div className="space-y-3.5 font-mono text-[9px] md:text-[10px] text-white/70 leading-relaxed uppercase pb-1">
+                            <div className="flex justify-between border-b border-white/5 pb-2">
+                              <span className="text-white/40">SPATIAL DIMENS:</span>
+                              <span className="text-[#c6b89e] text-right font-semibold">
+                                {selectedAsset.id === "OBJ-01" ? "L.O.A: 86.40m | Beam: 14.20m | Draft: 3.85m" :
+                                 selectedAsset.id === "OBJ-02" ? "Wingspan: 31.39m | Length: 33.48m | Cabin Height: 1.91m" :
+                                 selectedAsset.id === "OBJ-03" ? "Footprint: 1,840 sq m | Elevation: +442m above MSL" :
+                                 "Basement Depth: -12.40m | Floor Area: 750 sq m"}
+                              </span>
+                            </div>
+                            <div className="flex justify-between border-b border-white/5 pb-2">
+                              <span className="text-white/40">DISPLACEMENT/LOAD:</span>
+                              <span className="text-[#c6b89e] text-right">
+                                {selectedAsset.id === "OBJ-01" ? "Gross Tonnage: 2,420 GT | Fuel: 180,000 L" :
+                                 selectedAsset.id === "OBJ-02" ? "Max MTOW: 107,600 lbs | Fuel: 45,300 lbs" :
+                                 selectedAsset.id === "OBJ-03" ? "Concrete Volume: 14,200 cu m | Boring Depth: 450m" :
+                                 "Subterranean Feed: Triple-redundant 10 kV Power Grid"}
+                              </span>
+                            </div>
+                            <div className="flex justify-between border-b border-white/5 pb-2">
+                              <span className="text-white/40">SYSTEM DRIVES:</span>
+                              <span className="text-[#c6b89e] text-right">
+                                {selectedAsset.id === "OBJ-01" ? "Hybrid MTU 16V 4000 M73L (cada 2,560 kW)" :
+                                 selectedAsset.id === "OBJ-02" ? "Dual Rolls-Royce Pearl 700 Thrust-vector (each 18,250 lbf)" :
+                                 selectedAsset.id === "OBJ-03" ? "Bespoke Closed-loop Organic Rankine Geothermal Turbine" :
+                                 "Water-cooled Cryogenic Server Heat Exchangers"}
+                              </span>
+                            </div>
+                            <div className="flex justify-between pb-1">
+                              <span className="text-white/40">GEOCOORDS PINPOINT:</span>
+                              <span className="text-[#ff4a00] text-right font-bold">
+                                {selectedAsset.id === "OBJ-01" ? "37.4262° N, 25.3267° E (MYK_CONSTRUCT)" :
+                                 selectedAsset.id === "OBJ-02" ? "47.3769° N, 8.5417° E (ZRH_HANGER)" :
+                                 selectedAsset.id === "OBJ-03" ? "36.4166° N, 25.4324° E (SANTORINI_CLIFF)" :
+                                 "46.2044° N, 6.1432° E (CERN_GENEVA_LAB)"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {dossierTab === "materials" && (
+                      <motion.div
+                        key="materials"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.25 }}
+                        className="mb-10"
+                      >
+                        <h3 className="text-[#c6b89e]/50 font-mono text-[9px] tracking-[5px] mb-6 uppercase">
+                          Geotechnical & Shielding Index
+                        </h3>
+                        
+                        <div className="grid grid-cols-2 gap-4 text-left">
+                          {[
+                            { label: "EM_SHIELD_RATING", value: "120 dB at 10 GHz (Faradic Vault)" },
+                            { label: "ACOUSTIC_NOISE_FLOOR", value: "NC-15 low-frequency damping profile" },
+                            { label: "SEISMIC_DAMP_FACTOR", value: "8.5 Richter active-weight damping" },
+                            { label: "THERMAL_INSULATION", value: "U = 0.12 W/(m²·K) (Triple Subzero)" },
+                            { label: "FIRE_INTEGRITY", value: "EI-180 rated double containment walls" },
+                            { label: "AUTONOMOUS_GRID", value: "720 hours geothermal/battery capacity" }
+                          ].map((led, li) => (
+                            <div key={li} className="border border-white/5 p-3.5 bg-[#010101]/60 flex flex-col justify-between hover:border-[#c6b89e]/20 transition-all text-ellipsis overflow-hidden">
+                              <span className="text-[7.5px] font-mono text-white/30 tracking-[1px] mb-2">{led.label}</span>
+                              <span className="text-[10px] font-mono text-[#c6b89e] font-light leading-snug">{led.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   {/* Valuation History */}
                   <div className="mb-10">
-                    <h3 className="text-[#c6b89e]/50 font-mono text-[9px] tracking-[5px] mb-6 uppercase">
+                    <h3 className="text-[#c6b89e]/50 font-mono text-[9px] tracking-[5px] mb-6 uppercase block">
                       {VAL_HISTORY}
                     </h3>
                     <div className="flex gap-4">

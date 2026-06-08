@@ -15,8 +15,10 @@ import AIChatbox from "./components/AIChatbox";
 import ScribeNotes from "./components/ScribeNotes";
 import SatelliteRadar from "./components/SatelliteRadar";
 import VirtualKingdomStage from "./components/VirtualKingdomStage";
+import SanctuaryAmbient from "./components/SanctuaryAmbient";
+import Tooltip from "./components/Tooltip";
 
-type TabState = "main" | "assets" | "shopify";
+type TabState = "main" | "assets" | "command" | "shopify";
 
 const SHIELD = 'aesthetic check';
 
@@ -25,6 +27,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabState>("main");
   const [showChatDrawer, setShowChatDrawer] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrollPercent, setScrollPercent] = useState(0);
 
   // High-fidelity interactive dashboard states
   const [climateUnit, setClimateUnit] = useState<"F" | "C" | "H">("F");
@@ -34,14 +37,23 @@ export default function App() {
   useEffect(() => {
     if (!accessGranted) return;
     const handleScroll = () => {
+      // Calculate total document scroll completion percent
+      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (totalHeight > 0) {
+        setScrollPercent((window.scrollY / totalHeight) * 100);
+      }
+
       const dossierEl = document.getElementById("section-dossier");
       const assetsEl = document.getElementById("section-assets");
+      const commandEl = document.getElementById("section-command");
       const shopifyEl = document.getElementById("section-shopify");
 
       const scrollPos = window.scrollY + window.innerHeight / 3;
 
       if (shopifyEl && scrollPos >= shopifyEl.offsetTop) {
         setActiveTab("shopify");
+      } else if (commandEl && scrollPos >= commandEl.offsetTop) {
+        setActiveTab("command");
       } else if (assetsEl && scrollPos >= assetsEl.offsetTop) {
         setActiveTab("assets");
       } else if (dossierEl) {
@@ -49,6 +61,8 @@ export default function App() {
       }
     };
     window.addEventListener("scroll", handleScroll);
+    // Initial call
+    handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, [accessGranted]);
 
@@ -108,6 +122,54 @@ export default function App() {
           {/* Magnificent 3D Virtual Kingdom Scenic Background */}
           <VirtualKingdomStage />
 
+          {/* FIXED VERTICAL SCROLL PROGRESS & HUD LOCATION LOCATOR (RIGHT SIDE) */}
+          <div className="fixed right-6 lg:right-10 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center gap-6 select-none bg-black/60 backdrop-blur-3xl p-4 md:p-5 border border-[#c6b89e]/20 shadow-[0_0_50px_rgba(0,0,0,0.85)] rounded-sm pointer-events-auto">
+            <div className="text-[7.5px] font-mono text-[#c6b89e]/60 uppercase tracking-[3px] font-bold">L_SEC</div>
+            
+            <div className="h-44 w-[2px] bg-white/5 relative flex flex-col justify-between items-center py-2">
+              {/* Dynamic scroll sliding height marker node */}
+              <div 
+                className="absolute left-0 right-0 top-0 bg-gradient-to-b from-[#ff4a00] to-[#c6b89e] transition-all duration-[80ms] ease-out shadow-[0_0_8px_#ff4a00]"
+                style={{ height: `${scrollPercent}%` }}
+              />
+
+              {[
+                { id: "main", num: "01", label: "ATRIUM", sectionId: "section-dossier" },
+                { id: "assets", num: "02", label: "EXHIBITION", sectionId: "section-assets" },
+                { id: "command", num: "03", label: "COMMAND", sectionId: "section-command" },
+                { id: "shopify", num: "04", label: "BOUTIQUE", sectionId: "section-shopify" }
+              ].map((item, idx) => {
+                const isActive = activeTab === item.id;
+                return (
+                  <Tooltip key={item.id} message={`SYS_NAV: Coordinate jump to ${item.num} // ${item.label}`}>
+                    <button
+                      onClick={() => scrollToSection(item.sectionId)}
+                      aria-label={`Scroll to ${item.label}`}
+                      className="group relative flex items-center justify-center w-7 h-7 cursor-pointer focus:outline-none"
+                    >
+                      {/* Left hovering expansion bubble */}
+                      <div className="absolute right-8 px-3 py-1 border border-[#c6b89e]/30 bg-black/95 text-white text-[8px] font-mono tracking-[3px] uppercase opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap translate-x-1.5 group-hover:translate-x-0 shadow-lg">
+                        {item.num} // {item.label} {isActive ? "[ ACTIVE ]" : ""}
+                      </div>
+
+                      <div className="w-4 h-4 flex items-center justify-center relative">
+                        {/* Glow indicator line */}
+                        <div className={`absolute w-3 h-3 border transition-all duration-300 scale-50 group-hover:scale-100 rotate-45 ${isActive ? "border-[#ff4a00] scale-100 rotate-45 shadow-[0_0_12px_rgba(255,74,0,0.5)]" : "border-[#c6b89e]/40"}`} />
+                        {/* Status core dot */}
+                        <div className={`w-1 h-1 rounded-full transition-all duration-300 ${isActive ? "bg-[#ff4a00] scale-125 shadow-[0_0_6px_#ff4a00]" : "bg-[#c6b89e]/70 group-hover:bg-[#c6b89e]"}`} />
+                      </div>
+                    </button>
+                  </Tooltip>
+                );
+              })}
+            </div>
+
+            <div className="text-[8.5px] font-mono text-[#c6b89e] font-semibold flex flex-col items-center leading-none">
+              <span className="text-[6px] opacity-40 mb-0.5">DEP</span>
+              <span>{Math.round(scrollPercent)}%</span>
+            </div>
+          </div>
+
           {/* Left Decorative margin bar - Desktop only */}
           <div className="absolute left-0 top-0 bottom-0 w-8 border-r border-[#c6b89e]/10 flex flex-col items-center justify-between py-12 pointer-events-none z-35 hidden md:flex mix-blend-screen select-none">
             <div className="w-[1.5px] h-32 bg-gradient-to-b from-[#c6b89e]/80 to-transparent" />
@@ -143,30 +205,33 @@ export default function App() {
                     <ScrambleText text="KINGSHADP" triggerOnHover delay={100} duration={1200} />
                   </h1>
                   <div className="text-[7px] md:text-[8px] uppercase tracking-[4px] md:tracking-[6px] opacity-70 font-mono mt-2 md:mt-3 flex items-center gap-4 text-[#c6b89e]">
-                    <ScrambleText text="SECURE NEURAL UPLINK" delay={2000} duration={1000} />
+                    <ScrambleText text="PRIVATE VISITOR ATELIER" delay={2000} duration={1000} />
                   </div>
                 </div>
               </div>
 
               {/* Navigation Actions - Desktop viewports */}
               <nav className="hidden md:flex gap-10 text-[9px] uppercase tracking-[6px] font-mono opacity-80 pointer-events-auto mt-2 items-center">
-                <button
-                  onClick={() => setShowChatDrawer(!showChatDrawer)}
-                  aria-label="Toggle executive AI system"
-                  className="px-4 py-2 border border-[#ff4a00]/30 hover:bg-[#ff4a00] hover:text-black font-semibold tracking-[3px] text-[#ff4a00] hover:shadow-[0_0_20px_rgba(255,74,0,0.3)] transition-all uppercase cursor-pointer mr-6"
-                >
-                  "CHAT CONCIERGE"
-                </button>
+                <Tooltip message="SYS_DIAG: Launch secure uplink proxy node and request live AI Concierge session.">
+                  <button
+                    onClick={() => setShowChatDrawer(!showChatDrawer)}
+                    aria-label="Toggle executive AI system"
+                    className="px-4 py-2 border border-[#ff4a00]/30 hover:bg-[#ff4a00] hover:text-black font-semibold tracking-[3px] text-[#ff4a00] hover:shadow-[0_0_20px_rgba(255,74,0,0.3)] transition-all uppercase cursor-pointer mr-6 font-mono"
+                  >
+                    "CHAT CONCIERGE"
+                  </button>
+                </Tooltip>
 
                 {[
-                  { id: "main", label: "DOSSIER", hover: "PROFILE" },
-                  { id: "assets", label: "ASSETS", hover: "GALLERY" },
-                  { id: "shopify", label: "THEME EXPORT", hover: "STORE" },
+                  { id: "main", label: "ATRIUM", hover: "OVERVIEW" },
+                  { id: "assets", label: "EXHIBITION", hover: "COLLECTION" },
+                  { id: "command", label: "COMMAND", hover: "RADAR COORDS" },
+                  { id: "shopify", label: "ATELIER SHOP", hover: "BOUTIQUE" },
                 ].map((tab, idx) => (
                   <motion.button
                     key={tab.id}
                     onClick={() => {
-                      const sectionId = tab.id === "main" ? "section-dossier" : tab.id === "assets" ? "section-assets" : "section-shopify";
+                      const sectionId = tab.id === "main" ? "section-dossier" : tab.id === "assets" ? "section-assets" : tab.id === "command" ? "section-command" : "section-shopify";
                       scrollToSection(sectionId);
                     }}
                     aria-label={`Navigate to ${tab.label}`}
@@ -217,14 +282,15 @@ export default function App() {
                   className="absolute top-24 left-0 right-0 bg-black/57 backdrop-blur-3xl z-45 border-b border-[#c6b89e]/20 p-8 flex flex-col gap-5 md:hidden select-none"
                 >
                   {[
-                    { id: "main", label: "DOSSIER", hover: "PROFILE" },
-                    { id: "assets", label: "ASSETS", hover: "GALLERY" },
-                    { id: "shopify", label: "THEME EXPORT", hover: "STORE" },
+                    { id: "main", label: "ATRIUM", hover: "OVERVIEW" },
+                    { id: "assets", label: "EXHIBITION", hover: "COLLECTION" },
+                    { id: "command", label: "COMMAND", hover: "RADAR COORDS" },
+                    { id: "shopify", label: "ATELIER SHOP", hover: "BOUTIQUE" },
                   ].map((tab, idx) => (
                     <button
                       key={tab.id}
                       onClick={() => {
-                        const sectionId = tab.id === "main" ? "section-dossier" : tab.id === "assets" ? "section-assets" : "section-shopify";
+                        const sectionId = tab.id === "main" ? "section-dossier" : tab.id === "assets" ? "section-assets" : tab.id === "command" ? "section-command" : "section-shopify";
                         scrollToSection(sectionId);
                         setMobileMenuOpen(false);
                       }}
@@ -247,7 +313,7 @@ export default function App() {
                 className="w-full min-h-screen flex flex-col lg:flex-row gap-12 pt-28 pb-16 items-stretch relative"
               >
                 <div className="absolute top-[88px] left-0 font-mono text-[8.5px] tracking-[5px] text-[#c6b89e]/30 uppercase select-none">
-                  ROOM 01 // SYSTEM ENTRY PORTAL
+                  01 // INTRODUCTORY ATRIUM
                 </div>
 
                 {/* Left Panel column: Critical recommendations introduction */}
@@ -255,21 +321,21 @@ export default function App() {
                   <div className="inline-flex max-w-max items-center gap-4 mb-8 border border-[#c6b89e]/20 bg-black/40 px-5 py-2.5 backdrop-blur-md">
                     <Cpu className="w-4 h-4 text-[#c6b89e] animate-pulse" />
                     <span className="text-[9px] md:text-[10px] font-mono uppercase tracking-[5px] text-[#c6b89e] pt-0.5 font-bold">
-                      <ScrambleText text="CRITICAL RECOMMENDATION" delay={2100} duration={100} />
+                      <ScrambleText text="EXCLUSIVE ATELIER SUITE" delay={2100} duration={100} />
                     </span>
                   </div>
 
                   <h2 className="font-serif text-4xl sm:text-5xl md:text-7xl xl:text-8xl font-normal leading-none tracking-tighter text-white mb-6 relative select-none">
                     {/* Orange Floating identity tag */}
                     <div className="absolute top-[-15px] right-[10%] rotate-[12deg] bg-[#ff4a00] text-black font-sans font-bold text-[9px] md:text-[10px] px-3 py-1 uppercase tracking-[3px] shadow-[0_10px_20px_rgba(255,74,0,0.3)] select-none">
-                      "IDENTITY"
+                      "ESTATE"
                     </div>
 
                     <span className="block italic text-[#c6b89e] opacity-90 leading-tight">
-                      <ScrambleText text="The Obsidian" delay={2300} duration={1200} triggerOnHover />
+                      <ScrambleText text="Atelier" delay={2300} duration={1200} triggerOnHover />
                     </span>
                     <span className="block ml-6 sm:ml-12 md:ml-16 leading-tight">
-                      Partition.
+                      Kingshadp.
                     </span>
                   </h2>
 
@@ -277,34 +343,36 @@ export default function App() {
                   <div className="grid grid-cols-1 gap-8 border-t border-[#c6b89e]/30 pt-8 mt-10 max-w-3xl relative select-text">
                     <div className="absolute top-0 left-0 w-24 h-[1px] bg-[#c6b89e] shadow-[0_0_15px_rgba(198,184,158,0.8)]" />
                     <p className="text-[13.5px] md:text-base text-white/50 font-light leading-relaxed font-sans text-justify selection:bg-[#ff4a00]/30">
-                      <span className="text-[#c6b89e] text-lg md:text-xl font-serif italic mr-2 text-left leading-none tracking-tight">"A</span>
-                      brutalist sanctuary carved from Aegean rock. Architecture stripped of pretense, designed solely for absolute sensory deprivation and psychological resonance. Algorithms confirm a 99.98% geometric match.
+                      <span className="text-[#c6b89e] text-lg md:text-xl font-serif italic mr-2 text-left leading-none tracking-tight">"Welcome</span>
+                      to Atelier Kingshadp. An elite architectural sanctuary and digital design laboratory overlooking absolute Aegean horizons. We craft bespoke physical commissions, private luxury products, and custom high-fidelity Shopify storefronts with timeless precision.
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-5 items-stretch mt-4">
-                      <button
-                        onClick={handleInitiateDeploy}
-                        aria-label="Initiate Deploy"
-                        className="flex items-center justify-between gap-8 px-8 py-5 border border-[#c6b89e] text-[#c6b89e] font-mono text-[9.5px] tracking-[5px] uppercase hover:bg-[#c6b89e] hover:text-black hover:shadow-[0_0_30px_rgba(198,184,158,0.3)] transition-all duration-500 relative overflow-hidden group cursor-pointer focus:outline-none"
-                      >
-                        <span className="relative z-10 font-bold pt-0.5">
-                          <ScrambleText text="INITIATE DEPLOY" hoverText="CONNECT" delay={2500} duration={800} triggerOnHover />
-                        </span>
-                        <ArrowUpRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
-                      </button>
+                      <Tooltip message="SYS_DIAG: Open encrypted communication pipeline to our AI concierge for personalized specifications.">
+                        <button
+                          onClick={handleInitiateDeploy}
+                          aria-label="Access AI Concierge Assistant"
+                          className="flex items-center justify-between gap-8 px-8 py-5 border border-[#c6b89e] text-[#c6b89e] font-mono text-[9.5px] tracking-[5px] uppercase hover:bg-[#c6b89e] hover:text-black hover:shadow-[0_0_30px_rgba(198,184,158,0.3)] transition-all duration-500 relative overflow-hidden group cursor-pointer focus:outline-none"
+                        >
+                          <span className="relative z-10 font-bold pt-0.5">
+                            <ScrambleText text="TALK TO CONCIERGE" hoverText="ACTIVATE" delay={2500} duration={800} triggerOnHover />
+                          </span>
+                          <ArrowUpRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
+                        </button>
+                       </Tooltip>
 
                       <button
                         onClick={() => scrollToSection("section-assets")}
                         aria-label="Browse catalog archives"
                         className="px-6 py-4 border border-white/5 hover:border-white/20 select-none text-white/40 hover:text-white font-mono text-[8px] md:text-[9px] uppercase tracking-[4px] py-5 flex items-center justify-center transition-colors focus:outline-none"
                       >
-                        [ BROWSING DEEP ARCHIVES ]
+                        [ VIEW DETAILED PORTFOLIO ]
                       </button>
                     </div>
                   </div>
                 </div>
 
-                {/* Right Panel stack columns */}
+                 {/* Right Panel stack columns */}
                 <div className="w-full lg:w-[420px] xl:w-[480px] flex flex-col gap-8 justify-center relative select-none">
                   
                   {/* Stack Block 1: Beethoven Moonlight sonata music audio deck */}
@@ -312,98 +380,105 @@ export default function App() {
                     <AudioPlayer />
                   </div>
 
+                  {/* Sanctuary ambient soundscape controls */}
+                  <SanctuaryAmbient />
+
                   {/* Stack Block 2: Sensory climate and status dashboard gauges */}
                   <div className="grid grid-cols-2 gap-6 select-none">
                     
                     {/* Subcard A: Current Climate coordinates gauge */}
-                    <motion.div
-                      whileTap={{ scale: 0.96 }}
-                      onClick={() => {
-                        setClimateUnit((u) => u === "F" ? "C" : u === "C" ? "H" : "F");
-                      }}
-                      className="bg-black/60 backdrop-blur-3xl border border-[#c6b89e]/20 hover:border-[#c6b89e]/55 p-5 md:p-6 flex flex-col justify-between relative overflow-hidden group transition-all duration-500 cursor-pointer shadow-2xl min-h-[140px]"
-                    >
-                      <div className="absolute inset-0 bg-[#c6b89e]/5 scale-y-0 group-hover:scale-y-100 origin-bottom transition-transform duration-500" />
-                      
-                      <div className="absolute top-5 right-5 z-20">
-                        {climateUnit === "F" && (
-                          <Thermometer className="w-4 h-4 text-[#ff4a00] opacity-80 group-hover:opacity-100 transition-opacity" />
-                        )}
-                        {climateUnit === "C" && (
-                          <Thermometer className="w-4 h-4 text-[#c6b89e] opacity-80 group-hover:opacity-100 transition-opacity" />
-                        )}
-                        {climateUnit === "H" && (
-                          <Droplet className="w-4 h-4 text-[#c6b89e] opacity-80 group-hover:opacity-100 transition-opacity animate-bounce" />
-                        )}
-                      </div>
-
-                      <div className="relative z-10">
-                        <AnimatePresence mode="wait">
-                          <motion.div
-                            key={climateUnit}
-                            initial={{ opacity: 0, y: 6 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -6 }}
-                            transition={{ duration: 0.25 }}
-                            className="text-3xl md:text-4xl font-serif text-white group-hover:text-[#c6b89e] transition-colors font-light leading-none mb-4"
-                          >
-                            {climateUnit === "F" ? "82.4°F" : climateUnit === "C" ? "28.0°C" : "44.2% RH"}
-                          </motion.div>
-                        </AnimatePresence>
-
-                        <div className="text-[7.5px] uppercase tracking-[3px] text-[#c6b89e] font-mono mb-1">
-                          {climateUnit === "F" ? "Thermal payload" : climateUnit === "C" ? "Celsius Matrix" : "Air Moisture"}
+                    <Tooltip message="SYS_DIAG: Query Aegean base telemetry relative humidity and thermal payload index.">
+                      <motion.div
+                        whileTap={{ scale: 0.96 }}
+                        onClick={() => {
+                          setClimateUnit((u) => u === "F" ? "C" : u === "C" ? "H" : "F");
+                        }}
+                        className="bg-black/60 backdrop-blur-3xl border border-[#c6b89e]/20 hover:border-[#c6b89e]/55 p-5 md:p-6 flex flex-col justify-between relative overflow-hidden group transition-all duration-500 cursor-pointer shadow-2xl min-h-[140px]"
+                      >
+                        <div className="absolute inset-0 bg-[#c6b89e]/5 scale-y-0 group-hover:scale-y-100 origin-bottom transition-transform duration-500" />
+                        
+                        <div className="absolute top-5 right-5 z-20">
+                          {climateUnit === "F" && (
+                            <Thermometer className="w-4 h-4 text-[#ff4a00] opacity-80 group-hover:opacity-100 transition-opacity" />
+                          )}
+                          {climateUnit === "C" && (
+                            <Thermometer className="w-4 h-4 text-[#c6b89e] opacity-80 group-hover:opacity-100 transition-opacity" />
+                          )}
+                          {climateUnit === "H" && (
+                            <Droplet className="w-4 h-4 text-[#c6b89e] opacity-80 group-hover:opacity-100 transition-opacity animate-bounce" />
+                          )}
                         </div>
-                        <div className="text-[10px] text-white/45 font-sans font-light leading-none">
-                          Aegean Vault, GR
+
+                        <div className="relative z-10">
+                          <AnimatePresence mode="wait">
+                            <motion.div
+                              key={climateUnit}
+                              initial={{ opacity: 0, y: 6 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -6 }}
+                              transition={{ duration: 0.25 }}
+                              className="text-3xl md:text-4xl font-serif text-white group-hover:text-[#c6b89e] transition-colors font-light leading-none mb-4"
+                            >
+                              {climateUnit === "F" ? "82.4°F" : climateUnit === "C" ? "28.0°C" : "44.2% RH"}
+                            </motion.div>
+                          </AnimatePresence>
+
+                          <div className="text-[7.5px] uppercase tracking-[3px] text-[#c6b89e] font-mono mb-1">
+                            {climateUnit === "F" ? "Thermal payload" : climateUnit === "C" ? "Celsius Matrix" : "Air Moisture"}
+                          </div>
+                          <div className="text-[10px] text-white/45 font-sans font-light leading-none">
+                            Aegean Vault, GR
+                          </div>
                         </div>
-                      </div>
-                      
-                      <div className="absolute bottom-2 right-4 text-[6.5px] tracking-[1.5px] uppercase font-mono text-[#c6b89e]/35 opacity-0 group-hover:opacity-100 transition-opacity duration-350 select-none">
-                        TAP_TOGGLE
-                      </div>
-                    </motion.div>
+                        
+                        <div className="absolute bottom-2 right-4 text-[6.5px] tracking-[1.5px] uppercase font-mono text-[#c6b89e]/35 opacity-0 group-hover:opacity-100 transition-opacity duration-350 select-none">
+                          TAP_TOGGLE
+                        </div>
+                      </motion.div>
+                    </Tooltip>
 
                     {/* Subcard B: Live status check indicator with shielding level triggers */}
-                    <motion.div
-                      whileTap={{ scale: 0.96 }}
-                      onClick={() => {
-                        setShieldLevel((l) => l === 5 ? 9 : l === 9 ? 1 : 5);
-                      }}
-                      className="bg-black/60 backdrop-blur-3xl border border-[#c6b89e]/20 hover:border-[#c6b89e]/55 p-5 md:p-6 flex flex-col justify-between relative overflow-hidden group transition-all duration-500 cursor-pointer shadow-2xl min-h-[140px]"
-                    >
-                      <div className="absolute inset-0 bg-[#c6b89e]/5 scale-y-0 group-hover:scale-y-100 origin-bottom transition-transform duration-500" />
-                      
-                      <div className="absolute top-5 right-5 z-20">
-                        {shieldLevel === 1 && <Sparkles className="w-4 h-4 text-[#c6b89e]/40" />}
-                        {shieldLevel === 5 && <Radio className="w-4 h-4 text-[#c6b89e] animate-pulse" />}
-                        {shieldLevel === 9 && <ShieldAlert className="w-4 h-4 text-[#ff4a00] animate-pulse" />}
-                      </div>
-
-                      <div className="relative z-10">
-                        <div className="flex items-center gap-2 mb-3 mt-1">
-                          <span className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                            shieldLevel === 1 ? "bg-[#c6b89e]/40 shadow-none" : 
-                            shieldLevel === 5 ? "bg-[#c6b89e] shadow-[0_0_8px_#c6b89e]" : 
-                            "bg-[#ff4a00] shadow-[0_0_12px_#ff4a00]"
-                          }`} />
-                          <span className="text-[10px] uppercase font-mono tracking-[3px] text-white font-bold leading-none">
-                            {shieldLevel === 1 ? "PASSIVE L1" : shieldLevel === 5 ? "ARMORED L5" : "STEALTH L9"}
-                          </span>
+                    <Tooltip message="SYS_DIAG: Recalibrate optimal radio suppression and signal scrambler levels.">
+                      <motion.div
+                        whileTap={{ scale: 0.96 }}
+                        onClick={() => {
+                          setShieldLevel((l) => l === 5 ? 9 : l === 9 ? 1 : 5);
+                        }}
+                        className="bg-black/60 backdrop-blur-3xl border border-[#c6b89e]/20 hover:border-[#c6b89e]/55 p-5 md:p-6 flex flex-col justify-between relative overflow-hidden group transition-all duration-500 cursor-pointer shadow-2xl min-h-[140px]"
+                      >
+                        <div className="absolute inset-0 bg-[#c6b89e]/5 scale-y-0 group-hover:scale-y-100 origin-bottom transition-transform duration-500" />
+                        
+                        <div className="absolute top-5 right-5 z-20">
+                          {shieldLevel === 1 && <Sparkles className="w-4 h-4 text-[#c6b89e]/40" />}
+                          {shieldLevel === 5 && <Radio className="w-4 h-4 text-[#c6b89e] animate-pulse" />}
+                          {shieldLevel === 9 && <ShieldAlert className="w-4 h-4 text-[#ff4a00] animate-pulse" />}
                         </div>
 
-                        <div className="text-[7.5px] uppercase tracking-[3px] text-[#c6b89e] font-mono mb-1">
-                          {shieldLevel === 1 ? "Soft Filter" : shieldLevel === 5 ? "Acoustic Void" : "Suppressed Void"}
-                        </div>
-                        <div className="text-[10px] text-white/45 font-sans font-light leading-none">
-                          {shieldLevel === 1 ? "Minimum Defenses" : shieldLevel === 5 ? "Optimal Shielding" : "Total Electromagnetic Dark"}
-                        </div>
-                      </div>
+                        <div className="relative z-10">
+                          <div className="flex items-center gap-2 mb-3 mt-1">
+                            <span className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                              shieldLevel === 1 ? "bg-[#c6b89e]/40 shadow-none" : 
+                              shieldLevel === 5 ? "bg-[#c6b89e] shadow-[0_0_8px_#c6b89e]" : 
+                              "bg-[#ff4a00] shadow-[0_0_12px_#ff4a00]"
+                            }`} />
+                            <span className="text-[10px] uppercase font-mono tracking-[3px] text-white font-bold leading-none">
+                              {shieldLevel === 1 ? "PASSIVE L1" : shieldLevel === 5 ? "ARMORED L5" : "STEALTH L9"}
+                            </span>
+                          </div>
 
-                      <div className="absolute bottom-2 right-4 text-[6.5px] tracking-[1.5px] uppercase font-mono text-[#c6b89e]/35 opacity-0 group-hover:opacity-100 transition-opacity duration-350 select-none">
-                        TAP_SHIELD
-                      </div>
-                    </motion.div>
+                          <div className="text-[7.5px] uppercase tracking-[3px] text-[#c6b89e] font-mono mb-1">
+                            {shieldLevel === 1 ? "Soft Filter" : shieldLevel === 5 ? "Acoustic Void" : "Suppressed Void"}
+                          </div>
+                          <div className="text-[10px] text-white/45 font-sans font-light leading-none">
+                            {shieldLevel === 1 ? "Minimum Defenses" : shieldLevel === 5 ? "Optimal Shielding" : "Total Electromagnetic Dark"}
+                          </div>
+                        </div>
+
+                        <div className="absolute bottom-2 right-4 text-[6.5px] tracking-[1.5px] uppercase font-mono text-[#c6b89e]/35 opacity-0 group-hover:opacity-100 transition-opacity duration-350 select-none">
+                          TAP_SHIELD
+                        </div>
+                      </motion.div>
+                    </Tooltip>
 
                   </div>
                 </div>
@@ -416,7 +491,7 @@ export default function App() {
                 className="w-full min-h-screen py-24 mb-12 border-t border-[#c6b89e]/15 relative"
               >
                 <div className="absolute top-[88px] left-0 font-mono text-[8.5px] tracking-[5px] text-[#c6b89e]/30 uppercase select-none">
-                  ROOM 02 // CONFIDENTIAL VALUABLES & ASSET REGISTRY
+                  02 // CURATED LUXURY EXHIBITION
                 </div>
 
                 <div className="mt-16">
@@ -430,14 +505,14 @@ export default function App() {
                 className="w-full min-h-screen py-24 mb-12 border-t border-[#c6b89e]/15 relative flex flex-col justify-center"
               >
                 <div className="absolute top-[88px] left-0 font-mono text-[8.5px] tracking-[5px] text-[#c6b89e]/30 uppercase select-none">
-                  ROOM 03 // RADAR CONSOLE & DIRECTIVES RECORDER
+                  03 // GLOBAL VISITATION & JOURNAL
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-16 select-text">
                   {/* Left: Star Map Orbit Radar widget */}
                   <div className="flex flex-col gap-4 select-none">
                     <div className="font-mono text-[9px] uppercase tracking-[4px] text-white/30 px-1">
-                      REAL-TIME ORBIT SCAN
+                      REAL-TIME VISITATION ORBIT
                     </div>
                     <div className="bg-black/60 backdrop-blur-2xl border border-[#c6b89e]/20 h-[400px] overflow-hidden relative shadow-2xl rounded-sm">
                       <SatelliteRadar />
@@ -447,7 +522,7 @@ export default function App() {
                   {/* Right: Notes logger scribe tool */}
                   <div className="flex flex-col gap-4 select-none">
                     <div className="font-mono text-[9px] uppercase tracking-[4px] text-white/30 px-1">
-                      CLASSIFIED JOURNAL & METADATA
+                      BESPOKE ATELIER JOURNAL & NOTES
                     </div>
                     <div className="bg-black/60 backdrop-blur-2xl border border-[#c6b89e]/20 min-h-[400px] relative shadow-2xl rounded-sm">
                       <ScribeNotes />
@@ -462,7 +537,7 @@ export default function App() {
                 className="w-full min-h-screen py-24 mb-12 border-t border-[#c6b89e]/15 relative"
               >
                 <div className="absolute top-[88px] left-0 font-mono text-[8.5px] tracking-[5px] text-[#c6b89e]/30 uppercase select-none">
-                  ROOM 04 // THEME ENGINE EXPORTER VAULT
+                  04 // ACTIVE SHOPIFY STOREFRONT INTEGRATION
                 </div>
 
                 <div className="mt-16">
