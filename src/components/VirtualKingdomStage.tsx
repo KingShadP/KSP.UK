@@ -44,11 +44,11 @@ export default function VirtualKingdomStage() {
   }, [mX, mY]);
 
   // Translate mouse position into subtle 3D rotational camera pivot (prevents spinning/disorientation)
-  const cameraRotateX = useTransform(springY, (val) => `${-val * 5}deg`);
-  const cameraRotateY = useTransform(springX, (val) => `${val * 6}deg`);
+  const cameraRotateX = useTransform(springY, (val) => `${-val * 8}deg`);
+  const cameraRotateY = useTransform(springX, (val) => `${val * 10}deg`);
 
   // --- UPGRADE: Subtle continuous zoom forward aligned to scroll position ---
-  const globalCameraScale = useTransform(smoothProgress, [0, 1], [1.0, 1.15]);
+  const globalCameraScale = useTransform(smoothProgress, [0, 1], [1.02, 1.18]);
 
   // --- UPGRADE: Dynamic scrolling parallax transforms for our luxurious background marble texture plates ---
   const room1MarbleY = useTransform(smoothProgress, [0, 0.35], [0, -140]);
@@ -56,11 +56,27 @@ export default function VirtualKingdomStage() {
   const room3MarbleY = useTransform(smoothProgress, [0.45, 0.88], [-100, 100]);
   const room4MarbleY = useTransform(smoothProgress, [0.65, 1.0], [120, 0]);
 
-  const marbleMouseParallaxX = useTransform(springX, (v) => `${v * -40}px`);
-  const marbleMouseParallaxY = useTransform(springY, (v) => `${v * -40}px`);
+  // --- 4D VOLUMETRIC SPATIAL LAYERS DEF (MOUSE MOVEMENT PARALLAX INDICES) ---
+  // Layer 0: Background deepest plates (15px shift)
+  const bgShiftX = useTransform(springX, (v) => `${v * -15}px`);
+  const bgShiftY = useTransform(springY, (v) => `${v * -15}px`);
 
-  // Transform functions for each of the 4 chambers of the virtual kingdom, mapping scale and opacity
-  
+  // Layer 1: Midground architectural structures / grids / perspective lines (35px shift)
+  const midShiftX = useTransform(springX, (v) => `${v * -35}px`);
+  const midShiftY = useTransform(springY, (v) => `${v * -35}px`);
+
+  // Layer 2: Glowing atmospheric backlights / light spots (70px decoupled opposing shift)
+  const lightShiftX = useTransform(springX, (v) => `${v * 75}px`);
+  const lightShiftY = useTransform(springY, (v) => `${v * 75}px`);
+
+  // Layer 3: Foreground structural gates / physical columns / framing (60px shift)
+  const foreShiftX = useTransform(springX, (v) => `${v * -60}px`);
+  const foreShiftY = useTransform(springY, (v) => `${v * -60}px`);
+
+  // Layer 4: Floating embers / foreground drift particles (110px shift)
+  const dustShiftX = useTransform(springX, (v) => `${v * -110}px`);
+  const dustShiftY = useTransform(springY, (v) => `${v * -110}px`);
+
   // Chamber 1: The Sovereign Threshold (Outer Marble Portal)
   // Highly loaded in the beginning; flies out past the camera at progress 0.35
   const room1Scale = useTransform(smoothProgress, [0, 0.35], [1.0, 3.4]);
@@ -202,11 +218,11 @@ export default function VirtualKingdomStage() {
           }}
           className="absolute inset-0 flex items-center justify-center transition-all duration-100"
         >
-          {/* --- UPGRADE: Parallax Marble Plate Backdrop 1 with golden details --- */}
+          {/* --- UPGRADE: Parallax Marble Plate Backdrop 1 with golden details (DEEP BG SHIFT) --- */}
           <motion.div
             style={{
               y: room1MarbleY,
-              x: marbleMouseParallaxX,
+              x: bgShiftX,
               transformStyle: "preserve-3d",
               backgroundImage: "radial-gradient(circle at center, rgba(17,17,17,0.92) 0%, rgba(5,5,5,1.0) 100%)",
             }}
@@ -227,56 +243,74 @@ export default function VirtualKingdomStage() {
             </svg>
           </motion.div>
 
-          {/* Deep Tunnel Perspective Lines */}
-          <svg viewBox="0 0 1000 600" className="absolute w-[120%] h-[120%] opacity-40 mix-blend-screen">
-            <line x1="0" y1="0" x2="350" y2="220" stroke="#c6b89e" strokeWidth="0.5" strokeOpacity="0.25" />
-            <line x1="1000" y1="0" x2="650" y2="220" stroke="#c6b89e" strokeWidth="0.5" strokeOpacity="0.25" />
-            <line x1="0" y1="600" x2="350" y2="380" stroke="#c6b89e" strokeWidth="0.5" strokeOpacity="0.25" />
-            <line x1="1000" y1="600" x2="650" y2="380" stroke="#c6b89e" strokeWidth="0.5" strokeOpacity="0.25" />
-            
-            {/* Concentric golden architectural rings fading to center */}
-            <rect x="250" y="150" width="500" height="300" rx="30" fill="none" stroke="#c6b89e" strokeWidth="0.75" strokeOpacity="0.15" />
-            <rect x="350" y="210" width="300" height="180" rx="20" fill="none" stroke="#c6b89e" strokeWidth="0.5" strokeOpacity="0.2" />
-          </svg>
+          {/* Deep Tunnel Perspective Lines (MIDGROUND SHIFT) */}
+          <motion.div 
+            style={{ x: midShiftX, y: midShiftY, transformStyle: "preserve-3d" }}
+            className="absolute inset-0 pointer-events-none flex items-center justify-center z-1"
+          >
+            <svg viewBox="0 0 1000 600" className="w-[120%] h-[120%] opacity-40 mix-blend-screen">
+              <line x1="0" y1="0" x2="350" y2="220" stroke="#c6b89e" strokeWidth="0.5" strokeOpacity="0.25" />
+              <line x1="1000" y1="0" x2="650" y2="220" stroke="#c6b89e" strokeWidth="0.5" strokeOpacity="0.25" />
+              <line x1="0" y1="600" x2="350" y2="380" stroke="#c6b89e" strokeWidth="0.5" strokeOpacity="0.25" />
+              <line x1="1000" y1="600" x2="650" y2="380" stroke="#c6b89e" strokeWidth="0.5" strokeOpacity="0.25" />
+              
+              {/* Concentric golden architectural rings fading to center */}
+              <rect x="250" y="150" width="500" height="300" rx="30" fill="none" stroke="#c6b89e" strokeWidth="0.75" strokeOpacity="0.15" />
+              <rect x="350" y="210" width="300" height="180" rx="20" fill="none" stroke="#c6b89e" strokeWidth="0.5" strokeOpacity="0.2" />
+            </svg>
+          </motion.div>
 
-          {/* Golden Column Pillars Left & Right */}
-          <div className="absolute inset-y-0 left-[8%] w-[80px] bg-gradient-to-r from-black via-[#0a0a0a] to-[#12110f] border-r border-[#c6b89e]/20 flex flex-col justify-between py-16 opacity-85 shadow-[15px_0_35px_rgba(0,0,0,0.95)]">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-[1px] w-full bg-[#c6b89e]/30 shadow-[0_0_10px_#c6b89e]" />
-            ))}
-            {/* Elegant luxury gold trims on columns */}
-            <div className="absolute top-12 bottom-12 right-[4px] w-[1px] bg-gradient-to-b from-transparent via-[#c6b89e]/40 to-transparent" />
-          </div>
+          {/* Golden Column Pillars Left & Right (FOREGROUND SHIFT) */}
+          <motion.div 
+            style={{ x: foreShiftX, y: foreShiftY, transformStyle: "preserve-3d" }}
+            className="absolute inset-0 pointer-events-none z-10"
+          >
+            <div className="absolute inset-y-0 left-[8%] w-[80px] bg-gradient-to-r from-black via-[#0a0a0a] to-[#12110f] border-r border-[#c6b89e]/20 flex flex-col justify-between py-16 opacity-85 shadow-[15px_0_35px_rgba(0,0,0,0.95)]">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-[1px] w-full bg-[#c6b89e]/30 shadow-[0_0_10px_#c6b89e]" />
+              ))}
+              {/* Elegant luxury gold trims on columns */}
+              <div className="absolute top-12 bottom-12 right-[4px] w-[1px] bg-gradient-to-b from-transparent via-[#c6b89e]/40 to-transparent" />
+            </div>
 
-          <div className="absolute inset-y-0 right-[8%] w-[80px] bg-gradient-to-l from-black via-[#0a0a0a] to-[#12110f] border-l border-[#c6b89e]/20 flex flex-col justify-between py-16 opacity-85 shadow-[-15px_0_35px_rgba(0,0,0,0.95)]">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-[1px] w-full bg-[#c6b89e]/30 shadow-[0_0_10px_#c6b89e]" />
-            ))}
-            <div className="absolute top-12 bottom-12 left-[4px] w-[1px] bg-gradient-to-b from-transparent via-[#c6b89e]/40 to-transparent" />
-          </div>
+            <div className="absolute inset-y-0 right-[8%] w-[80px] bg-gradient-to-l from-black via-[#0a0a0a] to-[#12110f] border-l border-[#c6b89e]/20 flex flex-col justify-between py-16 opacity-85 shadow-[-15px_0_35px_rgba(0,0,0,0.95)]">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-[1px] w-full bg-[#c6b89e]/30 shadow-[0_0_10px_#c6b89e]" />
+              ))}
+              <div className="absolute top-12 bottom-12 left-[4px] w-[1px] bg-gradient-to-b from-transparent via-[#c6b89e]/40 to-transparent" />
+            </div>
+          </motion.div>
 
-          {/* Ground Marble Floor Surface Reflective Grid */}
-          <div 
-            className="absolute bottom-0 left-[10%] right-[10%] h-[35%] opacity-20 pointer-events-none mix-blend-screen"
-            style={{
-              backgroundImage: "linear-gradient(to top, rgba(198,184,158,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(198,184,158,0.1) 1px, transparent 1px)",
-              backgroundSize: "60px 60px",
-              transform: "perspective(300px) rotateX(75deg)",
-              transformOrigin: "bottom center",
-            }}
-          />
+          {/* Ground Marble Floor Surface Reflective Grid (MIDGROUND SHIFT) */}
+          <motion.div 
+            style={{ x: midShiftX, y: midShiftY, transformStyle: "preserve-3d" }}
+            className="absolute bottom-0 left-[10%] right-[10%] h-[35%] opacity-20 pointer-events-none mix-blend-screen z-5"
+          >
+            <div 
+              className="w-full h-full"
+              style={{
+                backgroundImage: "linear-gradient(to top, rgba(198,184,158,0.1) 1px, transparent 1px), linear-gradient(to right, rgba(198,184,158,0.1) 1px, transparent 1px)",
+                backgroundSize: "60px 60px",
+                transform: "perspective(300px) rotateX(75deg)",
+                transformOrigin: "bottom center",
+              }}
+            />
+          </motion.div>
 
-          {/* Central Portal Gate frame */}
-          <div className="w-[450px] h-[550px] border border-[#c6b89e]/25 bg-[#030303]/75 flex items-center justify-center relative overflow-hidden shadow-[0_0_120px_rgba(0,0,0,0.95)] rounded-t-full rounded-b-none backdrop-blur-sm">
+          {/* Central Portal Gate frame (FOREGROUND SHIFT) */}
+          <motion.div 
+            style={{ x: foreShiftX, y: foreShiftY, transformStyle: "preserve-3d" }}
+            className="w-[450px] h-[550px] border border-[#c6b89e]/25 bg-[#030303]/75 flex items-center justify-center relative overflow-hidden shadow-[0_0_120px_rgba(0,0,0,0.95)] rounded-t-full rounded-b-none backdrop-blur-sm z-20"
+          >
             {/* Outer golden rim sweeps */}
             <div className="absolute inset-[3px] border border-[#c6b89e]/10 rounded-t-full pointer-events-none" />
             <div className="absolute inset-[15px] border border-dashed border-[#c6b89e]/10 rounded-t-full pointer-events-none" />
             
-            {/* Glowing gold backlighting focal node */}
+            {/* Glowing gold backlighting focal node (DECOUPLED LIGHT SHIFT FOR 4D RADIANCE OVERLAY) */}
             <motion.div
               style={{
                 y: room1GoldY,
-                x: room1GoldX,
+                x: lightShiftX,
                 boxShadow: "0 0 100px 30px rgba(198, 184, 158, 0.15)",
               }}
               className="absolute w-24 h-24 rounded-full bg-gradient-to-r from-[#c6b89e]/20 to-[#c6b89e]/5 top-1/4"
@@ -287,7 +321,7 @@ export default function VirtualKingdomStage() {
               style={{ x: room1FogX }}
               className="absolute inset-0 bg-radial-gradient from-transparent via-[#010101]/85 to-[#010101] opacity-75 pointer-events-none"
             />
-          </div>
+          </motion.div>
         </motion.div>
 
 
@@ -301,11 +335,11 @@ export default function VirtualKingdomStage() {
           }}
           className="absolute inset-0 flex items-center justify-center transition-all duration-100"
         >
-          {/* --- UPGRADE: Parallax Marble Plate Backdrop 2 with inverse drift --- */}
+          {/* --- UPGRADE: Parallax Marble Plate Backdrop 2 with inverse drift (DEEP BG SHIFT) --- */}
           <motion.div
             style={{
               y: room2MarbleY,
-              x: marbleMouseParallaxY,
+              x: bgShiftX,
               transformStyle: "preserve-3d",
               backgroundImage: "radial-gradient(circle at center, rgba(10,10,10,0.95) 0%, rgba(3,3,3,1.0) 100%)",
             }}
@@ -327,9 +361,11 @@ export default function VirtualKingdomStage() {
             </svg>
           </motion.div>
 
-          {/* Radial concentric rings representing digital luxury vault security gates */}
-          <div className="relative w-full h-full flex items-center justify-center">
-            
+          {/* Radial concentric rings representing digital luxury vault security gates (MIDGROUND SHIFT) */}
+          <motion.div 
+            style={{ x: midShiftX, y: midShiftY, transformStyle: "preserve-3d" }}
+            className="absolute inset-0 flex items-center justify-center z-1"
+          >
             {/* Background alignment crosshair matrices */}
             <div className="absolute w-[80%] h-[1px] bg-[#c6b89e]/10 pointer-events-none" />
             <div className="absolute h-[80%] w-[1px] bg-[#c6b89e]/10 pointer-events-none" />
@@ -353,18 +389,28 @@ export default function VirtualKingdomStage() {
                 );
               })}
             </svg>
+          </motion.div>
 
-            {/* Glowing active security chamber node */}
+          {/* Glowing active security chamber node (DECOUPLED LIGHT SHIFT FOR VOLUMETRIC EXTRUSION) */}
+          <motion.div
+            style={{
+              x: lightShiftX,
+              y: lightShiftY,
+              transformStyle: "preserve-3d",
+              z: 60
+            }}
+            className="absolute flex items-center justify-center z-10"
+          >
             <motion.div
               style={{
                 y: room2GoldY,
                 boxShadow: "0 0 120px 40px rgba(198, 184, 158, 0.2)",
               }}
-              className="absolute w-32 h-32 rounded-full bg-[#1e1a14] opacity-55 border border-[#c6b89e]/15 flex items-center justify-center"
+              className="w-32 h-32 rounded-full bg-[#1e1a14] opacity-55 border border-[#c6b89e]/15 flex items-center justify-center"
             >
               <div className="w-16 h-16 rounded-full border border-dashed border-[#c6b89e]/40 animate-spin" style={{ animationDuration: "35s" }} />
             </motion.div>
-          </div>
+          </motion.div>
         </motion.div>
 
 
@@ -378,11 +424,11 @@ export default function VirtualKingdomStage() {
           }}
           className="absolute inset-0 flex items-center justify-center transition-all duration-100"
         >
-          {/* --- UPGRADE: Parallax Marble Plate Backdrop 3 with offset drift --- */}
+          {/* --- UPGRADE: Parallax Marble Plate Backdrop 3 with offset drift (DEEP BG SHIFT) --- */}
           <motion.div
             style={{
               y: room3MarbleY,
-              x: marbleMouseParallaxX,
+              x: bgShiftX,
               transformStyle: "preserve-3d",
               backgroundImage: "radial-gradient(circle at center, rgba(12,12,12,0.95) 0%, rgba(1,1,1,1.0) 100%)",
             }}
@@ -406,28 +452,36 @@ export default function VirtualKingdomStage() {
 
           <div className="relative w-full h-full flex items-center justify-center">
             
-            {/* Digital Constellation star grids mapped to radar sectors */}
-            <svg viewBox="0 0 800 800" className="w-[650px] h-[650px] opacity-20 stroke-[#ff4a00] fill-none max-w-full">
-              {/* Concentric sweep indicators aligned index */}
-              <circle cx="400" cy="400" r="380" strokeWidth="0.5" strokeOpacity="0.15" />
-              <circle cx="400" cy="400" r="350" strokeWidth="0.5" strokeDasharray="5 5" />
-              <circle cx="400" cy="400" r="280" strokeWidth="0.75" />
-              
-              {/* Star system coordinates lines connection */}
-              <polyline points="210,120 320,150 400,280 480,150 590,120" stroke="#c6b89e" strokeWidth="0.5" strokeOpacity="0.3" />
-              <polyline points="210,680 320,650 400,520 480,650 590,680" stroke="#c6b89e" strokeWidth="0.5" strokeOpacity="0.3" />
-              
-              <circle cx="320" cy="150" r="4" fill="#ff4a00" />
-              <circle cx="480" cy="150" r="4" fill="#ff4a00" />
-              <circle cx="400" cy="280" r="6" fill="#c6b89e" />
-              
-              <circle cx="320" cy="650" r="4" fill="#c6b89e" />
-              <circle cx="480" cy="650" r="4" fill="#c6b89e" />
-              <circle cx="400" cy="520" r="6" fill="#ff4a00" />
-            </svg>
+            {/* Digital Constellation star grids mapped to radar sectors (MIDGROUND SHIFT) */}
+            <motion.div
+              style={{ x: midShiftX, y: midShiftY, transformStyle: "preserve-3d" }}
+              className="absolute inset-0 flex items-center justify-center z-1 pointer-events-none"
+            >
+              <svg viewBox="0 0 800 800" className="w-[650px] h-[650px] opacity-20 stroke-[#ff4a00] fill-none max-w-full">
+                {/* Concentric sweep indicators aligned index */}
+                <circle cx="400" cy="400" r="380" strokeWidth="0.5" strokeOpacity="0.15" />
+                <circle cx="400" cy="400" r="350" strokeWidth="0.5" strokeDasharray="5 5" />
+                <circle cx="400" cy="400" r="280" strokeWidth="0.75" />
+                
+                {/* Star system coordinates lines connection */}
+                <polyline points="210,120 320,150 400,280 480,150 590,120" stroke="#c6b89e" strokeWidth="0.5" strokeOpacity="0.3" />
+                <polyline points="210,680 320,650 400,520 480,650 590,680" stroke="#c6b89e" strokeWidth="0.5" strokeOpacity="0.3" />
+                
+                <circle cx="320" cy="150" r="4" fill="#ff4a00" />
+                <circle cx="480" cy="150" r="4" fill="#ff4a00" />
+                <circle cx="400" cy="280" r="6" fill="#c6b89e" />
+                
+                <circle cx="320" cy="650" r="4" fill="#c6b89e" />
+                <circle cx="480" cy="650" r="4" fill="#c6b89e" />
+                <circle cx="400" cy="520" r="6" fill="#ff4a00" />
+              </svg>
+            </motion.div>
 
-            {/* Glowing radar scan sweep beam background */}
-            <div className="absolute w-[500px] h-[500px] bg-gradient-radial from-[#ff4a00]/[0.025] to-transparent pointer-events-none rounded-full" />
+            {/* Glowing radar scan sweep beam background (DECOUPLED LIGHT SHIFT FOR SPATIAL RADIANCE GLOW) */}
+            <motion.div
+              style={{ x: lightShiftX, y: lightShiftY, transformStyle: "preserve-3d" }}
+              className="absolute w-[500px] h-[500px] bg-gradient-radial from-[#ff4a00]/[0.025] to-transparent pointer-events-none rounded-full z-10"
+            />
           </div>
         </motion.div>
 
@@ -442,11 +496,11 @@ export default function VirtualKingdomStage() {
           }}
           className="absolute inset-0 flex items-center justify-center transition-all duration-100"
         >
-          {/* --- UPGRADE: Parallax Marble Plate Backdrop 4 with entrance reveal --- */}
+          {/* --- UPGRADE: Parallax Marble Plate Backdrop 4 with entrance reveal (DEEP BG SHIFT) --- */}
           <motion.div
             style={{
               y: room4MarbleY,
-              x: marbleMouseParallaxY,
+              x: bgShiftX,
               transformStyle: "preserve-3d",
               backgroundImage: "radial-gradient(circle at center, rgba(8,8,8,0.98) 0%, rgba(0,0,0,1.0) 100%)",
             }}
@@ -470,23 +524,37 @@ export default function VirtualKingdomStage() {
 
           <div className="relative w-full h-full flex items-center justify-center select-none">
             
-            {/* Monumental shining luxury gold monolith arch */}
-            <div className="w-[380px] h-[480px] border-t border-x border-[#c6b89e]/30 bg-gradient-to-b from-[#060504] to-black rounded-t-full flex flex-col justify-end items-center pb-12 relative shadow-[0_-50px_100px_rgba(198,184,158,0.15)] overflow-hidden">
-              <div className="absolute inset-[3px] border-t border-x border-[#c6b89e]/15 rounded-t-full" />
-              
-              {/* Virtual Throne high-contrast beam */}
-              <div className="w-[1.5px] h-3/4 bg-gradient-to-t from-transparent via-[#c6b89e] to-transparent opacity-80" />
-              <div className="w-16 h-16 rounded-full border border-[#c6b89e]/30 flex items-center justify-center animate-pulse mt-4 relative z-10 bg-black/80">
-                <div className="w-4 h-4 rounded-full bg-[#ff4a00]" />
+            {/* Monumental shining luxury gold monolith arch (FOREGROUND SHIFT) */}
+            <motion.div 
+              style={{ x: foreShiftX, y: foreShiftY, transformStyle: "preserve-3d" }}
+              className="z-10 relative flex items-center justify-center"
+            >
+              <div className="w-[380px] h-[480px] border-t border-x border-[#c6b89e]/30 bg-gradient-to-b from-[#060504] to-black rounded-t-full flex flex-col justify-end items-center pb-12 relative shadow-[0_-50px_100px_rgba(198,184,158,0.15)] overflow-hidden">
+                <div className="absolute inset-[3px] border-t border-x border-[#c6b89e]/15 rounded-t-full" />
+                
+                {/* Virtual Throne high-contrast beam */}
+                <div className="w-[1.5px] h-3/4 bg-gradient-to-t from-transparent via-[#c6b89e] to-transparent opacity-80" />
+                
+                <motion.div 
+                  style={{ x: lightShiftX, y: lightShiftY, transformStyle: "preserve-3d" }}
+                  className="w-16 h-16 rounded-full border border-[#c6b89e]/30 flex items-center justify-center animate-pulse mt-4 relative z-10 bg-black/80"
+                >
+                  <div className="w-4 h-4 rounded-full bg-[#ff4a00]" />
+                </motion.div>
+
+                {/* Shifting background portal light gradient glow */}
+                <div className="absolute inset-0 bg-radial-gradient from-[#c6b89e]/10 via-[#010101]/80 to-black pointer-events-none -z-10" />
               </div>
+            </motion.div>
 
-              {/* Shifting background portal light gradient glow */}
-              <div className="absolute inset-0 bg-radial-gradient from-[#c6b89e]/10 via-[#010101]/80 to-black pointer-events-none -z-10" />
-            </div>
-
-            {/* Symmetric columns representing Sovereign Terminus gateway */}
-            <div className="absolute inset-y-0 left-[15%] w-[4px] bg-gradient-to-b from-transparent via-[#c6b89e]/40 to-transparent shadow-[0_0_12px_#c6b89e]" />
-            <div className="absolute inset-y-0 right-[15%] w-[4px] bg-gradient-to-b from-transparent via-[#c6b89e]/40 to-transparent shadow-[0_0_12px_#c6b89e]" />
+            {/* Symmetric columns representing Sovereign Terminus gateway (DEEP FOREGROUND DRIFT SHIFT) */}
+            <motion.div 
+              style={{ x: dustShiftX, y: dustShiftY, transformStyle: "preserve-3d" }}
+              className="absolute inset-0 pointer-events-none z-20"
+            >
+              <div className="absolute inset-y-0 left-[15%] w-[4px] bg-gradient-to-b from-transparent via-[#c6b89e]/40 to-transparent shadow-[0_0_12px_#c6b89e]" />
+              <div className="absolute inset-y-0 right-[15%] w-[4px] bg-gradient-to-b from-transparent via-[#c6b89e]/40 to-transparent shadow-[0_0_12px_#c6b89e]" />
+            </motion.div>
           </div>
         </motion.div>
       </motion.div>
