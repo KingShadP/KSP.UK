@@ -1,0 +1,76 @@
+{
+  "entities": {
+    "General": {
+      "title": "General",
+      "description": "General settings and display texts of the virtual kingdom atrium",
+      "type": "object",
+      "properties": {
+        "heroTitle": { "type": "string", "description": "Display name of KingShadP and titles" },
+        "heroSubtitle": { "type": "string", "description": "Atmospheric text snippet/subtitle" },
+        "heroQuote": { "type": "string", "description": "Persistent quote on the gate" },
+        "heroDescription": { "type": "string", "description": "Extended introduction saga text" }
+      },
+      "required": ["heroTitle", "heroSubtitle", "heroQuote", "heroDescription"]
+    },
+    "Release": {
+      "title": "Release",
+      "description": "Demos, Remixes, Official sound releases of the empire audio channels",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique record locator" },
+        "title": { "type": "string", "description": "Theatrical track title name" },
+        "era": { "type": "string", "description": "The chronological era of creation" },
+        "year": { "type": "integer", "description": "Year of original composition" },
+        "mood": { "type": "string", "description": "Acoustic frequency mood label" },
+        "type": { "type": "string", "description": "Designation of track type (Official/Draft/Remix)" },
+        "plays": { "type": "string", "description": "Play metric or listen count" },
+        "description": { "type": "string", "description": "Quick audio metadata annotation" },
+        "mythology": { "type": "string", "description": "Deep background lore associated with its inception" },
+        "img": { "type": "string", "description": "Valid backdrop artwork image URL" },
+        "platformLinks": {
+          "type": "array",
+          "description": "Platform links where believers can listen",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": { "type": "string" },
+              "url": { "type": "string" }
+            }
+          }
+        }
+      },
+      "required": ["id", "title", "era", "year", "mood", "type", "plays", "description", "mythology", "img", "platformLinks"]
+    },
+    "Lore": {
+      "title": "Lore",
+      "description": "Historical chapters and foundational codes of the sovereign digital kingdom",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique section ID" },
+        "num": { "type": "string", "description": "Sequence indicator (e.g. 01, 02)" },
+        "title": { "type": "string", "description": "Table of Contents label" },
+        "heading": { "type": "string", "description": "Main epic header title" },
+        "category": { "type": "string", "description": "Acoustic or Identity classification sector" },
+        "icon": { "type": "string", "description": "Lucide icon name representation" },
+        "tagline": { "type": "string", "description": "Atmospheric tagline block" },
+        "quote": { "type": "string", "description": "Emphatic wisdom outline quote" },
+        "copy": { "type": "string", "description": "Full literary sagas/manifesto logs" }
+      },
+      "required": ["id", "num", "title", "heading", "category", "icon", "tagline", "quote", "copy"]
+    }
+  },
+  "firestore": {
+    "/cms/general": {
+      "schema": "General",
+      "description": "Main gate landmark introductory metadata"
+    },
+    "/releases/{releaseId}": {
+      "schema": "Release",
+      "description": "Database registers of track streams and demos"
+    },
+    "/lore/{loreId}": {
+      "schema": "Lore",
+      "description": "Historical lore archives on the digital database"
+    }
+  }
+}

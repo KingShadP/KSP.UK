@@ -9,6 +9,8 @@ import fs from "fs";
 import dotenv from "dotenv";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
+import { initializeApp } from "firebase/app";
+import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc } from "firebase/firestore";
 
 dotenv.config();
 
@@ -18,23 +20,113 @@ const PORT = 3000;
 app.use(express.json());
 
 const CMS_FILE_PATH = path.join(process.cwd(), "src", "data", "cmsData.json");
+const CONFIG_PATH = path.join(process.cwd(), "firebase-applet-config.json");
 
-// API to fetch CMS contents
-app.get("/api/cms", (req: Request, res: Response): void => {
+// Initialize Firebase App & Firestore for server-side endpoints
+let db: any = null;
+try {
+  if (fs.existsSync(CONFIG_PATH)) {
+    const firebaseConfig = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf-8"));
+    const firebaseApp = initializeApp(firebaseConfig);
+    db = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId);
+    console.log("Firebase Firestore server-side database adapter integrated successfully.");
+  } else {
+    console.warn("WARNING: firebase-applet-config.json was not found on disk. Operating in static file database fallback mode.");
+  }
+} catch (err: any) {
+  console.error("Firebase initialization failed inside server.ts:", err.message);
+}
+
+/**
+ * Automates seeding empty Firestore projects with the default digital kingdom templates.
+ */
+async function seedFirestoreFromLocal(dbInstance: any, localData: any) {
   try {
-    if (fs.existsSync(CMS_FILE_PATH)) {
-      const data = fs.readFileSync(CMS_FILE_PATH, "utf-8");
-      res.json(JSON.parse(data));
+    console.log("Initializing Firestore bootstrap seeding sequence...");
+    
+    // Seed General Settings
+    await setDoc(doc(dbInstance, "cms", "general"), localData.general);
+    
+    // Seed Audio Releases
+    for (const rel of localData.releases) {
+      await setDoc(doc(dbInstance, "releases", rel.id), rel);
+    }
+    
+    // Seed Lore Chapters
+    for (const lr of localData.lore) {
+      await setDoc(doc(dbInstance, "lore", lr.id), lr);
+    }
+    
+    console.log("Firestore database seeding sequence completed cleanly.");
+  } catch (err: any) {
+    console.error("Failed to seed vacant Firestore records:", err.message);
+  }
+}
+
+// API to fetch CMS contents (Reads from Firestore, falls back to local file and seeds Firestore if empty)
+app.get("/api/cms", async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!db) {
+      // No database initialized - do static disk fallback
+      if (fs.existsSync(CMS_FILE_PATH)) {
+        const data = fs.readFileSync(CMS_FILE_PATH, "utf-8");
+        res.json(JSON.parse(data));
+      } else {
+        res.status(404).json({ error: "CMS database file not found on disk storage." });
+      }
+      return;
+    }
+
+    // Attempt to pull general configurations from Firestore
+    const generalDocRef = doc(db, "cms", "general");
+    const generalSnap = await getDoc(generalDocRef);
+
+    if (generalSnap.exists()) {
+      const general = generalSnap.data();
+
+      // Read Releases
+      const releasesSnap = await getDocs(collection(db, "releases"));
+      const releases = releasesSnap.docs.map(d => d.data());
+      releases.sort((a, b) => (a.id || "").localeCompare(b.id || ""));
+
+      // Read Lore chapters
+      const loreSnap = await getDocs(collection(db, "lore"));
+      const lore = loreSnap.docs.map(d => d.data());
+      lore.sort((a, b) => (a.num || "").localeCompare(b.num || ""));
+
+      res.json({ general, releases, lore });
     } else {
-      res.status(404).json({ error: "CMS database file not found on disk." });
+      // vacant cloud instance -> Read local backup file and seed Firestore automatically
+      console.log("Firestore 'cms/general' is empty. Seeding database with factory defaults...");
+      if (fs.existsSync(CMS_FILE_PATH)) {
+        const localRaw = fs.readFileSync(CMS_FILE_PATH, "utf-8");
+        const localData = JSON.parse(localRaw);
+
+        // Async seed operation
+        seedFirestoreFromLocal(db, localData).catch(e => console.error("Async seed failed:", e));
+
+        res.json(localData);
+      } else {
+        res.status(404).json({ error: "No CMS configurations found in cloud or local disk." });
+      }
     }
   } catch (err: any) {
-    res.status(500).json({ error: "Failed reading CMS configuration: " + err.message });
+    console.error("Firestore dynamic read error, falling back to local file:", err);
+    try {
+      if (fs.existsSync(CMS_FILE_PATH)) {
+        const data = fs.readFileSync(CMS_FILE_PATH, "utf-8");
+        res.json(JSON.parse(data));
+      } else {
+        res.status(500).json({ error: "System failed reading CMS configuration fallback: " + err.message });
+      }
+    } catch (fallbackErr: any) {
+      res.status(500).json({ error: "Fatal fallback error: " + fallbackErr.message });
+    }
   }
 });
 
-// API to save CMS contents with passcode verification
-app.post("/api/cms", (req: Request, res: Response): void => {
+// API to save CMS contents with passcode verification (Writes to both Firestore and local backup)
+app.post("/api/cms", async (req: Request, res: Response): Promise<void> => {
   try {
     const passcode = req.headers["x-admin-passcode"];
     const expectedPasscode = process.env.ADMIN_PASSCODE || "kingshadp_admin";
@@ -50,9 +142,45 @@ app.post("/api/cms", (req: Request, res: Response): void => {
       return;
     }
 
+    // Save to Firestore first
+    if (db) {
+      console.log("Writing active administrator changes to cloud Firestore database...");
+      
+      // Update General Setting document
+      await setDoc(doc(db, "cms", "general"), newCmsData.general);
+
+      // Synchronize Releases list (including clearing deleted items)
+      const incomingReleaseIds = new Set(newCmsData.releases.map((r: any) => r.id));
+      const currentReleasesSnap = await getDocs(collection(db, "releases"));
+      for (const docSnap of currentReleasesSnap.docs) {
+        if (!incomingReleaseIds.has(docSnap.id)) {
+          await deleteDoc(doc(db, "releases", docSnap.id));
+        }
+      }
+      for (const rel of newCmsData.releases) {
+        await setDoc(doc(db, "releases", rel.id), rel);
+      }
+
+      // Synchronize Lore chapters (including clearing deleted items)
+      const incomingLoreIds = new Set(newCmsData.lore.map((l: any) => l.id));
+      const currentLoreSnap = await getDocs(collection(db, "lore"));
+      for (const docSnap of currentLoreSnap.docs) {
+        if (!incomingLoreIds.has(docSnap.id)) {
+          await deleteDoc(doc(db, "lore", docSnap.id));
+        }
+      }
+      for (const lr of newCmsData.lore) {
+        await setDoc(doc(db, "lore", lr.id), lr);
+      }
+      
+      console.log("Firestore cloud synchronization complete.");
+    }
+
+    // Always keep a local copy as backup & audit log
     fs.writeFileSync(CMS_FILE_PATH, JSON.stringify(newCmsData, null, 2), "utf-8");
-    res.json({ success: true, message: "Sovereign CMS configuration securely written to file database." });
+    res.json({ success: true, message: "Sovereign CMS configuration securely written and synchronized with cloud Firestore." });
   } catch (err: any) {
+    console.error("Failed to persist CMS modifications:", err);
     res.status(500).json({ error: "Failed to save CMS configuration: " + err.message });
   }
 });

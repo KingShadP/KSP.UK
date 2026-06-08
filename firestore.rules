@@ -1,0 +1,104 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net default catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper Primitives
+    function incoming() {
+      return request.resource.data;
+    }
+    
+    function existing() {
+      return resource.data;
+    }
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isEmailVerified() && request.auth.token.email == "KShadP@gmail.com";
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // validation for General entity
+    function isValidGeneral(data) {
+      return data.keys().hasAll(['heroTitle', 'heroSubtitle', 'heroQuote', 'heroDescription'])
+        && data.keys().size() == 4
+        && data.heroTitle is string && data.heroTitle.size() <= 200
+        && data.heroSubtitle is string && data.heroSubtitle.size() <= 300
+        && data.heroQuote is string && data.heroQuote.size() <= 500
+        && data.heroDescription is string && data.heroDescription.size() <= 5000;
+    }
+
+    // validation for Release entity
+    function isValidRelease(data) {
+      return data.keys().hasAll(['id', 'title', 'era', 'year', 'mood', 'type', 'plays', 'description', 'mythology', 'img', 'platformLinks'])
+        && data.keys().size() == 11
+        && data.id is string && data.id.size() <= 128
+        && data.title is string && data.title.size() <= 150
+        && data.era is string && data.era.size() <= 100
+        && data.year is int && data.year >= 1500 && data.year <= 2100
+        && data.mood is string && data.mood.size() <= 100
+        && data.type is string && (data.type == 'Official' || data.type == 'Draft' || data.type == 'Remix')
+        && data.plays is string && data.plays.size() <= 100
+        && data.description is string && data.description.size() <= 1000
+        && data.mythology is string && data.mythology.size() <= 5000
+        && data.img is string && data.img.size() <= 1000
+        && data.platformLinks is list && data.platformLinks.size() <= 10;
+    }
+
+    // validation for Lore/chapter entity
+    function isValidLore(data) {
+      return data.keys().hasAll(['id', 'num', 'title', 'heading', 'category', 'icon', 'tagline', 'quote', 'copy'])
+        && data.keys().size() == 9
+        && data.id is string && data.id.size() <= 128
+        && data.num is string && data.num.size() <= 10
+        && data.title is string && data.title.size() <= 150
+        && data.heading is string && data.heading.size() <= 200
+        && data.category is string && data.category.size() <= 100
+        && data.icon is string && data.icon.size() <= 100
+        && data.tagline is string && data.tagline.size() <= 250
+        && data.quote is string && data.quote.size() <= 500
+        && data.copy is string && data.copy.size() <= 10000;
+    }
+
+    // --- Core Match Rules ---
+    
+    // /cms/general
+    match /cms/general {
+      allow read: if true; // Publicly readable for atrium visitor rendering
+      allow create, update: if isAdmin() && isValidGeneral(incoming());
+      allow delete: if false; // General config should never be deleted
+    }
+
+    // /releases/{releaseId}
+    match /releases/{releaseId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isAdmin() && isValidId(releaseId) && isValidRelease(incoming()) && incoming().id == releaseId;
+      allow update: if isAdmin() && isValidId(releaseId) && isValidRelease(incoming()) && incoming().id == existing().id;
+      allow delete: if isAdmin() && isValidId(releaseId);
+    }
+
+    // /lore/{loreId}
+    match /lore/{loreId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isAdmin() && isValidId(loreId) && isValidLore(incoming()) && incoming().id == loreId;
+      allow update: if isAdmin() && isValidId(loreId) && isValidLore(incoming()) && incoming().id == existing().id;
+      allow delete: if isAdmin() && isValidId(loreId);
+    }
+  }
+}

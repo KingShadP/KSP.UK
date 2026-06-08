@@ -19,6 +19,8 @@ import {
   Save, 
   RefreshCw 
 } from "lucide-react";
+import { auth } from "../firebase";
+import { signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "firebase/auth";
 
 interface Release {
   id: string;
@@ -71,8 +73,9 @@ export default function AdminSection() {
   
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [statusMessage, setStatusMessage] = useState("");
+  const [googleUser, setGoogleUser] = useState<any>(null);
 
-  // Load CMS Data initially
+  // Load CMS Data initially and listen to Google Auth states
   useEffect(() => {
     fetchCmsData();
     
@@ -81,7 +84,48 @@ export default function AdminSection() {
     if (savedPass) {
       validateStoredPasscode(savedPass);
     }
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setGoogleUser(user);
+      if (user) {
+        if (user.email === "KShadP@gmail.com") {
+          setIsAuthenticated(true);
+          window.dispatchEvent(new CustomEvent("telemetry-log", {
+            detail: { message: `🔑 [GOOGLE_AUTH_GRANTED] Welcome, Sovereign Administrator King ${user.displayName || "KShadP"}. Database ready.`, type: "SUCCESS" }
+          }));
+        } else {
+          window.dispatchEvent(new CustomEvent("telemetry-log", {
+            detail: { message: `⚠️ [GOOGLE_AUTH_STANDBY] Connected as ${user.email}. System administration is locked for this address.`, type: "WARNING" }
+          }));
+        }
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
+
+  const handleGoogleLogin = async () => {
+    setAuthError("");
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (err: any) {
+      setAuthError("Google Identity Verification Failed: " + err.message);
+    }
+  };
+
+  const handleGoogleLogout = async () => {
+    try {
+      await signOut(auth);
+      setIsAuthenticated(false);
+      sessionStorage.removeItem("kingshadp_admin_passcode");
+      window.dispatchEvent(new CustomEvent("telemetry-log", {
+        detail: { message: "🔒 [LOGOUT] Securely revoked administrator clearance token.", type: "SYSTEM" }
+      }));
+    } catch (err: any) {
+      console.error("Failed to release session:", err);
+    }
+  };
 
   const fetchCmsData = async () => {
     try {
@@ -159,9 +203,13 @@ export default function AdminSection() {
     setIsAuthenticated(false);
     setPasscode("");
     sessionStorage.removeItem("kingshadp_admin_passcode");
-    window.dispatchEvent(new CustomEvent("telemetry-log", {
-      detail: { message: "🔒 [LOGOUT] Securely closed administrative session portal.", type: "SYSTEM" }
-    }));
+    if (auth.currentUser) {
+      handleGoogleLogout();
+    } else {
+      window.dispatchEvent(new CustomEvent("telemetry-log", {
+        detail: { message: "🔒 [LOGOUT] Securely closed administrative session portal.", type: "SYSTEM" }
+      }));
+    }
   };
 
   const handleSaveAll = async () => {
@@ -365,6 +413,21 @@ export default function AdminSection() {
               AUTHENTICATE COGNITIVE LINK
             </button>
           </form>
+
+          {/* GOOGLE INTEGRATION DIVIDER */}
+          <div className="relative my-6 select-none">
+            <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/10"></span></div>
+            <div className="relative flex justify-center text-[8.5px] font-mono tracking-[3px] uppercase"><span className="bg-[#050505] px-3 text-white/30">OR GOOGLE ADMISSION</span></div>
+          </div>
+
+          <button
+            onClick={handleGoogleLogin}
+            type="button"
+            className="w-full py-4 bg-transparent border border-[#c6b89e]/30 text-[#c6b89e] text-[9.5px] font-mono font-bold tracking-[4px] uppercase hover:border-[#ff4a00] hover:text-white transition-all cursor-pointer flex items-center justify-center gap-2"
+          >
+            <Lock className="w-3.5 h-3.5 text-[#ff4a00] animate-pulse" />
+            SIGN IN WITH GOOGLE (SECURE OAUTH)
+          </button>
 
           <p className="text-[10px] text-white/30 font-mono text-center leading-relaxed font-light mt-6">
             Tip: The passcode defaults to <span className="text-[#c6b89e] font-bold select-all">kingshadp_admin</span> unless you customized ADMIN_PASSCODE in the AI Studio environment variables panel.
