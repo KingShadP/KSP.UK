@@ -20,7 +20,15 @@ import {
   RefreshCw 
 } from "lucide-react";
 import { auth } from "../firebase";
-import { signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "firebase/auth";
+import { 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  signOut, 
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
+} from "firebase/auth";
+import RichTextEditor from "./RichTextEditor";
 
 interface Release {
   id: string;
@@ -75,7 +83,13 @@ export default function AdminSection() {
   const [statusMessage, setStatusMessage] = useState("");
   const [googleUser, setGoogleUser] = useState<any>(null);
 
-  // Load CMS Data initially and listen to Google Auth states
+  // Email and Password Credentials States
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
+  const [loginMethod, setLoginMethod] = useState<"email" | "passcode" | "google">("email");
+
+  // Load CMS Data initially and listen to Google/Email Auth states
   useEffect(() => {
     fetchCmsData();
     
@@ -88,14 +102,16 @@ export default function AdminSection() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setGoogleUser(user);
       if (user) {
-        if (user.email === "KShadP@gmail.com") {
+        if (user.email?.toLowerCase() === "kshadp@gmail.com") {
           setIsAuthenticated(true);
+          // Set standard passcode to prevent database permission blockage
+          setPasscode("kingshadp_admin");
           window.dispatchEvent(new CustomEvent("telemetry-log", {
-            detail: { message: `🔑 [GOOGLE_AUTH_GRANTED] Welcome, Sovereign Administrator King ${user.displayName || "KShadP"}. Database ready.`, type: "SUCCESS" }
+            detail: { message: `🔑 [ADMIN_VERIFIED] Welcome, Sovereign Administrator (${user.email}). Secure connection established.`, type: "SUCCESS" }
           }));
         } else {
           window.dispatchEvent(new CustomEvent("telemetry-log", {
-            detail: { message: `⚠️ [GOOGLE_AUTH_STANDBY] Connected as ${user.email}. System administration is locked for this address.`, type: "WARNING" }
+            detail: { message: `⚠️ [AUTH_STANDBY] Connected as ${user.email}. Control system remains locked for unauthorized terminals.`, type: "WARNING" }
           }));
         }
       }
@@ -103,6 +119,61 @@ export default function AdminSection() {
 
     return () => unsubscribe();
   }, []);
+
+  const handleEmailPasswordLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+    const targetEmail = email.trim();
+    if (!targetEmail || !password) {
+      setAuthError("Email and password fields are required.");
+      return;
+    }
+
+    if (targetEmail.toLowerCase() !== "kshadp@gmail.com") {
+      setAuthError("CRITICAL ACCESS VIOLATION: System commands are exclusively provisioned for KShadP@gmail.com.");
+      return;
+    }
+
+    try {
+      if (isRegisterMode) {
+        const userCredential = await createUserWithEmailAndPassword(auth, targetEmail, password);
+        setIsAuthenticated(true);
+        setPasscode("kingshadp_admin");
+        window.dispatchEvent(new CustomEvent("telemetry-log", {
+          detail: { 
+            message: `🆕 [ADMIN_REGISTERED] Created & logged into secure Firebase admin account for ${userCredential.user.email}.`, 
+            type: "SUCCESS" 
+          }
+        }));
+      } else {
+        const userCredential = await signInWithEmailAndPassword(auth, targetEmail, password);
+        setIsAuthenticated(true);
+        setPasscode("kingshadp_admin");
+        window.dispatchEvent(new CustomEvent("telemetry-log", {
+          detail: { 
+            message: `🔑 [ADMIN_LOGIN_SUCCESS] Sovereignty clearance validated for ${userCredential.user.email} (Credentials approved).`, 
+            type: "SUCCESS" 
+          }
+        }));
+      }
+    } catch (err: any) {
+      console.error("Credentials error:", err);
+      let clientMsg = err.message || "Credential validation mismatch.";
+      if (err.code === "auth/user-not-found") {
+        clientMsg = "Admin entity was not found in database. Enable Register mode below to provision your account.";
+      } else if (err.code === "auth/wrong-password") {
+        clientMsg = "Incorrect administrative password key. Entry rejected.";
+      } else if (err.code === "auth/email-already-in-use") {
+        clientMsg = "Sovereign address already registered. Engage authentication modes.";
+      } else if (err.code === "auth/weak-password") {
+        clientMsg = "Strength deficit: Key must contain at least 6 characters.";
+      }
+      setAuthError(clientMsg);
+      window.dispatchEvent(new CustomEvent("telemetry-log", {
+        detail: { message: `⚠️ [ADMIN_GATE_BLOCKED] Access failed: ${err.message}`, type: "WARNING" }
+      }));
+    }
+  };
 
   const handleGoogleLogin = async () => {
     setAuthError("");
@@ -368,69 +439,171 @@ export default function AdminSection() {
       </div>
 
       {!isAuthenticated ? (
-        /* LOCK SCREEN PANEL */
+        /* LOCK SCREEN PANEL WITH ADVANCED LOGIN SWITCHERS */
         <div className="max-w-md mx-auto w-full mt-12 bg-black/80 border border-[#c6b89e]/20 p-8 relative shadow-2xl">
           <div className="absolute top-0 left-0 w-2 h-full bg-[#ff4a00]" />
           
-          <div className="flex flex-col items-center text-center space-y-4 mb-8 select-none">
+          <div className="flex flex-col items-center text-center space-y-4 mb-6 select-none">
             <div className="w-12 h-12 rounded-full border border-dashed border-[#ff4a00]/30 bg-red-950/20 flex items-center justify-center">
               <FolderLock className="w-5 h-5 text-[#ff4a00] animate-pulse" />
             </div>
             <div>
-              <h3 className="font-serif text-2xl text-white tracking-wide uppercase">SANCTUM LOCK</h3>
+              <h3 className="font-serif text-2xl text-white tracking-wide uppercase">SECURE PORTAL ADMISSION</h3>
               <p className="font-mono text-[9px] tracking-[2px] text-white/40 mt-1 uppercase">
                 AUTHORIZED EMPIRE ADMINISTRATORS ONLY
               </p>
             </div>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label htmlFor="passcode-input" className="block font-mono text-[8.5px] tracking-[2.5px] text-[#c6b89e] uppercase mb-2">
-                ENTER SECURE KEY CODE:
-              </label>
-              <input
-                id="passcode-input"
-                type="password"
-                required
-                value={passcode}
-                onChange={(e) => setPasscode(e.target.value)}
-                placeholder="🔑 ADMINISTRATIVE_PASSCODE"
-                className="w-full bg-[#030303] border border-white/10 px-4 py-3.5 font-mono text-[11px] text-white tracking-[4px] outline-none focus:border-[#ff4a00] transition-all rounded-none text-center"
-              />
-            </div>
-
-            {authError && (
-              <div className="p-3 border border-red-500/30 bg-red-950/10 text-red-400 font-mono text-[9.5px] tracking-[1px] uppercase leading-relaxed text-center">
-                ⚠ {authError}
-              </div>
-            )}
-
+          {/* Luxury Navigation Toggles for Login Method */}
+          <div className="grid grid-cols-3 border border-white/10 p-0.5 bg-black/50 mb-6 select-none rounded-sm">
             <button
-              type="submit"
-              className="w-full py-4 bg-[#c6b89e] text-black text-[9.5px] font-mono font-bold tracking-[4px] uppercase hover:bg-[#ff4a00] hover:text-white transition-all cursor-pointer flex items-center justify-center gap-2"
+              onClick={() => { setLoginMethod("email"); setAuthError(""); }}
+              className={`py-2 font-mono text-[8.5px] cursor-pointer uppercase transition-all rounded-[1px] ${
+                loginMethod === "email" 
+                  ? "bg-[#c6b89e]/15 text-[#c6b89e] font-bold" 
+                  : "text-white/40 hover:text-white"
+              }`}
             >
-              AUTHENTICATE COGNITIVE LINK
+              01 // EMAIL
             </button>
-          </form>
-
-          {/* GOOGLE INTEGRATION DIVIDER */}
-          <div className="relative my-6 select-none">
-            <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/10"></span></div>
-            <div className="relative flex justify-center text-[8.5px] font-mono tracking-[3px] uppercase"><span className="bg-[#050505] px-3 text-white/30">OR GOOGLE ADMISSION</span></div>
+            <button
+              onClick={() => { setLoginMethod("passcode"); setAuthError(""); }}
+              className={`py-2 font-mono text-[8.5px] cursor-pointer uppercase transition-all rounded-[1px] ${
+                loginMethod === "passcode" 
+                  ? "bg-[#c6b89e]/15 text-[#c6b89e] font-bold" 
+                  : "text-white/40 hover:text-white"
+              }`}
+            >
+              02 // CODE
+            </button>
+            <button
+              onClick={() => { setLoginMethod("google"); setAuthError(""); }}
+              className={`py-2 font-mono text-[8.5px] cursor-pointer uppercase transition-all rounded-[1px] ${
+                loginMethod === "google" 
+                  ? "bg-[#c6b89e]/15 text-[#c6b89e] font-bold" 
+                  : "text-white/40 hover:text-white relative"
+              }`}
+            >
+              03 // GOOGLE
+            </button>
           </div>
 
-          <button
-            onClick={handleGoogleLogin}
-            type="button"
-            className="w-full py-4 bg-transparent border border-[#c6b89e]/30 text-[#c6b89e] text-[9.5px] font-mono font-bold tracking-[4px] uppercase hover:border-[#ff4a00] hover:text-white transition-all cursor-pointer flex items-center justify-center gap-2"
-          >
-            <Lock className="w-3.5 h-3.5 text-[#ff4a00] animate-pulse" />
-            SIGN IN WITH GOOGLE (SECURE OAUTH)
-          </button>
+          {/* METHOD 1: EMAIL & PASSWORD GATE (Primary User Request) */}
+          {loginMethod === "email" && (
+            <form onSubmit={handleEmailPasswordLogin} className="space-y-4">
+              <div>
+                <label className="block font-mono text-[8.5px] tracking-[2px] text-[#c6b89e] uppercase mb-1.5">
+                  ADMINISTRATIVE EMAIL IDENTIFIER:
+                </label>
+                <input
+                  type="email"
+                  required
+                  placeholder="KShadP@gmail.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-[#030303] border border-white/10 px-3.5 py-3 font-mono text-[11px] text-white outline-none focus:border-[#ff4a00] transition-all"
+                />
+              </div>
 
-          <p className="text-[10px] text-white/30 font-mono text-center leading-relaxed font-light mt-6">
-            Tip: The passcode defaults to <span className="text-[#c6b89e] font-bold select-all">kingshadp_admin</span> unless you customized ADMIN_PASSCODE in the AI Studio environment variables panel.
+              <div>
+                <label className="block font-mono text-[8.5px] tracking-[2px] text-[#c6b89e] uppercase mb-1.5">
+                  SECURE PASSWORD ENTRY:
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-[#030303] border border-white/10 px-3.5 py-3 font-mono text-[11px] text-white outline-none focus:border-[#ff4a00] transition-all"
+                />
+              </div>
+
+              {authError && (
+                <div className="p-3 border border-red-500/30 bg-red-950/10 text-red-500 font-mono text-[9px] tracking-[1px] uppercase leading-relaxed text-center">
+                  ⚠ {authError}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className="w-full py-3.5 bg-[#c6b89e] text-black text-[9.5px] font-mono font-bold tracking-[3px] uppercase hover:bg-[#ff4a00] hover:text-white transition-all cursor-pointer select-none flex items-center justify-center gap-2"
+              >
+                {isRegisterMode ? "INITIALIZE NEW ADMINISTRATOR" : "AUTHENTICATE EMAIL ACCESS"}
+              </button>
+
+              <div className="text-center pt-2 select-none">
+                <button
+                  type="button"
+                  onClick={() => { setIsRegisterMode(!isRegisterMode); setAuthError(""); }}
+                  className="text-[9px] font-mono tracking-[1px] text-[#c6b89e]/60 hover:text-white uppercase transition-all underline decoration-dotted decoration-[#c6b89e]/30 cursor-pointer"
+                >
+                  {isRegisterMode ? "◄ TOGGLE TO STANDARDS SIGN IN" : "★ NO ACCOUNT? INITIAL DEPLOYMENT REGISTER"}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* METHOD 2: TRADITIONAL KEY / PASSCODE BYPASS */}
+          {loginMethod === "passcode" && (
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label htmlFor="passcode-input" className="block font-mono text-[8.5px] tracking-[2px] text-[#c6b89e] uppercase mb-2">
+                  ENTER SECURE PASSCODE ID:
+                </label>
+                <input
+                  id="passcode-input"
+                  type="password"
+                  required
+                  value={passcode}
+                  onChange={(e) => setPasscode(e.target.value)}
+                  placeholder="🔑 ADMINISTRATIVE_PASSCODE"
+                  className="w-full bg-[#030303] border border-white/10 px-4 py-3.5 font-mono text-[11px] text-white tracking-[4px] outline-none focus:border-[#ff4a00] transition-all rounded-none text-center"
+                />
+              </div>
+
+              {authError && (
+                <div className="p-3 border border-red-500/30 bg-red-950/10 text-red-400 font-mono text-[9px] tracking-[1px] uppercase leading-relaxed text-center">
+                  ⚠ {authError}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className="w-full py-4 bg-[#c6b89e] text-black text-[9.5px] font-mono font-bold tracking-[3.5px] uppercase hover:bg-[#ff4a00] hover:text-white transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                AUTHENTICATE PIN BYPASS
+              </button>
+            </form>
+          )}
+
+          {/* METHOD 3: GOOGLE IDENTITY PROVIDER */}
+          {loginMethod === "google" && (
+            <div className="space-y-6">
+              <p className="text-[11px] text-white/50 font-mono tracking-[0.5px] leading-relaxed text-justify">
+                Submit an instant OAuth authentication ticket using Google Identity verification. Handshakes are restricted strictly to Google Cloud account: <span className="text-white font-bold select-all">KShadP@gmail.com</span>.
+              </p>
+
+              {authError && (
+                <div className="p-3 border border-red-500/30 bg-red-950/10 text-red-400 font-mono text-[9px] tracking-[1px] uppercase leading-relaxed text-center">
+                  ⚠ {authError}
+                </div>
+              )}
+
+              <button
+                onClick={handleGoogleLogin}
+                type="button"
+                className="w-full py-4 bg-transparent border border-[#c6b89e]/30 text-[#c6b89e] text-[9.5px] font-mono font-bold tracking-[4.5px] uppercase hover:border-[#ff4a00] hover:text-white hover:bg-white/[0.02] transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <Lock className="w-3.5 h-3.5 text-[#ff4a00] animate-pulse" />
+                VERIFY GOOGLE CREDENTIAL
+              </button>
+            </div>
+          )}
+
+          <p className="text-[9.5px] text-white/30 font-mono text-center leading-relaxed font-light mt-6 border-t border-white/5 pt-4 select-none">
+            Credentials note: Only the sovereign developer account (<span className="text-[#c6b89e] font-sans font-medium select-all">KShadP@gmail.com</span>) is granted command terminal clearance rights in this virtual kingdom.
           </p>
         </div>
       ) : (
@@ -899,13 +1072,12 @@ export default function AdminSection() {
 
                             <div>
                               <label className="block font-mono text-[7.5px] tracking-[2px] text-white/40 mb-1.5 uppercase">
-                                SAGA DIARY TEXT PASSAGE (Supports multiline paragraphs):
+                                SAGA DIARY TEXT PASSAGE (Rich Text WYSIWYG & HTML Editor Active):
                               </label>
-                              <textarea
-                                rows={10}
+                              <RichTextEditor
                                 value={sec.copy}
-                                onChange={(e) => handleLoreChange(secIdx, "copy", e.target.value)}
-                                className="w-full bg-[#030303] border border-white/10 p-3 font-sans text-xs text-white/70 leading-relaxed outline-none focus:border-[#c6b89e] whitespace-pre-wrap"
+                                onChange={(val) => handleLoreChange(secIdx, "copy", val)}
+                                label={`Rich Dynamic Lore Editor // Chapter ${sec.num}`}
                               />
                             </div>
                           </div>

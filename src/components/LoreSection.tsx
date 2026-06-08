@@ -1048,9 +1048,11 @@ export default function LoreSection({ paradoxMode = false }: LoreSectionProps) {
                               ► {para}
                             </h4>
                           ) : (
-                            <p key={pIdx} className="text-[13.5px] font-sans font-normal text-white/65 leading-relaxed font-light text-justify whitespace-pre-wrap">
-                              {para}
-                            </p>
+                            <p 
+                              key={pIdx} 
+                              className="text-[13.5px] font-sans font-normal text-white/65 leading-relaxed font-light text-justify whitespace-pre-wrap animate-fadeIn"
+                              dangerouslySetInnerHTML={{ __html: para }}
+                            />
                           );
                         })}
                       </div>
@@ -1141,16 +1143,18 @@ export default function LoreSection({ paradoxMode = false }: LoreSectionProps) {
                   {/* Splitting block text into paragraphs and nested headers */}
                   <div className="space-y-4 pt-2 select-text">
                     {sec.copy.split("\n\n").map((para, pIdx) => {
-                      const isUppercaseLabel = para === para.toUpperCase() && para.length < 50;
-                      return isUppercaseLabel ? (
-                        <h4 key={pIdx} className={`font-mono text-[11px] tracking-[2.5px] uppercase pt-4 block font-bold ${paradoxMode ? "text-[#8bb9dc]" : "text-[#c6b89e]"}`}>
-                          ✦ {para}
-                        </h4>
-                      ) : (
-                        <p key={pIdx} className="text-[13.5px] font-sans font-normal text-white/55 leading-relaxed font-light text-justify whitespace-pre-wrap">
-                          {para}
-                        </p>
-                      );
+                       const isUppercaseLabel = para === para.toUpperCase() && para.length < 50;
+                       return isUppercaseLabel ? (
+                         <h4 key={pIdx} className={`font-mono text-[11px] tracking-[2.5px] uppercase pt-4 block font-bold ${paradoxMode ? "text-[#8bb9dc]" : "text-[#c6b89e]"}`}>
+                           ✦ {para}
+                         </h4>
+                       ) : (
+                         <p 
+                           key={pIdx} 
+                           className="text-[13.5px] font-sans font-normal text-white/55 leading-relaxed font-light text-justify whitespace-pre-wrap"
+                           dangerouslySetInnerHTML={{ __html: para }}
+                         />
+                       );
                     })}
                   </div>
 
