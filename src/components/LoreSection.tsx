@@ -51,13 +51,43 @@ const LORE_CHAPTERS_DATABASE: LoreChapter[] = [
   }
 ];
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.12,
+      delayChildren: 0.05
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { y: 24, opacity: 0, filter: "blur(4px)" },
+  visible: {
+    y: 0,
+    opacity: 1,
+    filter: "blur(0px)",
+    transition: {
+      duration: 0.7,
+      ease: [0.16, 1, 0.3, 1] as const
+    }
+  }
+};
+
 export default function LoreSection() {
   const [activeChapterId, setActiveChapterId] = useState<string>("chap-01");
 
   const selectedChapter = LORE_CHAPTERS_DATABASE.find((c) => c.id === activeChapterId) || LORE_CHAPTERS_DATABASE[0];
 
   return (
-    <div id="section-lore" className="w-full flex flex-col gap-16 py-24 mb-12 text-left relative">
+    <motion.div
+      id="section-lore"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="w-full flex flex-col gap-16 py-24 mb-12 text-left relative"
+    >
       <div className="absolute top-[88px] left-0 font-mono text-[8.5px] tracking-[5px] text-[#c6b89e]/30 uppercase select-none">
         04 // LORE DOSSIER / THEOLOGICAL BLUEPRINTS
       </div>
@@ -66,7 +96,10 @@ export default function LoreSection() {
       <div className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch select-text">
         
         {/* Left Card: Core Philosophy of God-Complex */}
-        <div className="border border-[#c6b89e]/20 bg-black/60 backdrop-blur-md p-8 relative flex flex-col justify-between min-h-[380px]">
+        <motion.div
+          variants={itemVariants}
+          className="border border-[#c6b89e]/20 bg-black/60 backdrop-blur-md p-8 relative flex flex-col justify-between min-h-[380px]"
+        >
           <div className="absolute top-2 right-2 font-mono text-[7px] tracking-[2px] text-white/30">[PHILOSOPHICAL PROTOCOL]</div>
           
           <div>
@@ -91,10 +124,13 @@ export default function LoreSection() {
             </div>
             <span className="text-white/40 font-mono text-[9px] tracking-[2px]">[LEVEL: L9]</span>
           </div>
-        </div>
+        </motion.div>
 
         {/* Right Card: Why Clothing is Constructed */}
-        <div className="border border-white/5 bg-black/40 p-8 flex flex-col justify-between min-h-[380px]">
+        <motion.div
+          variants={itemVariants}
+          className="border border-white/5 bg-black/40 p-8 flex flex-col justify-between min-h-[380px]"
+        >
           <div className="absolute top-2 right-2 font-mono text-[7px] tracking-[2px] text-white/30">[TACTICAL UNIFORMOLOGY]</div>
           
           <div>
@@ -115,11 +151,14 @@ export default function LoreSection() {
           <div className="border-t border-white/10 pt-4 text-[10.5px] font-mono text-[#ff4a00] uppercase tracking-[1.5px] select-none">
             "CLOTHING IS SOUND WE CAN WEAR ON OUR TEXTURE."
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* --- CHAPTER SELECTIONS TIMELINE (Interactive deep dives) --- */}
-      <div className="border border-white/10 bg-[#060606] p-8 mt-6">
+      <motion.div
+        variants={itemVariants}
+        className="border border-white/10 bg-[#060606] p-8 mt-6"
+      >
         <div className="text-[9px] font-mono tracking-[4px] text-white/35 uppercase mb-8 select-none">
           CHRONICLER INTERACTIVE CHAPTER DEEP DIVE
         </div>
@@ -173,10 +212,13 @@ export default function LoreSection() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* --- ENVIRONMENT VISUAL GALLERY --- */}
-      <div className="border border-white/5 bg-black/40 p-8 mt-6">
+      <motion.div
+        variants={itemVariants}
+        className="border border-white/5 bg-black/40 p-8 mt-6"
+      >
         <div className="flex justify-between items-baseline mb-8 select-none">
           <div>
             <div className="text-[9px] font-mono text-[#ff4a00] tracking-[3px] uppercase mb-1">STAGED PLATFORMS</div>
@@ -192,7 +234,11 @@ export default function LoreSection() {
             { tag: "PLATE_02 // COAXIAL", title: "Aegean Cliffside", desc: "Isolated Greek cliffside architecture modulating spacious synth breezes.", img: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=600&auto=format&fit=crop" },
             { tag: "PLATE_03 // CRUCIBLE", title: "Sovereign Laboratory", desc: "Humid coastal workshop holding custom microchips and vocal recorders.", img: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=600&auto=format&fit=crop" }
           ].map((plate) => (
-            <div key={plate.tag} className="border border-white/5 bg-black/50 p-4 flex flex-col justify-between hover:border-white/10 transition-colors">
+            <motion.div
+              key={plate.tag}
+              variants={itemVariants}
+              className="border border-white/5 bg-black/50 p-4 flex flex-col justify-between hover:border-white/10 transition-colors"
+            >
               <div className="relative aspect-video bg-black select-none overflow-hidden mb-4 border border-white/5">
                 <img
                   src={plate.img}
@@ -209,11 +255,11 @@ export default function LoreSection() {
                 <h4 className="font-serif text-lg text-white font-normal mb-1">{plate.title}</h4>
                 <p className="font-sans text-[11px] text-white/40 font-light leading-relaxed">{plate.desc}</p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
-      </div>
+      </motion.div>
 
-    </div>
+    </motion.div>
   );
 }
