@@ -9,8 +9,8 @@ import fs from "fs";
 import dotenv from "dotenv";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
-import { initializeApp } from "firebase/app";
-import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc } from "firebase/firestore";
+import { getApps, initializeApp } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
 
 dotenv.config();
 
@@ -27,14 +27,22 @@ let db: any = null;
 try {
   if (fs.existsSync(CONFIG_PATH)) {
     const firebaseConfig = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf-8"));
-    const firebaseApp = initializeApp(firebaseConfig);
-    db = getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId);
-    console.log("Firebase Firestore server-side database adapter integrated successfully.");
+    if (getApps().length === 0) {
+      initializeApp({
+        projectId: firebaseConfig.projectId,
+      });
+    }
+    db = getFirestore();
+    // Support non-default database ID if specified
+    if (firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== "(default)") {
+      db.settings({ databaseId: firebaseConfig.firestoreDatabaseId });
+    }
+    console.log("Firebase Admin SDK integrated successfully with database:", firebaseConfig.firestoreDatabaseId || "(default)");
   } else {
     console.warn("WARNING: firebase-applet-config.json was not found on disk. Operating in static file database fallback mode.");
   }
 } catch (err: any) {
-  console.error("Firebase initialization failed inside server.ts:", err.message);
+  console.error("Firebase Admin initialization failed inside server.ts:", err.message);
 }
 
 /**
@@ -42,22 +50,22 @@ try {
  */
 async function seedFirestoreFromLocal(dbInstance: any, localData: any) {
   try {
-    console.log("Initializing Firestore bootstrap seeding sequence...");
+    console.log("Initializing admin Firestore bootstrap seeding sequence...");
     
     // Seed General Settings
-    await setDoc(doc(dbInstance, "cms", "general"), localData.general);
+    await dbInstance.doc("cms/general").set(localData.general);
     
     // Seed Audio Releases
     for (const rel of localData.releases) {
-      await setDoc(doc(dbInstance, "releases", rel.id), rel);
+      await dbInstance.doc(`releases/${rel.id}`).set(rel);
     }
     
     // Seed Lore Chapters
     for (const lr of localData.lore) {
-      await setDoc(doc(dbInstance, "lore", lr.id), lr);
+      await dbInstance.doc(`lore/${lr.id}`).set(lr);
     }
     
-    console.log("Firestore database seeding sequence completed cleanly.");
+    console.log("Firestore admin database seeding sequence completed cleanly.");
   } catch (err: any) {
     console.error("Failed to seed vacant Firestore records:", err.message);
   }
@@ -77,22 +85,21 @@ app.get("/api/cms", async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Attempt to pull general configurations from Firestore
-    const generalDocRef = doc(db, "cms", "general");
-    const generalSnap = await getDoc(generalDocRef);
+    // Attempt to pull general configurations from Firestore using admin SDK
+    const generalSnap = await db.doc("cms/general").get();
 
-    if (generalSnap.exists()) {
+    if (generalSnap.exists) {
       const general = generalSnap.data();
 
       // Read Releases
-      const releasesSnap = await getDocs(collection(db, "releases"));
-      const releases = releasesSnap.docs.map(d => d.data());
-      releases.sort((a, b) => (a.id || "").localeCompare(b.id || ""));
+      const releasesSnap = await db.collection("releases").get();
+      const releases = releasesSnap.docs.map((d: any) => d.data());
+      releases.sort((a: any, b: any) => (a.id || "").localeCompare(b.id || ""));
 
       // Read Lore chapters
-      const loreSnap = await getDocs(collection(db, "lore"));
-      const lore = loreSnap.docs.map(d => d.data());
-      lore.sort((a, b) => (a.num || "").localeCompare(b.num || ""));
+      const loreSnap = await db.collection("lore").get();
+      const lore = loreSnap.docs.map((d: any) => d.data());
+      lore.sort((a: any, b: any) => (a.num || "").localeCompare(b.num || ""));
 
       res.json({ general, releases, lore });
     } else {
@@ -103,7 +110,7 @@ app.get("/api/cms", async (req: Request, res: Response): Promise<void> => {
         const localData = JSON.parse(localRaw);
 
         // Async seed operation
-        seedFirestoreFromLocal(db, localData).catch(e => console.error("Async seed failed:", e));
+        await seedFirestoreFromLocal(db, localData);
 
         res.json(localData);
       } else {
@@ -144,33 +151,33 @@ app.post("/api/cms", async (req: Request, res: Response): Promise<void> => {
 
     // Save to Firestore first
     if (db) {
-      console.log("Writing active administrator changes to cloud Firestore database...");
+      console.log("Writing active administrator changes to cloud Firestore database using Admin SDK...");
       
       // Update General Setting document
-      await setDoc(doc(db, "cms", "general"), newCmsData.general);
+      await db.doc("cms/general").set(newCmsData.general);
 
       // Synchronize Releases list (including clearing deleted items)
       const incomingReleaseIds = new Set(newCmsData.releases.map((r: any) => r.id));
-      const currentReleasesSnap = await getDocs(collection(db, "releases"));
+      const currentReleasesSnap = await db.collection("releases").get();
       for (const docSnap of currentReleasesSnap.docs) {
         if (!incomingReleaseIds.has(docSnap.id)) {
-          await deleteDoc(doc(db, "releases", docSnap.id));
+          await db.doc(`releases/${docSnap.id}`).delete();
         }
       }
       for (const rel of newCmsData.releases) {
-        await setDoc(doc(db, "releases", rel.id), rel);
+        await db.doc(`releases/${rel.id}`).set(rel);
       }
 
       // Synchronize Lore chapters (including clearing deleted items)
       const incomingLoreIds = new Set(newCmsData.lore.map((l: any) => l.id));
-      const currentLoreSnap = await getDocs(collection(db, "lore"));
+      const currentLoreSnap = await db.collection("lore").get();
       for (const docSnap of currentLoreSnap.docs) {
         if (!incomingLoreIds.has(docSnap.id)) {
-          await deleteDoc(doc(db, "lore", docSnap.id));
+          await db.doc(`lore/${docSnap.id}`).delete();
         }
       }
       for (const lr of newCmsData.lore) {
-        await setDoc(doc(db, "lore", lr.id), lr);
+        await db.doc(`lore/${lr.id}`).set(lr);
       }
       
       console.log("Firestore cloud synchronization complete.");

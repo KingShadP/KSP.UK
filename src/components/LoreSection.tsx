@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import DossierMasonry from "./DossierMasonry";
 import { 
   ShieldAlert, 
   Map, 
@@ -1173,6 +1174,9 @@ export default function LoreSection({ paradoxMode = false }: LoreSectionProps) {
           </div>
         </div>
       )}
+
+      {/* ================= HIGH-FIDELITY CHRONOLOGICAL ARTIST DOSSIERS (MASONRY GRID) ================= */}
+      <DossierMasonry paradoxMode={paradoxMode} />
 
       {/* ================= CLOSING STATEMENT BOTTOM PANEL ================= */}
       <motion.div

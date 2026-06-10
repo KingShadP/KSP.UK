@@ -100,5 +100,11 @@ service cloud.firestore {
       allow update: if isAdmin() && isValidId(loreId) && isValidLore(incoming()) && incoming().id == existing().id;
       allow delete: if isAdmin() && isValidId(loreId);
     }
+
+    // /test/{testId}
+    match /test/{testId} {
+      allow get: if true;
+      allow list: if true;
+    }
   }
 }

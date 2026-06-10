@@ -6,6 +6,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import ProductWireframePortal from "./ProductWireframePortal";
+import TiltContainer from "./TiltContainer";
 import { 
   Store, 
   Key, 
@@ -1015,91 +1016,94 @@ export default function ShopifyExport({ isInline }: ShopifyExportProps) {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: pIdx * 0.1, duration: 0.6 }}
-              className="bg-black/40 border border-white/5 hover:border-[#c6b89e]/30 flex flex-col justify-between relative group overflow-hidden transition-all duration-500 shadow-xl"
+              className="h-full flex flex-col"
             >
-              {/* Product interactive frame */}
-              <div className="relative aspect-square overflow-hidden bg-black flex-shrink-0">
-                
-                {/* Tactical framing elements */}
-                <div className="absolute top-2 left-2 w-2 h-2 border-t border-l border-white/20 group-hover:border-[#c6b89e]/60 transition-colors" />
-                <div className="absolute top-2 right-2 w-2 h-2 border-t border-r border-white/20 group-hover:border-[#c6b89e]/60 transition-colors" />
-                <div className="absolute bottom-2 left-2 w-2 h-2 border-b border-l border-white/20 group-hover:border-[#c6b89e]/60 transition-colors" />
-                <div className="absolute bottom-2 right-2 w-2 h-2 border-b border-r border-white/20 group-hover:border-[#c6b89e]/60 transition-colors" />
-
-                <img
-                  src={srcUrl}
-                  alt={product.title}
-                  loading="lazy"
-                  decoding="async"
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-85 group-hover:scale-105 transition-all duration-[1.2s] ease-out mix-blend-screen"
-                />
-
-                {/* Perspective-Corrected, Real-Time 3D Volumetric Portal Projection Overlay */}
-                <ProductWireframePortal 
-                  productId={product.id} 
-                  themeColor={pIdx % 3 === 0 ? "red" : pIdx % 3 === 1 ? "gold" : "emerald"} 
-                />
-
-                {/* Laser hover horizontal line */}
-                <div className="absolute top-0 bottom-0 left-0 right-0 pointer-events-none z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="w-full h-[1px] bg-[#ff4a00]/30 shadow-[0_0_10px_#ff4a00] absolute animate-scanline" />
-                </div>
-              </div>
-
-              {/* Specs parameters lists */}
-              <div className="p-5 flex-grow flex flex-col justify-between gap-4">
-                <div>
-                  <div className="flex justify-between items-start gap-2 mb-2">
-                    <h3 className="font-serif text-lg tracking-wide text-white group-hover:text-[#c6b89e] transition-colors line-clamp-1">
-                      {product.title}
-                    </h3>
-                    <span className="font-mono text-[9px] text-[#ff4a00]/80 tracking-normal inline-block bg-[#ff4a00]/5 px-1.5 border border-[#ff4a00]/15 select-none shrink-0 font-bold">
-                      {product.currency}
-                    </span>
-                  </div>
+              <TiltContainer
+                className="bg-black/40 border border-white/5 flex flex-col justify-between relative group overflow-hidden transition-all duration-500 shadow-xl h-full"
+              >
+                {/* Product interactive frame */}
+                <div className="relative aspect-square overflow-hidden bg-black flex-shrink-0">
                   
-                  <p className="text-[11px] font-sans text-white/50 leading-relaxed font-extralight line-clamp-3">
-                    {product.description}
-                  </p>
+                  {/* Tactical framing elements */}
+                  <div className="absolute top-2 left-2 w-2 h-2 border-t border-l border-white/20 group-hover:border-[#c6b89e]/60 transition-colors" />
+                  <div className="absolute top-2 right-2 w-2 h-2 border-t border-r border-white/20 group-hover:border-[#c6b89e]/60 transition-colors" />
+                  <div className="absolute bottom-2 left-2 w-2 h-2 border-b border-l border-white/20 group-hover:border-[#c6b89e]/60 transition-colors" />
+                  <div className="absolute bottom-2 right-2 w-2 h-2 border-b border-r border-white/20 group-hover:border-[#c6b89e]/60 transition-colors" />
+
+                  <img
+                    src={srcUrl}
+                    alt={product.title}
+                    loading="lazy"
+                    decoding="async"
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-85 group-hover:scale-105 transition-all duration-[1.2s] ease-out mix-blend-screen"
+                  />
+
+                  {/* Perspective-Corrected, Real-Time 3D Volumetric Portal Projection Overlay */}
+                  <ProductWireframePortal 
+                    productId={product.id} 
+                    themeColor={pIdx % 3 === 0 ? "red" : pIdx % 3 === 1 ? "gold" : "emerald"} 
+                  />
+
+                  {/* Laser hover horizontal line */}
+                  <div className="absolute top-0 bottom-0 left-0 right-0 pointer-events-none z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="w-full h-[1px] bg-[#ff4a00]/30 shadow-[0_0_10px_#ff4a00] absolute animate-scanline" />
+                  </div>
                 </div>
 
-                {/* Technical specifics bullets */}
-                <div className="border-t border-white/5 pt-3 space-y-1.5">
-                  <div className="font-mono text-[7px] tracking-[3px] text-[#c6b89e]/45 uppercase mb-2 select-none">Atelier parameters</div>
-                  {product.specs.slice(0, 3).map((spec, sIdx) => (
-                    <div key={sIdx} className="flex gap-2 items-center text-[9px] font-mono text-white/45 truncate">
-                      <span className="w-1 h-1 bg-[#ff4a00]/40 rounded-full" />
-                      <span>{spec}</span>
+                {/* Specs parameters lists */}
+                <div className="p-5 flex-grow flex flex-col justify-between gap-4">
+                  <div>
+                    <div className="flex justify-between items-start gap-2 mb-2">
+                      <h3 className="font-serif text-lg tracking-wide text-white group-hover:text-[#c6b89e] transition-colors line-clamp-1">
+                        {product.title}
+                      </h3>
+                      <span className="font-mono text-[9px] text-[#ff4a00]/80 tracking-normal inline-block bg-[#ff4a00]/5 px-1.5 border border-[#ff4a00]/15 select-none shrink-0 font-bold">
+                        {product.currency}
+                      </span>
                     </div>
-                  ))}
-                </div>
-
-                <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-1 select-none gap-2">
-                  <div className="flex flex-col items-start">
-                    <div className="font-mono text-xs tracking-widest text-[#c6b89e] font-bold">
-                      {product.price}
-                    </div>
-                    {/* Inline AR trigger button */}
-                    <button
-                      onClick={() => setArProduct(product)}
-                      className="font-mono text-[7px] text-[#ff4a00] hover:text-white mt-1 uppercase tracking-[1.5px] cursor-pointer flex items-center gap-1 bg-transparent border border-[#ff4a00]/25 hover:border-[#c6b89e] px-1.5 py-0.5 transition-all text-left w-fit font-bold"
-                    >
-                      ▲ PROJ_AR_HUD
-                    </button>
+                    
+                    <p className="text-[11px] font-sans text-white/50 leading-relaxed font-extralight line-clamp-3">
+                      {product.description}
+                    </p>
                   </div>
 
-                  <Tooltip message={`SYS_DIAG: Request allocation sequence for boutique product ID ${product.id}.`}>
-                    <button
-                      onClick={() => addToCart(product)}
-                      className="font-mono text-[9px] text-white hover:text-[#ff4a00] hover:underline uppercase tracking-[2px] transition-all cursor-pointer flex items-center gap-1 bg-transparent border-0 shrink-0"
-                    >
-                      Select Item <ArrowRight className="w-3 h-3 text-[#ff4a00]" />
-                    </button>
-                  </Tooltip>
-                </div>
-              </div>
+                  {/* Technical specifics bullets */}
+                  <div className="border-t border-white/5 pt-3 space-y-1.5">
+                    <div className="font-mono text-[7px] tracking-[3px] text-[#c6b89e]/45 uppercase mb-2 select-none">Atelier parameters</div>
+                    {product.specs.slice(0, 3).map((spec, sIdx) => (
+                      <div key={sIdx} className="flex gap-2 items-center text-[9px] font-mono text-white/45 truncate">
+                        <span className="w-1 h-1 bg-[#ff4a00]/40 rounded-full" />
+                        <span>{spec}</span>
+                      </div>
+                    ))}
+                  </div>
 
+                  <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-1 select-none gap-2">
+                    <div className="flex flex-col items-start">
+                      <div className="font-mono text-xs tracking-widest text-[#c6b89e] font-bold">
+                        {product.price}
+                      </div>
+                      {/* Inline AR trigger button */}
+                      <button
+                        onClick={() => setArProduct(product)}
+                        className="font-mono text-[7px] text-[#ff4a00] hover:text-white mt-1 uppercase tracking-[1.5px] cursor-pointer flex items-center gap-1 bg-transparent border border-[#ff4a00]/25 hover:border-[#c6b89e] px-1.5 py-0.5 transition-all text-left w-fit font-bold"
+                      >
+                        ▲ PROJ_AR_HUD
+                      </button>
+                    </div>
+
+                    <Tooltip message={`SYS_DIAG: Request allocation sequence for boutique product ID ${product.id}.`}>
+                      <button
+                        onClick={() => addToCart(product)}
+                        className="font-mono text-[9px] text-white hover:text-[#ff4a00] hover:underline uppercase tracking-[2px] transition-all cursor-pointer flex items-center gap-1 bg-transparent border-0 shrink-0"
+                      >
+                        Select Item <ArrowRight className="w-3 h-3 text-[#ff4a00]" />
+                      </button>
+                    </Tooltip>
+                  </div>
+                </div>
+              </TiltContainer>
             </motion.div>
           );
         })}
