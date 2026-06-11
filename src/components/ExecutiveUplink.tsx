@@ -1,484 +1,359 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Shield, Eye, Lock, Unlock, Terminal, Activity, CheckCircle2, CornerDownRight, RotateCcw, Camera } from "lucide-react";
-import ScrambleText from "./ScrambleText";
 
 interface ExecutiveUplinkProps {
   onAccessGranted: () => void;
 }
 
-const BOOT_LOG_LINES = [
-  "ATELIER_PORT: INITIATING SYSTEM HANDSHAKE...",
-  "ATELIER NODE: INITIALIZING SECURE INTERFACE...",
-  "SENSORY SYNC: MOUNT EM PORTFOLIO VECTOR BUFFERS...",
-  "PORTAL_CAMERA: TESTING LUXURY SENSOR RESPONSE...",
-  "VISOR VERIFICATION: BIOMETRIC EYE SCAN ACTIVE..."
-];
-
 export default function ExecutiveUplink({ onAccessGranted }: ExecutiveUplinkProps) {
-  const [logs, setLogs] = useState<string[]>([]);
-  const [percent, setPercent] = useState(0);
-  const [scanningState, setScanningState] = useState<"idle" | "booting" | "ready" | "scanning" | "error" | "complete" | "success">("booting");
-  const [warningMessage, setWarningMessage] = useState<string | null>(null);
-  
-  // Camera state
-  const [hasCamera, setHasCamera] = useState<boolean | null>(null);
-  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  
-  const holdIntervalRef = useRef<number | null>(null);
+  const [isPressing, setIsPressing] = useState(false);
+  const [progressVal, setProgressVal] = useState(0);
+  const [isLocked, setIsLocked] = useState(false);
+  const [diagnosticText, setDiagnosticText] = useState("STANDBY COORDINATES DETECTED // SECURE CORE");
 
-  // Phase 1: Snappy Automatic Terminal Boot Logs
-  useEffect(() => {
-    let currentLine = 0;
-    const interval = setInterval(() => {
-      if (currentLine < BOOT_LOG_LINES.length) {
-        setLogs((prev) => [...prev, BOOT_LOG_LINES[currentLine]]);
-        currentLine++;
-      } else {
-        clearInterval(interval);
-        setScanningState("ready");
-      }
-    }, 150); // Faster initial boot response
+  const progressRef = useRef(0);
+  const audioIntervalRef = useRef<any>(null);
 
-    return () => clearInterval(interval);
-  }, []);
-
-  // Request camera stream safely
-  const startCamera = async () => {
+  // Synthesize soft mechanical tick / hum using Web Audio API
+  const playSoftTick = (freq: number = 220, vol: number = 0.04) => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 320, height: 320, facingMode: "user" }
-      });
-      setCameraStream(stream);
-      setHasCamera(true);
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-      setLogs((prev) => [...prev, "SYS_OCULAR: LIVE USER CAMERA STREAM ACTIVE."]);
-    } catch (err) {
-      console.warn("Camera access denied:", err);
-      setHasCamera(false);
-      setLogs((prev) => [...prev, "SYS_OCULAR: CAMERA ACCESS BYPASSED. USING VECTOR GEOMESH ENGINE."]);
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gainNode.gain.setValueAtTime(vol, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.15);
+      
+      osc.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.15);
+    } catch {
+      // Audio permissions bypass
     }
   };
 
-  useEffect(() => {
-    if (scanningState === "ready" && hasCamera === null) {
-      startCamera();
+  // Synthesize full digital lock alignment release sequence
+  const playLockReleaseSymphony = () => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const now = ctx.currentTime;
+
+      // Master heavy physical latch release thud
+      const latchOsc = ctx.createOscillator();
+      const latchGain = ctx.createGain();
+      latchOsc.type = "sine";
+      latchOsc.frequency.setValueAtTime(80, now);
+      latchOsc.frequency.exponentialRampToValueAtTime(20, now + 0.5);
+      latchGain.gain.setValueAtTime(0.4, now);
+      latchGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      latchOsc.connect(latchGain);
+      latchGain.connect(ctx.destination);
+      latchOsc.start();
+      latchOsc.stop(now + 0.5);
+
+      // Celestial golden chime chord (D-major luxury scale: F#5 -> A5 -> D6)
+      const chimeFreqs = [739.99, 880.00, 1174.66];
+      chimeFreqs.forEach((freq, idx) => {
+        const chimeOsc = ctx.createOscillator();
+        const chimeGain = ctx.createGain();
+        chimeOsc.type = "sine";
+        chimeOsc.frequency.setValueAtTime(freq, now + idx * 0.08);
+        chimeGain.gain.setValueAtTime(0.08, now + idx * 0.08);
+        chimeGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.6);
+        chimeOsc.connect(chimeGain);
+        chimeGain.connect(ctx.destination);
+        chimeOsc.start();
+        chimeOsc.stop(now + 1.6);
+      });
+    } catch {
+      // Audio permissions bypass
     }
-  }, [scanningState, hasCamera]);
+  };
 
-  // Clean stream on unmount
+  // Update diagnostic text logs on alignment stages
   useEffect(() => {
-    return () => {
-      if (cameraStream) {
-        cameraStream.getTracks().forEach((track) => track.stop());
-      }
-    };
-  }, [cameraStream]);
+    if (progressVal === 0) {
+      setDiagnosticText("ATELIER GATEWAY KEYWAY ENGAGED [0/100]");
+    } else if (progressVal < 30) {
+      setDiagnosticText(`AUTHENTICATING BIOMETRIC IMPULSE: ${progressVal}%`);
+    } else if (progressVal < 65) {
+      setDiagnosticText(`DECRYPTING EPHEMERIS CORE INTERSECTIONS: ${progressVal}%`);
+    } else if (progressVal < 95) {
+      setDiagnosticText(`MATRICULATING VIRTUAL REALM PORTAL VECTORS: ${progressVal}%`);
+    } else {
+      setDiagnosticText("AUTHENTICATED. WELCOME TO THE SECTOR.");
+    }
+  }, [progressVal]);
 
-  // Phase 2: Rapid & Satisfying Biometric Scan Process
-  const startScanning = () => {
-    if (scanningState !== "ready" && scanningState !== "error") return;
-    setScanningState("scanning");
-    setWarningMessage(null);
-    setPercent(0);
-
-    setLogs((prev) => [
-      ...prev,
-      "BIOMETRIC: SWEEPING OPTICAL COORDINATES...",
-      "BIOMETRIC: ALIGNING IRIS RETINA VECTOR MODULES..."
-    ]);
-
-    // Faster step transitions for lag-free, high-performance experience (takes ~1.2s total)
-    holdIntervalRef.current = window.setInterval(() => {
-      setPercent((p) => {
-        const nextVal = p + 2; // Increments of 2 for snappy movement
+  // Click-and-hold progress controller loop
+  useEffect(() => {
+    let animFrame: number;
+    
+    const updateProgress = () => {
+      if (isPressing && !isLocked) {
+        progressRef.current = Math.min(100, progressRef.current + 1.25);
+        setProgressVal(Math.floor(progressRef.current));
         
-        if (nextVal === 20) {
-          setLogs((prev) => [...prev, "SCAN_TELEMETRY: READING RETINAL APERTURE... 20%"]);
-        } else if (nextVal === 50) {
-          setLogs((prev) => [...prev, "SCAN_TELEMETRY: VERIFYING EYE GEOMESH ALIGNMENT... 50%"]);
-        } else if (nextVal === 80) {
-          setLogs((prev) => [...prev, "SCAN_TELEMETRY: DECRYPTING CIPHER CREDENTIAL CHANNELS... 80%"]);
-        }
-
-        if (nextVal < 100) {
-          return nextVal;
-        } else {
-          if (holdIntervalRef.current) clearInterval(holdIntervalRef.current);
-          setScanningState("complete");
-          setLogs((prev) => [
-            ...prev,
-            "BIOMETRIC_STATUS: CONFIRMED. ACCESS CLEARANCE LEVEL 9 PRINCIPAL GRANTED."
-          ]);
-          
-          if (cameraStream) {
-            cameraStream.getTracks().forEach((track) => track.stop());
-          }
-
-          // Trigger smooth access transition
+        if (progressRef.current >= 100) {
+          setIsLocked(true);
+          setIsPressing(false);
+          playLockReleaseSymphony();
           setTimeout(() => {
-            setScanningState("success");
-            setTimeout(() => {
-              onAccessGranted();
-            }, 800);
-          }, 800);
-          return 100;
+            onAccessGranted();
+          }, 1400); // Allow maximum dramatic zoom alignment payout
+          return;
         }
-      });
-    }, 20); // Snappy scanning updates for lag-free performance
-  };
-
-  const cancelScanning = () => {
-    if (scanningState === "scanning") {
-      if (holdIntervalRef.current) {
-        clearInterval(holdIntervalRef.current);
+      } else if (!isLocked) {
+        progressRef.current = Math.max(0, progressRef.current - 1.8);
+        setProgressVal(Math.floor(progressRef.current));
       }
-      setScanningState("error");
-      setWarningMessage("ALIGN_ERR: OCULAR TARGET INTERRUPTED.");
-      setLogs((prev) => [...prev, "SYS_ALERT: BIOMETRIC SEQUENCE DISRUPTED."]);
-      setPercent(0);
-    }
-  };
+      
+      animFrame = requestAnimationFrame(updateProgress);
+    };
 
-  const displayedLogs = logs.slice(-6);
+    animFrame = requestAnimationFrame(updateProgress);
+    return () => cancelAnimationFrame(animFrame);
+  }, [isPressing, isLocked, onAccessGranted]);
+
+  // Mechanical ticking feedback during active holding
+  useEffect(() => {
+    if (isPressing && !isLocked) {
+      audioIntervalRef.current = setInterval(() => {
+        // Frequency increases pitch as target alignment is approached
+        const currentFreq = 220 + (progressRef.current * 4.5);
+        const volume = 0.04 + (progressRef.current * 0.001);
+        playSoftTick(currentFreq, volume);
+      }, 100);
+    } else {
+      if (audioIntervalRef.current) {
+        clearInterval(audioIntervalRef.current);
+      }
+    }
+    return () => {
+      if (audioIntervalRef.current) clearInterval(audioIntervalRef.current);
+    };
+  }, [isPressing, isLocked]);
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#050505] text-white flex flex-col justify-between p-4 sm:p-8 font-mono select-none overflow-y-auto sm:overflow-hidden selection:bg-[#ff4a00]/30 selection:text-white">
-      {/* Dynamic Scoped CSS Stylesheet for pure GPU-Compositor 60fps animations */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes gpuFadeIn {
-          from { opacity: 0; transform: translate3d(-3px, 0, 0); }
-          to { opacity: 1; transform: translate3d(0, 0, 0); }
-        }
-        @keyframes gpuPulse {
-          0%, 100% { opacity: 0.3; transform: scale(0.95) translate3d(0,0,0); }
-          50% { opacity: 1; transform: scale(1.05) translate3d(0,0,0); }
-        }
-        @keyframes gpuLaserSweep {
-          0% { transform: translate3d(0, 8%, 0); }
-          50% { transform: translate3d(0, 82%, 0); }
-          100% { transform: translate3d(0, 8%, 0); }
-        }
-        @keyframes gpuSpinCircle {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        .animate-gpu-fade {
-          animation: gpuFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          will-change: opacity, transform;
-        }
-        .animate-gpu-spin {
-          animation: gpuSpinCircle 18s infinite linear;
-          transform-origin: center;
-          will-change: transform;
-        }
-        .animate-gpu-pulse-dot {
-          animation: gpuPulse 1.2s infinite alternate ease-in-out;
-          will-change: opacity, transform;
-        }
-        .animate-gpu-laser {
-          animation: gpuLaserSweep 1.6s infinite ease-in-out;
-          will-change: transform;
-        }
-      `}} />
-
-      {/* Background aesthetics */}
-      <div className="absolute inset-0 bg-noise opacity-5 pointer-events-none" />
+    <div className="fixed inset-0 z-50 bg-[#060606] text-[#c9c6c5] flex flex-col justify-between p-8 sm:p-12 font-sans select-none overflow-hidden select-none">
       
-      {/* Top Margin Info */}
-      <div className="flex justify-between items-start text-[7.5px] sm:text-[9.5px] text-white/30 tracking-[2px] sm:tracking-[3px] uppercase pointer-events-none mt-1 sm:mt-2 px-1 sm:px-2 z-10 w-full">
-        <div className="flex flex-col gap-0.5">
-          <span>"SECURE SYS PORT"</span>
-          <span className="text-[#ff4a00]/40">SYS-MAPPED: ATELIER_S9</span>
+      {/* Decorative ultra-thin golden corner accents */}
+      <div className="absolute top-8 left-8 w-12 h-[1px] bg-[#dcc57b]/30" />
+      <div className="absolute top-8 left-8 w-[1px] h-12 bg-[#dcc57b]/30" />
+      <div className="absolute top-8 right-8 w-12 h-[1px] bg-[#dcc57b]/30" />
+      <div className="absolute top-8 right-8 w-[1px] h-12 bg-[#dcc57b]/30" />
+      
+      <div className="absolute bottom-8 left-8 w-12 h-[1px] bg-[#dcc57b]/30" />
+      <div className="absolute bottom-8 left-8 w-[1px] h-12 bg-[#dcc57b]/30" />
+      <div className="absolute bottom-8 right-8 w-12 h-[1px] bg-[#dcc57b]/30" />
+      <div className="absolute bottom-8 right-8 w-[1px] h-12 bg-[#dcc57b]/20" />
+
+      {/* Marginals Header System */}
+      <div className="flex justify-between items-start text-[7.5px] font-mono tracking-[4px] uppercase text-[#c9c6c5]/25">
+        <div>
+          <span>AVARICE CHRONOMETER SYSTEM v1.3</span>
         </div>
-        <div className="flex flex-col gap-0.5 text-right">
-          <span>BIOMETRIC SCANNING SYSTEM</span>
-          <span className="font-sans font-extralight text-[#c9c6c5]/40 text-[6.5px] sm:text-[8px]">KINDSHADP VERIFICATION</span>
+        <div className="text-right">
+          <span>PRIVATE ATELIER // MATRICULATED ENTITY</span>
         </div>
       </div>
 
-      {/* Main Container */}
-      <div className="my-auto w-full max-w-4xl grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8 border-[0.5px] border-white/10 bg-[#050505]/95 p-3 sm:p-5 md:p-8 relative overflow-hidden shadow-2xl rounded-sm z-10">
+      {/* Main Center Area holding the Rare Compass alignment */}
+      <div className="my-auto flex flex-col items-center justify-center max-w-lg mx-auto w-full relative">
         
-        {/* Glow corners */}
-        <div className="absolute top-0 left-0 w-8 h-[1px] bg-[#ff4a00]/80" />
-        <div className="absolute top-0 left-0 w-[1px] h-8 bg-[#ff4a00]/80" />
-        <div className="absolute bottom-0 right-0 w-8 h-[1px] bg-[#c6b89e]" />
-        <div className="absolute bottom-0 right-0 w-[1px] h-8 bg-[#c6b89e]" />
-
-        {/* LEFT PANEL: Diagnostics console */}
-        <div className="md:col-span-7 flex flex-col justify-between gap-3 border-b md:border-b-0 md:border-r border-white/5 pb-4 md:pb-0 md:pr-6 text-left">
-          <div>
-            <div className="flex items-center gap-2.5 mb-2.5 md:mb-4">
-              <div className="p-1.5 border-[0.5px] border-[#ff4a00]/30 bg-[#ff4a00]/5 text-[#ff4a00] rounded-sm relative shadow-md">
-                <Eye className="w-4 h-4 sm:w-5 h-5 animate-pulse" />
-              </div>
-              <div>
-                <h2 className="text-sm sm:text-md md:text-lg font-serif text-[#c6b89e] tracking-[2px] sm:tracking-[3px] uppercase leading-none">
-                  BIOMETRIC SANCTUM
-                </h2>
-                <div className="text-[7px] text-white/40 tracking-[3px] uppercase mt-0.5 sm:mt-1 font-sans font-semibold">
-                  DECKS GATEWAY AUTHENTICATION
-                </div>
-              </div>
-            </div>
-
-            {/* Scrolling logs console - reduced height on mobile to prevent cutoff */}
-            <div className="h-[80px] sm:h-[120px] md:h-[185px] border-[0.5px] border-white/5 bg-black/75 p-3 md:p-4 mb-2 text-[8.5px] leading-relaxed text-white/45 overflow-y-auto font-mono custom-scrollbar flex flex-col justify-end">
-              <div className="space-y-1 pt-2">
-                {displayedLogs.map((log, i) => (
-                  <div
-                    key={i}
-                    className={`flex gap-1.5 items-start animate-gpu-fade ${
-                      i === displayedLogs.length - 1 ? "text-[#c6b89e] font-semibold" : ""
-                    }`}
-                  >
-                    <span className="text-[#ff4a00]/60 font-bold select-none">&gt;</span>
-                    <span className="flex-1 tracking-wide">{log}</span>
-                  </div>
-                ))}
-                {scanningState === "booting" && (
-                  <div className="flex gap-1 items-center text-[#ff4a00]/80">
-                    <span className="w-1 h-1 rounded-full bg-[#ff4a00] inline-block animate-ping" />
-                    <span className="text-[7.5px] uppercase tracking-wider">BOOTING INTERFACE STATE MODULES...</span>
-                  </div>
-                )}
-                {scanningState === "ready" && (
-                  <div className="flex gap-1 items-center text-[#c6b89e] font-semibold">
-                    <CornerDownRight className="w-2.5 h-2.5 text-[#c6b89e]/60" />
-                    <span className="text-[7.5px] uppercase tracking-[1.5px] animate-pulse">AWAITING BIOMETRIC INITIATION COMMAND...</span>
-                  </div>
-                )}
-                {scanningState === "scanning" && (
-                  <div className="flex gap-1 items-center text-[#ff4a00] font-bold">
-                    <Activity className="w-2.5 h-2.5 animate-bounce" />
-                    <span className="text-[7.5px] uppercase tracking-[1.5px]">SWEEP CONSOLE INTERACTION ENGAGED [{percent}%]</span>
-                  </div>
-                )}
-              </div>
-            </div>
+        {/* Cinematic Zoom Container when fully authenticated */}
+        <motion.div
+          animate={isLocked ? {
+            scale: 5.5,
+            opacity: [1, 0],
+            filter: "blur(2px)"
+          } : {
+            scale: 1,
+            opacity: 1
+          }}
+          transition={{
+            duration: 1.3,
+            ease: "easeInOut"
+          }}
+          className="flex flex-col items-center justify-center"
+        >
+          {/* Subtly glowing outer radial coordinates */}
+          <div className="absolute font-mono text-[6px] tracking-[2px] text-[#dcc57b]/30 -top-8 select-none">
+            [ LAT 47.3769° N // LON 8.5417° E ]
           </div>
 
-          <div className="flex justify-between items-center text-[7.5px] text-white/30 pt-2.5 border-t border-white/5 uppercase tracking-[1.5px]">
-            <span>CREDENTIAL VERIFICATION: AUTOMATED</span>
-            <span>SECURE GATEWAY</span>
-          </div>
-        </div>
-
-        {/* RIGHT PANEL: Biometric Ocular Interactive Box */}
-        <div className="md:col-span-5 flex flex-col justify-between items-center p-1 md:p-2 gap-3 md:gap-4">
-          
-          <div className="w-full">
-            <div className="min-h-[24px] md:min-h-[32px] flex items-center justify-center">
-              <AnimatePresence mode="wait">
-                {warningMessage ? (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="text-[7.5px] text-[#ff4a00] uppercase tracking-[1.5px] font-bold border border-[#ff4a00]/25 px-2.5 py-0.5 bg-[#ff4a00]/5 text-center"
-                  >
-                    {warningMessage}
-                  </motion.div>
-                ) : scanningState === "booting" ? (
-                  <div className="text-[7.5px] text-white/20 uppercase tracking-[1.5px]">
-                    SYSTEM CONSOLE STATUS: SYSTEM BOOTING
-                  </div>
-                ) : scanningState === "ready" ? (
-                  <div className="text-[7.5px] text-[#c6b89e] uppercase tracking-[1.5px] font-bold animate-pulse text-center">
-                    CENTER REFLECTION AND TAP BUTTON BELOW
-                  </div>
-                ) : scanningState === "scanning" ? (
-                  <div className="text-[7.5px] text-white/80 uppercase tracking-[1.5px] animate-pulse text-center">
-                    COMPUTATION FLOW CALIBRATING CODES...
-                  </div>
-                ) : (scanningState === "complete" || scanningState === "success") ? (
-                  <div className="text-[7.5px] text-green-400 font-bold uppercase tracking-[1.5px] border border-green-500/20 bg-green-500/5 px-2.5 py-0.5 text-center">
-                    BIOMETRIC PROFILE AUTHENTICATED
-                  </div>
-                ) : null}
-              </AnimatePresence>
-            </div>
-          </div>
-
-          {/* MAIN INTERACTIVE DEVICE BOX - Optimized, responsive, non-cluttered & GPU-ready sizing */}
-          <div className="relative w-24 h-24 xs:w-28 xs:h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 border-[0.5px] border-white/10 bg-[#020202] flex items-center justify-center overflow-hidden rounded-full shadow-inner shadow-black transition-all" style={{ transform: "translate3d(0, 0, 0)" }}>
+          {/* Core Astronomical Portal Dial Viewport */}
+          <div className="relative w-56 h-56 items-center justify-center flex mb-8 select-none">
             
-            {/* Camera feed or fallback ocular contours */}
-            {hasCamera && (scanningState !== "complete" && scanningState !== "success") ? (
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="absolute inset-0 w-full h-full object-cover opacity-60 filter grayscale brightness-110 contrast-125 scale-x-[-1]"
+            {/* Outer Compass Tick Dial (Clockwise rotation) */}
+            <motion.div
+              style={{
+                width: "100%",
+                height: "100%",
+                border: "1px solid rgba(220,197,123,0.12)",
+                borderRadius: "9999px",
+                position: "absolute"
+              }}
+              animate={{
+                rotate: isPressing ? 360 + (progressVal * 3) : 360
+              }}
+              transition={{
+                rotate: isPressing ? { duration: 15, repeat: Infinity, ease: "linear" } : { duration: 60, repeat: Infinity, ease: "linear" }
+              }}
+              className="flex items-center justify-center"
+            >
+              <div className="absolute w-[95%] h-[95%] border border-[rgba(201,198,197,0.06)] rounded-full border-dashed" />
+              {/* Compass points ticks */}
+              {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg) => (
+                <div
+                  key={deg}
+                  className="absolute w-1 h-3 bg-[#dcc57b]/30"
+                  style={{
+                    transform: `rotate(${deg}deg) translateY(-108px)`,
+                  }}
+                />
+              ))}
+            </motion.div>
+
+            {/* Middle Chronometer Ring with Roman hours (Counter-Clockwise rotation) */}
+            <motion.div
+              style={{
+                width: "82%",
+                height: "82%",
+                border: "1px solid rgba(201,198,197,0.15)",
+                borderRadius: "9999px",
+                position: "absolute"
+              }}
+              animate={{
+                rotate: isPressing ? -360 - (progressVal * 4.5) : -360
+              }}
+              transition={{
+                rotate: isPressing ? { duration: 12, repeat: Infinity, ease: "linear" } : { duration: 45, repeat: Infinity, ease: "linear" }
+              }}
+              className="flex items-center justify-center text-[7.5px] font-serif tracking-[1px] text-[#c9c6c5]/40"
+            >
+              <span className="absolute transform -translate-y-20 select-none">XII</span>
+              <span className="absolute transform translate-x-20 select-none">III</span>
+              <span className="absolute transform translate-y-20 select-none">VI</span>
+              <span className="absolute transform -translate-x-20 select-none">IX</span>
+              
+              {/* Delicate alignment lines within middle dial */}
+              <div className="absolute w-full h-[0.5px] bg-[#c9c6c5]/5" />
+              <div className="absolute h-full w-[0.5px] bg-[#c9c6c5]/5" />
+            </motion.div>
+
+            {/* Inner Alignment Status Gate Arc */}
+            <svg className="absolute w-36 h-36 transform -rotate-90 pointer-events-none select-none">
+              <circle
+                cx="72"
+                cy="72"
+                r="64"
+                fill="transparent"
+                stroke="rgba(220, 197, 123, 0.08)"
+                strokeWidth="1.5"
               />
-            ) : null}
+              <circle
+                cx="72"
+                cy="72"
+                r="64"
+                fill="transparent"
+                stroke="#dcc57b"
+                strokeWidth="2"
+                strokeDasharray={`${2 * Math.PI * 64}`}
+                strokeDashoffset={`${2 * Math.PI * 64 * (1 - progressVal / 100)}`}
+                className="transition-all duration-75"
+              />
+            </svg>
 
-            {/* Simplified, Elegant Ocular Alignment Target Scope (Uncluttered & High-End) */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 select-none">
-              <svg viewBox="0 0 100 100" className="w-[85%] h-[85%] stroke-[#c6b89e]/30 fill-none">
-                {/* Single GPU-accelerated spin dashed target ring */}
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="44"
-                  strokeWidth="0.3"
-                  strokeDasharray="2 4"
-                  className="animate-gpu-spin"
-                />
-                
-                {/* Central main framing circle */}
-                <circle cx="50" cy="50" r="28" strokeWidth="0.4" stroke="#c6b89e" strokeOpacity="0.4" />
-                
-                {/* Focus indicator circle */}
-                <circle cx="50" cy="50" r="14" strokeWidth="0.5" stroke="#ff4a00" strokeOpacity="0.6" />
-                
-                {/* Center micro dot */}
-                <circle cx="50" cy="50" r="1.5" fill="#ff4a00" />
-
-                {/* Highly aesthetic fine crosshairs */}
-                <line x1="50" y1="12" x2="50" y2="88" strokeWidth="0.15" strokeDasharray="2 2" stroke="#ff4a00" strokeOpacity="0.35" />
-                <line x1="12" y1="50" x2="88" y2="50" strokeWidth="0.15" strokeDasharray="2 2" stroke="#ff4a00" strokeOpacity="0.35" />
-
-                {/* Outer lock corner tabs */}
-                <path d="M 44,44 L 44,42 L 42,42 L 42,44" strokeWidth="0.25" stroke="#c6b89e" strokeOpacity="0.7" />
-                <path d="M 56,44 L 56,42 L 58,42 L 58,44" strokeWidth="0.25" stroke="#c6b89e" strokeOpacity="0.7" />
-                <path d="M 44,56 L 44,58 L 42,58 L 42,56" strokeWidth="0.25" stroke="#c6b89e" strokeOpacity="0.7" />
-                <path d="M 56,56 L 56,58 L 58,58 L 58,56" strokeWidth="0.25" stroke="#c6b89e" strokeOpacity="0.7" />
-              </svg>
-            </div>
-
-            {/* Active tracking telemetry indicators - Compact & GPU animated */}
-            {scanningState === "scanning" && (
-              <div className="absolute inset-0 z-15 pointer-events-none select-none">
-                <div
-                  className="absolute w-1 h-1 bg-[#ff4a00] top-[30%] left-[30%] rounded-full shadow-[0_0_6px_#ff4a00] animate-gpu-pulse-dot"
-                />
-                <div
-                  className="absolute w-1 h-1 bg-[#c6b89e] bottom-[30%] right-[30%] rounded-full shadow-[0_0_6px_#c6b89e] animate-gpu-pulse-dot"
-                  style={{ animationDelay: "0.2s" }}
-                />
-              </div>
-            )}
-
-            {/* Sweeping scan line - Transformed to 100% GPU translation wrapper (Layout friendly) */}
-            {scanningState === "scanning" && (
-              <div
-                className="absolute inset-0 w-full h-full pointer-events-none z-20 animate-gpu-laser"
+            {/* Touch Point: The Golden Celestial Diamond Sovereign Sigil */}
+            <motion.div
+              onMouseDown={() => setIsPressing(true)}
+              onMouseUp={() => setIsPressing(false)}
+              onMouseLeave={() => setIsPressing(false)}
+              onTouchStart={() => setIsPressing(true)}
+              onTouchEnd={() => setIsPressing(false)}
+              className={`absolute w-16 h-16 rounded-full flex flex-col items-center justify-center cursor-pointer transition-all duration-300 select-none outline-none ${
+                isPressing 
+                  ? "bg-[#dcc57b]/12 shadow-[0_0_30px_rgba(220,197,123,0.25)] border border-[#dcc57b]" 
+                  : "bg-[#0b0b0b] border border-[#c9c6c5]/25 hover:border-[#dcc57b]/60 hover:bg-black/80"
+              }`}
+              style={{
+                touchAction: "none"
+              }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {/* Spinning particle core */}
+              <motion.div
+                animate={isPressing ? { rotate: 360 } : { rotate: 0 }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                className="w-4 h-4 border border-[#dcc57b] rotate-45 flex items-center justify-center shadow-[0_0_8px_rgba(220,197,123,0.30)]"
               >
-                <div className="w-full h-[1px] bg-[#ff4a00] shadow-[0_0_8px_#ff4a00] opacity-90" />
-              </div>
-            )}
+                <div className="w-1 h-1 bg-[#93000a] rounded-full" />
+              </motion.div>
+            </motion.div>
 
-            {/* Success unlocked key overlay */}
-            <AnimatePresence>
-              {(scanningState === "complete" || scanningState === "success") && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute inset-0 bg-black/95 z-30 flex flex-col items-center justify-center p-3 rounded-full border border-green-500/20"
-                >
-                  <motion.div
-                    animate={{ scale: [0.97, 1.05, 0.97] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                    className="w-8 h-8 rounded-full border border-green-500/30 flex items-center justify-center text-green-400 bg-green-500/5 shadow-[0_0_15px_rgba(74,222,128,0.2)] mb-1.5"
-                  >
-                    <Unlock className="w-4 h-4 stroke-[1.5]" />
-                  </motion.div>
-                  <span className="text-[6.5px] uppercase tracking-[1.5px] text-green-400 font-bold">
-                    ACCESS GRANTED
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
 
-          {/* Trigger interactive actions */}
-          <div className="w-full flex flex-col gap-2 items-center select-none">
-            {scanningState === "scanning" ? (
-              <button
-                type="button"
-                onClick={cancelScanning}
-                className="w-full max-w-[200px] sm:max-w-xs h-8 sm:h-10 border-[0.5px] border-[#ff4a00] bg-[#ff4a00]/10 hover:bg-[#ff4a00]/20 text-[#fff] font-sans text-[8px] sm:text-[8.5px] tracking-[2px] uppercase font-bold transition-all duration-200 flex items-center justify-center cursor-pointer shadow-md rounded-sm"
-              >
-                ABORT EXAMINATION
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={startScanning}
-                disabled={scanningState === "booting" || scanningState === "complete" || scanningState === "success"}
-                className={`w-full max-w-[200px] sm:max-w-xs h-8 sm:h-10 border-[0.5px] font-sans text-[8px] sm:text-[9px] tracking-[2px] uppercase font-semibold transition-all duration-300 cursor-pointer flex items-center justify-center rounded-sm ${
-                  scanningState === "complete" || scanningState === "success"
-                    ? "bg-green-500/10 border-green-400/30 text-green-400 cursor-not-allowed"
-                    : scanningState === "booting"
-                    ? "bg-black/40 border-white/5 text-white/20 cursor-not-allowed animate-pulse"
-                    : "bg-[#050505] border-[#c6b89e]/45 hover:border-[#ff4a00] hover:bg-[#ff4a00]/5 text-[#c6b89e] hover:text-white"
-                }`}
-              >
-                {scanningState === "complete" || scanningState === "success" ? "VERIFIED PRINCIPAL" : scanningState === "booting" ? "LOADING CRITICAL RECT..." : "INITIALIZE SCAN"}
-              </button>
-            )}
+          {/* Elegant Display Labels */}
+          <h2 className="font-serif text-[#c9c6c5] text-lg sm:text-xl tracking-[18px] uppercase text-center ml-[18px] mb-2 font-medium">
+            KINGSHADP
+          </h2>
+          
+          <span className="font-sans text-[7.5px] tracking-[4px] text-[#dcc57b] uppercase font-bold block mb-8 text-center select-none">
+            SOVEREIGN ARCHITECTURAL ATRIUM
+          </span>
+        </motion.div>
 
-            {/* Quick manual camera trigger */}
-            {hasCamera === false && (
-              <button
-                type="button"
-                onClick={startCamera}
-                className="text-[7px] text-[#c6b89e]/60 hover:text-[#ff4a00] uppercase tracking-[1px] flex items-center gap-1 font-mono cursor-pointer transition-colors"
-              >
-                <Camera className="w-2.5 h-2.5 text-[#ff4a00]" />
-                RE-ENGAGE LENS
-              </button>
-            )}
-          </div>
+        {/* Central interactive instructional board */}
+        <div className="w-full max-w-[340px] text-center px-4">
+          <p className="text-[10px] font-serif italic text-[#c9c6c5]/40 leading-relaxed mb-6 select-none">
+            "We build the architecture of sovereignty. Hold your cursor down over the central alignment sigil to release the heavy chambers."
+          </p>
 
-          {/* progress meter */}
-          <div className="w-full max-w-[200px] sm:max-w-xs mt-0.5 sm:mt-1">
-            <div className="flex justify-between items-center text-[7px] uppercase tracking-[2px] text-white/30 mb-1">
-              <span>SCAN SIGN_STRENGTH</span>
-              <span className={`font-mono text-[7.5px] font-bold ${scanningState === "complete" || scanningState === "success" ? "text-green-400" : "text-[#c6b89e]"}`}>
-                {percent}%
-              </span>
+          <div className="p-3 bg-black/40 border border-white/5 space-y-2">
+            {/* Live diagnostic telemetry readout */}
+            <div className="font-mono text-[7px] text-left text-white/30 truncate flex justify-between select-none">
+              <span>ACTIVE SYS_FEED:</span>
+              <span className="text-[#dcc57b] font-bold">ONLINE</span>
             </div>
             
-            {/* Compact beautiful segmented bar */}
-            <div className="flex gap-[1.5px] sm:gap-[2.5px]">
-              {Array.from({ length: 30 }).map((_, index) => {
-                const stepVal = index * 3.33;
-                const isActive = percent >= stepVal;
-                return (
-                  <div
-                    key={index}
-                    className={`h-[3.5px] sm:h-[4.5px] flex-grow transition-all duration-200 ${
-                      isActive
-                        ? (scanningState === "complete" || scanningState === "success")
-                          ? "bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.4)]"
-                          : "bg-[#ff4a00] shadow-[0_0_6px_rgba(255,74,0,0.4)]"
-                        : "bg-white/5"
-                    }`}
-                  />
-                );
-              })}
+            <div className="font-mono text-[8px] text-[#c9c6c5]/80 text-center tracking-[1px] uppercase min-h-[12px] break-all select-none selection:bg-transparent">
+              {diagnosticText}
+            </div>
+
+            {/* Hairline tactile progress meter */}
+            <div className="w-full h-[1px] bg-white/5 relative overflow-hidden select-none">
+              <div 
+                className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-[#93000a] to-[#dcc57b] transition-all duration-75"
+                style={{ width: `${progressVal}%` }}
+              />
+            </div>
+
+            <div className="flex justify-between items-center text-[6.5px] font-mono text-[#c9c6c5]/30">
+              <span>COORDINATE LOCK_INDEX: SEC01</span>
+              <span>{progressVal}/100 ALIGNED</span>
             </div>
           </div>
-
         </div>
 
       </div>
 
-      {/* Footer stats */}
-      <div className="text-white/20 text-center pointer-events-none text-[7.5px] sm:text-[8px] uppercase tracking-[3px] sm:tracking-[5px] mt-1 pb-1 flex flex-col md:flex-row justify-between items-center px-2 z-10 border-t border-white/5 pt-2 w-full">
-        <span>SECURITY SYSTEMS ONLINE // VIP PORTAL PROPORTIONAL SCALES</span>
-        <span className="font-serif italic mt-0.5 md:mt-0 text-[9px] sm:text-[10px] normal-case tracking-[1px] text-[#c6b89e]">
-          Exclusive kingshadp.com Atelier Entry
+      {/* Footer System Margin */}
+      <div className="flex flex-col sm:flex-row justify-between items-center text-[7.5px] font-mono tracking-[3px] text-[#c9c6c5]/25 pt-4 border-t border-[#c9c6c5]/5 w-full uppercase gap-2">
+        <span>EXCLUSIVITY ASSURED ENGINE // NO RETENTION POLICY REGISTERED</span>
+        <span className="font-serif italic text-[10.5px] normal-case tracking-[1.5px] text-[#dcc57b]/45 mt-1 sm:mt-0 font-medium select-none">
+          Avarice High-Luxury Collective
         </span>
       </div>
+
     </div>
   );
 }

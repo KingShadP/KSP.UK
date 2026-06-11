@@ -77,6 +77,56 @@ export default function App() {
     }
   });
 
+  // User Theme Preference
+  const [theme, setTheme] = useState<"dark" | "light">(() => {
+    try {
+      const saved = localStorage.getItem("kingshadp-theme");
+      return (saved === "light") ? "light" : "dark";
+    } catch {
+      return "dark";
+    }
+  });
+
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    try {
+      localStorage.setItem("kingshadp-theme", next);
+    } catch (e) {}
+    window.dispatchEvent(new CustomEvent("telemetry-log", {
+      detail: { 
+        message: `🌗 THEME_SHIFT: Transitioned to luxury gallery environment: [${next.toUpperCase()} MODE].`, 
+        type: "SYSTEM" 
+      }
+    }));
+  };
+
+  // Enhanced legibility & less transparency preferences
+  const [readabilityEnhanced, setReadabilityEnhanced] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem("kingshadp-readability") === "true";
+      return saved;
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleReadability = () => {
+    const next = !readabilityEnhanced;
+    setReadabilityEnhanced(next);
+    try {
+      localStorage.setItem("kingshadp-readability", String(next));
+    } catch (e) {}
+    window.dispatchEvent(new CustomEvent("telemetry-log", {
+      detail: { 
+        message: next 
+          ? "⚡ SYS_CONTRAST: ENHANCED readability active. Scale boosted, text opacities normalized." 
+          : "✓ SYS_CONTRAST: Standard aesthetic transparency parameters restored.", 
+        type: "SYSTEM" 
+      }
+    }));
+  };
+
   const toggleParadoxMode = () => {
     const next = !paradoxMode;
     setParadoxMode(next);
@@ -287,8 +337,10 @@ export default function App() {
   const depthColor = getInterpolatedColor(scrollPercent);
 
   return (
-    <div className="min-h-screen bg-[#020202] text-white font-sans overflow-x-hidden selection:bg-[#93000a]/30 selection:text-white custom-aiming-reticle relative">
-      {/* High-fidelity CSS overrides for dynamic Universe Parallel Paradox Shift */}
+    <div className={`min-h-screen text-white font-sans overflow-x-hidden selection:bg-[#93000a]/35 selection:text-white custom-aiming-reticle relative transition-colors duration-500 ${
+      theme === "light" ? "light-theme bg-[#f5f4ef] text-[#111111]" : "bg-[#020202] text-white"
+    } ${readabilityEnhanced ? "readability-enhanced" : ""}`}>
+      {/* High-fidelity CSS overrides for dynamic Universe Parallel Paradox Shift, Gallery Light Mode, and Enhanced Readability */}
       <style>{`
         ${paradoxMode ? `
           /* Dynamic theme variables matching the mystical blue-silver-purple paradox */
@@ -326,6 +378,241 @@ export default function App() {
           #sanctum-global-cursor-ring > div { background-color: #9c7cf4 !important; }
           #sanctum-global-cursor-ring { border-color: rgba(139, 185, 220, 0.3) !important; }
         ` : ''}
+
+        /* DEFAULT SLIGHT OPACITY BOOST FOR NORMAL MODE BASED ON USER FEEDBACK */
+        .text-white\\/50 { opacity: 0.78 !important; }
+        .text-white\\/40 { opacity: 0.68 !important; }
+        .text-white\\/30 { opacity: 0.58 !important; }
+
+        /* =========================================================================
+           AVARICE LUXURY HIGH-END LIGHT GALLERY THEME OVERRIDES
+           ========================================================================= */
+        .light-theme {
+          background-color: #f5f4ef !important;
+          color: #111111 !important;
+        }
+        
+        .light-theme ::selection {
+          background-color: rgba(147, 0, 10, 0.15) !important;
+          color: #93000a !important;
+        }
+        
+        /* Keep WebGL Virtual Stage extremely subtle and clean in light mode */
+        .light-theme #virtual-kingdom-stage-canvas,
+        .light-theme .virtual-kingdom-stage-img,
+        .light-theme [style*="feGaussianBlur"],
+        .light-theme .absolute.inset-0.w-full.h-full.overflow-hidden,
+        .light-theme .z-0.overflow-hidden.mix-blend-screen {
+          opacity: 0.08 !important;
+        }
+        
+        /* Overrides for text color */
+        .light-theme .text-white {
+          color: #111111 !important;
+        }
+        .light-theme .text-white\\/90,
+        .light-theme .text-white\\/80,
+        .light-theme .text-white\\/70,
+        .light-theme .text-white\\/60,
+        .light-theme .text-white\\/55,
+        .light-theme .text-white\\/50,
+        .light-theme .text-white\\/45,
+        .light-theme .text-white\\/40,
+        .light-theme .text-white\\/30,
+        .light-theme .text-white\\/20,
+        .light-theme .text-white\\/10 {
+          color: #292524 !important; /* Stone-800 - extreme visual readability */
+          opacity: 1 !important;
+        }
+        
+        /* Custom branding text colors in light mode */
+        .light-theme .text-\\[\\#c6b89e\\] {
+          color: #78350f !important; /* Deep Golden Bronze */
+        }
+        .light-theme .text-\\[\\#c6b89e\\]\\/60,
+        .light-theme .text-\\[\\#c6b89e\\]\\/40,
+        .light-theme .text-\\[\\#c6b89e\\]\\/30,
+        .light-theme .text-\\[\\#c6b89e\\]\\/70 {
+          color: #92400e !important;
+          opacity: 1 !important;
+        }
+        
+        .light-theme .text-\\[\\#93000a\\] {
+          color: #93000a !important;
+        }
+        .light-theme .text-\\[\\#dcc57b\\] {
+          color: #854d0e !important; /* Rich Dark Gold for highlight readability */
+        }
+        
+        /* Subtitle block readabilities */
+        .light-theme .text-emerald-400 {
+          color: #047857 !important;
+        }
+        
+        /* Component borders (hairlines) */
+        .light-theme .border-white\\/5,
+        .light-theme .border-white\\/10,
+        .light-theme .border-white\\/20,
+        .light-theme .border-white\\/30,
+        .light-theme .border-\\[\\#c6b89e\\]\\/15,
+        .light-theme .border-\\[\\#c6b89e\\]\\/20,
+        .light-theme .border-\\[\\#c6b89e\\]\\/30,
+        .light-theme .border-zinc-800,
+        .light-theme .border-zinc-900 {
+          border-color: rgba(17, 17, 17, 0.15) !important;
+        }
+        
+        /* Component backgrounds (ivory paper surfaces instead of absolute black voids) */
+        .light-theme .bg-black,
+        .light-theme .bg-\\[\\#050505\\],
+        .light-theme .bg-\\[\\#020202\\],
+        .light-theme .bg-zinc-950,
+        .light-theme .bg-zinc-900,
+        .light-theme .bg-zinc-950\\/80,
+        .light-theme .bg-black\\/80,
+        .light-theme .bg-black\\/40,
+        .light-theme .bg-black\\/60,
+        .light-theme .bg-black\\/92,
+        .light-theme .bg-black\\/95,
+        .light-theme .bg-black\\/55,
+        .light-theme .bg-white\\/\\[0\\.01\\],
+        .light-theme .bg-white\\/\\[0\\.02\\],
+        .light-theme .bg-white\\/\\[0\\.03\\],
+        .light-theme .bg-white\\/\\[0\\.04\\],
+        .light-theme .bg-white\\/5 {
+          background-color: #faf9f5 !important;
+          color: #111111 !important;
+          backdrop-filter: blur(20px) !important;
+        }
+        
+        /* Glowing controls */
+        .light-theme .bg-gradient-to-b.from-white\\/5,
+        .light-theme .bg-gradient-to-b.from-white\\/10 {
+          background-image: linear-gradient(to bottom, rgba(0,0,0,0.03), transparent) !important;
+        }
+        
+        /* CTA Buttons */
+        .light-theme .bg-\\[\\#c6b89e\\] {
+          background-color: #111111 !important;
+          color: #ffffff !important;
+          border-color: #111111 !important;
+        }
+        .light-theme .bg-\\[\\#c6b89e\\]:hover {
+          background-color: transparent !important;
+          color: #111111 !important;
+          border-color: #111111 !important;
+        }
+        
+        /* Correct terminal/telemetry blocks inside light mode */
+        .light-theme .font-mono.text-emerald-500,
+        .light-theme .font-mono.text-emerald-400 {
+          color: #15803d !important;
+        }
+        .light-theme .font-mono.text-[9px].text-white\\/30 {
+          color: #44403c !important;
+        }
+        .light-theme .scrollbar-thumb {
+          background-color: rgba(0,0,0,0.15) !important;
+        }
+        
+        /* Interactive Cursor on Light mode */
+        .light-theme #sanctum-global-cursor-ring {
+          border-color: rgba(0, 0, 0, 0.2) !important;
+        }
+        .light-theme #sanctum-global-cursor-ring > div {
+          background-color: #93000a !important;
+        }
+        
+        /* Dialogue / Chat overrides */
+        .light-theme .bg-zinc-900\\/50 {
+          background-color: rgba(0,0,0,0.04) !important;
+        }
+        
+        /* =========================================================================
+           ENHANCED READABILITY MODE RULES -- FOR ALL THEMES (REMOVES TRANSPARENCY)
+           ========================================================================= */
+        
+        /* Scale texts and bolster spacing */
+        .readability-enhanced p {
+          font-size: 16.5px !important;
+          line-height: 1.75 !important;
+          font-weight: 400 !important;
+          letter-spacing: normal !important;
+        }
+        .readability-enhanced .font-serif.text-\\[14px\\] {
+          font-size: 16px !important;
+        }
+        .readability-enhanced .text-\\[13\\.5px\\],
+        .readability-enhanced .text-xs,
+        .readability-enhanced .text-\\[12px\\] {
+          font-size: 14.5px !important;
+        }
+        
+        .readability-enhanced .text-\\[9\\.5px\\],
+        .readability-enhanced .text-\\[9px\\],
+        .readability-enhanced .text-\\[8\\.5px\\],
+        .readability-enhanced .text-\\[8px\\],
+        .readability-enhanced .text-\\[7\\.5px\\],
+        .readability-enhanced .text-\\[7px\\] {
+          font-size: 11px !important;
+          font-weight: 500 !important;
+        }
+        
+        /* Absolutely solid opacities in Dark mode when Readability is Enhanced */
+        :not(.light-theme).readability-enhanced .text-white\\/30,
+        :not(.light-theme).readability-enhanced .text-white\\/40,
+        :not(.light-theme).readability-enhanced .text-white\\/50,
+        :not(.light-theme).readability-enhanced .text-white\\/60,
+        :not(.light-theme).readability-enhanced .text-white\\/70,
+        :not(.light-theme).readability-enhanced .text-white\\/80,
+        :not(.light-theme).readability-enhanced .text-white\\/90 {
+          color: #ffffff !important;
+          opacity: 1 !important;
+        }
+        
+        :not(.light-theme).readability-enhanced .text-\\[\\#c6b89e\\]\\/60,
+        :not(.light-theme).readability-enhanced .text-\\[\\#c6b89e\\]\\/40,
+        :not(.light-theme).readability-enhanced .text-\\[\\#c6b89e\\]\\/30,
+        :not(.light-theme).readability-enhanced .text-\\[\\#c6b89e\\]\\/70 {
+          color: #c6b89e !important;
+          opacity: 1 !important;
+        }
+        
+        /* Absolutely solid opacities in Light mode when Readability is Enhanced */
+        .light-theme.readability-enhanced .text-white\\/30,
+        .light-theme.readability-enhanced .text-white\\/40,
+        .light-theme.readability-enhanced .text-white\\/50,
+        .light-theme.readability-enhanced .text-white\\/60,
+        .light-theme.readability-enhanced .text-white\\/70,
+        .light-theme.readability-enhanced .text-white\\/80,
+        .light-theme.readability-enhanced .text-white\\/90 {
+          color: #111111 !important;
+          opacity: 1 !important;
+        }
+        
+        /* Background and Panel solidify */
+        .readability-enhanced .bg-black\\/80,
+        .readability-enhanced .bg-black\\/40,
+        .readability-enhanced .bg-black\\/60,
+        .readability-enhanced .bg-black\\/92,
+        .readability-enhanced .bg-black\\/95,
+        .readability-enhanced .bg-black\\/55,
+        .readability-enhanced .bg-zinc-950\\/80 {
+          opacity: 1 !important;
+          background-color: rgba(0, 0, 0, 0.99) !important;
+        }
+        
+        .light-theme.readability-enhanced .bg-black\\/80,
+        .light-theme.readability-enhanced .bg-black\\/40,
+        .light-theme.readability-enhanced .bg-black\\/60,
+        .light-theme.readability-enhanced .bg-black\\/92,
+        .light-theme.readability-enhanced .bg-black\\/95,
+        .light-theme.readability-enhanced .bg-black\\/55,
+        .light-theme.readability-enhanced .bg-zinc-950\\/80 {
+          background-color: #ffffff !important;
+          opacity: 1 !important;
+          border-color: rgba(0,0,0,0.3) !important;
+        }
       `}</style>
       {/* Immersive Client custom cursor rings */}
       {accessGranted && (
@@ -358,288 +645,123 @@ export default function App() {
           {/* Magnificent 3D Virtual Kingdom Scenic Background */}
           <VirtualKingdomStage activeTab={activeTab} paradoxMode={paradoxMode} />
 
-          {/* System Telemetry Log HUD Terminal (JetBrains Mono Terminal style) */}
-          <TelemetryTerminal />
-
-          {/* FIXED VERTICAL SCROLL PROGRESS & HUD LOCATION LOCATOR (RIGHT SIDE) WITH DYNAMIC MESH GLOW FILTER */}
-          <div 
-            className="fixed right-6 lg:right-10 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center gap-6 select-none backdrop-blur-3xl p-4 md:p-5 border shadow-2xl rounded-sm pointer-events-auto overflow-hidden"
-            style={{
-              perspective: "500px",
-              transformStyle: "preserve-3d",
-              transform: `perspective(500px) rotateY(-18deg) rotateX(${
-                scrollDirection === "down" ? 14 : scrollDirection === "up" ? -14 : 0
-              }deg) scale(${1 + scrollSpeed * 0.0025})`,
-              boxShadow: `0 0 12px rgba(0,0,0,0.85), inset 0 0 20px ${depthColor}44, 0 0 ${15 + scrollSpeed * 3.5}px ${depthColor}`,
-              borderColor: scrollSpeed > 8 ? depthColor : `${depthColor}44`,
-              backgroundImage: `radial-gradient(at 0% 0%, ${depthColor}22 0%, transparent 60%), radial-gradient(at 100% 100%, ${depthColor}33 0%, transparent 70%), linear-gradient(to bottom, rgba(6,6,6,0.95), rgba(0,0,0,0.98))`,
-              transition: "transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms ease-out, border-color 180ms ease-out, background-image 250ms ease-out",
-            } as any}
-          >
-            {/* PROCEDURAL MESH GLOW FILTER SYSTEM */}
-            <div className="absolute inset-0 z-0 pointer-events-none opacity-30">
-              <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <filter id="hud-mesh-glow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feGaussianBlur stdDeviation="3" result="blur" />
-                    <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 2.0 0" />
-                    <feMerge>
-                      <feMergeNode in="blur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                </defs>
-                {/* Tactical grid background lines */}
-                <g stroke={depthColor} strokeWidth="0.5" opacity="0.4" filter="url(#hud-mesh-glow)">
-                  <line x1="0" y1="20" x2="100%" y2="20" />
-                  <line x1="0" y1="50%" x2="100%" y2="50%" />
-                  <line x1="0" y1="90%" x2="100%" y2="90%" />
-                  <line x1="25%" y1="0" x2="25%" y2="100%" />
-                  <line x1="75%" y1="0" x2="75%" y2="100%" />
-                </g>
-                {/* Acceleration tracking scanner sweeping vertically */}
-                <line 
-                  x1="0" 
-                  y1={`${scrollPercent}%`} 
-                  x2="100%" 
-                  y2={`${scrollPercent}%`} 
-                  stroke="#ff4a00" 
-                  strokeWidth="1.5" 
-                  opacity="0.8" 
-                  filter="url(#hud-mesh-glow)" 
-                />
-              </svg>
-            </div>
-
-            <div className="text-[7.5px] font-mono text-[#c6b89e]/60 uppercase tracking-[3px] font-bold z-10">L_SEC</div>
-            
-            <div className="h-44 w-[2px] bg-white/5 relative flex flex-col justify-between items-center py-2 z-10">
-              {/* Dynamic scroll sliding height marker node */}
-              <div 
-                className="absolute left-0 right-0 top-0 transition-all duration-[80ms] ease-out"
-                style={{ 
-                  height: `${scrollPercent}%`,
-                  background: `linear-gradient(to bottom, ${depthColor}, rgba(0,0,0,0.15))`,
-                  boxShadow: `0 0 12px ${depthColor}`,
-                }}
-              />
-
-              {[
-                { id: "home", num: "01", label: "HOME (Manifesto)", sectionId: "section-home" },
-                { id: "listen", num: "02", label: "LISTEN (Frequencies)", sectionId: "section-listen" },
-                { id: "vault", num: "03", label: "VAULT (Live Catalog)", sectionId: "section-vault" },
-                { id: "artifacts", num: "04", label: "ARTIFACTS (Uniforms)", sectionId: "section-artifacts" },
-                { id: "lore", num: "05", label: "LORE (Mythology)", sectionId: "section-lore" },
-                { id: "community", num: "06", label: "COMMUNITY (Believers)", sectionId: "section-community" }
-              ].map((item, idx) => {
-                const isActive = activeTab === item.id;
-                return (
-                  <Tooltip key={item.id} message={`SYS_NAV: Coordinate jump to ${item.num} // ${item.label}`}>
-                    <button
-                      onClick={() => scrollToSection(item.sectionId)}
-                      onMouseEnter={() => {
-                        const messages: {[key: string]: string} = {
-                          home: "🛡️ [GATEWAY] Live biometric trace aligned... Main Atrium credentials set to Sovereign level.",
-                          listen: "🎵 [FREQUENCY] Buffers engaged. Active list of sound channels ready. Checking hardware synth.",
-                          vault: "🗄️ [VAULT] Tracking streams: 395 SoundCloud believers, 5.77K Audiomack manifests secured.",
-                          artifacts: "👕 [ITEMS] Artifact drop inventory: ARMORED LS (25 total units), CIPHER VEST (custom geometry).",
-                          lore: "📖 [THEOLOGY] Parsing character god-complex briefs and Miami roots archive timeline.",
-                          community: "👥 [BELIEVERS] Accessing VIP email registry, live social outlets, FAQs, and event schedules."
-                        };
-                        window.dispatchEvent(new CustomEvent("telemetry-log", { 
-                          detail: { message: messages[item.id], type: item.id === "artifacts" || item.id === "listen" ? "FORGE_SYNC" : "SYSTEM" } 
-                        }));
-                      }}
-                      aria-label={`Scroll to ${item.label}`}
-                      className="group relative flex items-center justify-center w-7 h-7 cursor-pointer focus:outline-none"
-                    >
-                      {/* Left hovering expansion bubble */}
-                      <div className="absolute right-8 px-3 py-1 border border-[#c6b89e]/30 bg-black/95 text-white text-[8px] font-mono tracking-[3px] uppercase opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap translate-x-1.5 group-hover:translate-x-0 shadow-lg">
-                        {item.num} // {item.label} {isActive ? "[ ACTIVE ]" : ""}
-                      </div>
-
-                      <div className="w-4 h-4 flex items-center justify-center relative">
-                        {/* Glow indicator line */}
-                        <div 
-                          className="absolute w-3 h-3 border transition-all duration-300 scale-50 group-hover:scale-100 rotate-45"
-                          style={{
-                            borderColor: isActive ? depthColor : "rgba(198, 184, 158, 0.4)",
-                            boxShadow: isActive ? `0 0 12px ${depthColor}` : "none",
-                            transform: `rotate(45deg) scale(${isActive ? 1.0 : 0.5})`,
-                          }}
-                        />
-                        {/* Status core dot */}
-                        <div 
-                          className="w-1 h-1 rounded-full transition-all duration-300"
-                          style={{
-                            backgroundColor: isActive ? depthColor : "rgba(198, 184, 158, 0.7)",
-                            transform: `scale(${isActive ? 1.25 : 1.0})`,
-                            boxShadow: isActive ? `0 0 6px ${depthColor}` : "none",
-                          }}
-                        />
-                      </div>
-                    </button>
-                  </Tooltip>
-                );
-              })}
-            </div>
-
-            <div className="text-[8.5px] font-mono text-[#c6b89e] font-semibold flex flex-col items-center leading-none z-10">
-              <span className="text-[6px] opacity-40 mb-0.5">DEP</span>
-              <span>{Math.round(scrollPercent)}%</span>
-            </div>
-          </div>
-
-          {/* Left Decorative margin bar - Desktop only */}
-          <div className="absolute left-0 top-0 bottom-0 w-8 border-r border-[#c6b89e]/10 flex flex-col items-center justify-between py-12 pointer-events-none z-35 hidden md:flex mix-blend-screen select-none">
-            <div className="w-[1.5px] h-32 bg-gradient-to-b from-[#c6b89e]/80 to-transparent" />
-            <div className="rotate-[-90deg] font-mono text-[7px] tracking-[8px] text-[#c6b89e]/40 uppercase whitespace-nowrap">
-              Orbital Alignment Active
-            </div>
-            <div className="w-[1.5px] h-32 bg-gradient-to-t from-[#c6b89e]/80 to-transparent" />
-          </div>
-
-          {/* Right Decorative margin bar - Desktop only */}
-          <div className="absolute right-0 top-0 bottom-0 w-8 border-l border-[#c6b89e]/10 flex flex-col items-center justify-between py-12 pointer-events-none z-35 hidden md:flex mix-blend-screen select-none">
-            <div className="w-1.5 h-1.5 bg-[#93000a] animate-pulse rounded-full shadow-[0_0_8px_#93000a]" />
-            <div className="rotate-90 font-mono text-[7px] tracking-[8px] text-[#93000a]/80 uppercase whitespace-nowrap">
-              "SYSTEMS_NOMINAL"
-            </div>
-            <div className="w-[1px] h-32 border-l border-dashed border-[#c6b89e]/40" />
+          {/* Simple, Pristine Vertical Navigation Dot Bar in Right Margin (No cluttered hud, no 3D rotation, no mesh glows) */}
+          <div className="fixed right-8 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-center gap-4 select-none">
+            {[
+              { id: "home", label: "HOME", sectionId: "section-home" },
+              { id: "listen", label: "LISTEN", sectionId: "section-listen" },
+              { id: "vault", label: "VAULT", sectionId: "section-vault" },
+              { id: "artifacts", label: "ARTIFACTS", sectionId: "section-artifacts" },
+              { id: "lore", label: "LORE", sectionId: "section-lore" },
+              { id: "community", label: "COMMUNITY", sectionId: "section-community" }
+            ].map((item) => {
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => scrollToSection(item.sectionId)}
+                  className="group flex items-center justify-end w-24 h-6 cursor-pointer focus:outline-none text-right"
+                >
+                  <span className="text-[7px] font-sans tracking-[2px] uppercase opacity-0 group-hover:opacity-80 transition-all duration-300 mr-3 text-[#c6b89e] font-medium">
+                    {item.label}
+                  </span>
+                  <div 
+                    className="w-[1.5px] transition-all duration-300"
+                    style={{
+                      height: isActive ? "20px" : "8px",
+                      backgroundColor: isActive ? "#c6b89e" : "rgba(198, 184, 158, 0.3)",
+                    }}
+                  />
+                </button>
+              );
+            })}
           </div>
 
           {/* Core App Shell */}
           <div className="flex-1 flex flex-col min-h-screen relative z-10">
             
             {/* Main Branding header */}
-            <header className="absolute top-0 left-0 right-0 p-6 md:p-12 z-40 flex justify-between items-start pointer-events-none mix-blend-difference select-none">
+            <header className="absolute top-0 left-0 right-0 p-6 md:p-12 z-45 flex justify-between items-center pointer-events-none mix-blend-difference select-none">
               <div className="pointer-events-auto flex gap-4 md:gap-6 items-center">
                 {/* Fingerprint pulses grid block */}
-                <div className="w-12 h-12 md:w-16 md:h-16 border border-[#c6b89e]/30 flex items-center justify-center relative overflow-hidden group hover:bg-white/5 transition-all duration-350 select-none">
-                  <div className="w-2 h-2 bg-[#c6b89e] shadow-[0_0_12px_#c6b89e] animate-pulse rounded-full" />
-                  <div className="absolute inset-0 border border-[#c6b89e]/25 scale-150 group-hover:scale-100 transition-transform duration-500" />
+                <div className="w-12 h-12 border border-[#c6b89e]/30 flex items-center justify-center relative overflow-hidden group hover:bg-white/5 transition-all duration-350 select-none">
+                  <div className="w-1.5 h-1.5 bg-[#c6b89e] shadow-[0_0_8px_#c6b89e] animate-pulse rounded-full" />
                 </div>
                 
                 <div>
-                  <h1 className="font-serif text-[#c6b89e] text-xl md:text-2xl tracking-[10px] md:tracking-[18px] uppercase m-0 leading-none">
+                  <h1 className="font-serif text-[#c6b89e] text-lg tracking-[12px] uppercase m-0 leading-none">
                     <ScrambleText text="KINGSHADP" triggerOnHover delay={100} duration={1200} />
                   </h1>
-                  <div className="text-[7px] md:text-[8px] uppercase tracking-[4px] md:tracking-[6px] opacity-70 font-mono mt-2 md:mt-3 flex items-center gap-4 text-[#c6b89e]">
-                    <ScrambleText text="PRIVATE VISITOR ATELIER" delay={2000} duration={1000} />
+                  <div className="text-[7px] uppercase tracking-[3px] opacity-70 font-mono mt-1.5 flex items-center gap-4 text-[#c6b89e]">
+                    <ScrambleText text="PRIVATE GALLERY" delay={2000} duration={1000} />
                   </div>
                 </div>
               </div>
 
-              {/* Navigation Actions - Desktop viewports */}
-              <nav className="hidden md:flex gap-8 text-[9px] uppercase tracking-[6px] font-mono opacity-80 pointer-events-auto mt-2 items-center">
-                {/* 4D Parallel Paradox Universe Switcher */}
-                <div className="flex items-center gap-2 border border-white/10 px-3 py-1.5 bg-black/55 backdrop-blur-md rounded-sm select-none">
-                  <span className="font-mono text-[6.5px] text-white/40 tracking-[2px] uppercase">TIMELINE:</span>
-                  <div className="flex items-center gap-1.5 text-[8px]">
-                    <button
-                      onClick={() => paradoxMode && toggleParadoxMode()}
-                      className={`font-mono tracking-[1px] px-1.5 py-0.5 transition-all text-left uppercase cursor-pointer rounded-[1px] focus:outline-none ${
-                        !paradoxMode
-                          ? "text-[#c6b89e] bg-[#c6b89e]/15 border border-[#c6b89e]/30 font-bold"
-                          : "text-white/40 border border-transparent hover:text-white"
-                      }`}
-                    >
-                      ALPHA (GOLD)
-                    </button>
-                    <span className="text-white/10 text-[7px]">|</span>
-                    <button
-                      onClick={() => !paradoxMode && toggleParadoxMode()}
-                      className={`font-mono tracking-[1px] px-1.5 py-0.5 transition-all text-left uppercase cursor-pointer rounded-[1px] focus:outline-none ${
-                        paradoxMode
-                          ? "text-[#8bb9dc] bg-[#8bb9dc]/15 border border-[#8bb9dc]/30 font-bold shadow-[0_0_8px_rgba(139,185,220,0.25)]"
-                          : "text-white/40 border border-transparent hover:text-white"
-                      }`}
-                    >
-                      OMEGA (PARADOX)
-                    </button>
-                  </div>
-                </div>
-                <Tooltip message="SYS_DIAG: Launch secure uplink proxy node and request live AI Concierge session.">
-                  <button
-                    onClick={() => setShowChatDrawer(!showChatDrawer)}
-                    aria-label="Toggle executive AI system"
-                    className="px-4 py-2 border border-[#93000a]/30 hover:bg-[#93000a] hover:text-white font-semibold tracking-[3px] text-[#93000a] hover:shadow-[0_0_20px_rgba(147,0,10,0.3)] transition-all uppercase cursor-pointer mr-4 font-mono"
-                  >
-                    "CHAT CONCIERGE"
-                  </button>
-                </Tooltip>
-
-                <Tooltip message="ADMIN: Access the sovereign Virtual Kingdom Administrative control center (CMS) to make live changes.">
-                  <button
-                    onClick={() => {
-                      window.dispatchEvent(new CustomEvent("telemetry-log", {
-                        detail: { message: "🔑 ADMIN: Opening administrative passcode panel. Input system coordinates to decrypt records.", type: "WARNING" }
-                      }));
-                      scrollToSection("admin");
-                    }}
-                    aria-label="Admin Control Council"
-                    className={`p-2.5 mr-6 border transition-all cursor-pointer flex items-center justify-center rounded-sm focus:outline-none ${
-                      activeTab === "admin"
-                        ? "border-[#ff4a00] bg-[#ff4a00]/15 text-[#ff4a00] shadow-[0_0_12px_rgba(255,74,0,0.3)]"
-                        : "border-white/10 text-[#c6b89e]/60 hover:border-[#c6b89e] hover:text-white"
-                    }`}
-                  >
-                    <Lock className="w-3.5 h-3.5 shrink-0" />
-                  </button>
-                </Tooltip>
-
+              {/* Navigation Actions - Desktop viewports (Pristine list of serious tab components) */}
+              <nav className="hidden md:flex gap-8 text-[9px] uppercase tracking-[3px] font-sans font-medium opacity-80 pointer-events-auto items-center">
                 {[
-                  { id: "home", label: "HOME", hover: "MANIFESTO", diag: "🛡️ [GATEWAY] Live biometric trace aligned... Main Atrium credentials set to Sovereign level." },
-                  { id: "listen", label: "LISTEN", hover: "FREQUENCY", diag: "🎵 [FREQUENCY] Buffers engaged. Active list of sound channels ready. Checking hardware synth." },
-                  { id: "vault", label: "VAULT", hover: "CATALOG", diag: "🗄️ [VAULT] Tracking streams: 395 SoundCloud believers, 5.77K Audiomack manifests secured." },
-                  { id: "artifacts", label: "ARTIFACTS", hover: "UNIFORMS", diag: "👕 [ITEMS] Artifact drop inventory: ARMORED LS (25 total units), CIPHER VEST (custom geometry)." },
-                  { id: "lore", label: "LORE", hover: "MYTHOLOGY", diag: "📖 [THEOLOGY] Parsing character god-complex briefs and Miami roots archive timeline." },
-                  { id: "community", label: "COMMUNITY", hover: "BELIEVERS", diag: "👥 [BELIEVERS] Accessing VIP email registry, live social outlets, FAQs, and event schedules." },
+                  { id: "home", label: "HOME", hover: "MAIN ATRIUM" },
+                  { id: "listen", label: "LISTEN", hover: "FREQUENCIES" },
+                  { id: "vault", label: "VAULT", hover: "CATALOGUE" },
+                  { id: "artifacts", label: "ARTIFACTS", hover: "UNIFORMS" },
+                  { id: "lore", label: "LORE", hover: "MYTHOLOGY" },
+                  { id: "community", label: "COMMUNITY", hover: "BELIEVERS" },
                 ].map((tab, idx) => (
-                  <motion.button
+                  <button
                     key={tab.id}
                     onClick={() => {
                       scrollToSection(`section-${tab.id}`);
                     }}
-                    onMouseEnter={() => {
-                      window.dispatchEvent(new CustomEvent("telemetry-log", { 
-                        detail: { message: tab.diag, type: tab.id === "artifacts" || tab.id === "listen" ? "FORGE_SYNC" : "SYSTEM" } 
-                      }));
-                    }}
                     aria-label={`Navigate to ${tab.label}`}
-                    whileHover={{ y: -1 }}
-                    whileTap={{ scale: 0.95 }}
-                    className={`hover:text-[#c6b89e] transition-colors pb-2 relative group flex flex-col items-end cursor-pointer focus:outline-none ${
+                    className={`hover:text-[#c6b89e] transition-colors pb-1.5 relative group cursor-pointer focus:outline-none ${
                       activeTab === tab.id ? "text-[#c6b89e] font-bold" : "text-white/60"
                     }`}
                   >
-                    <span className="text-[7.5px] opacity-30 absolute -top-4 -right-1.5 font-mono">
-                      0{idx + 1}
-                    </span>
                     <ScrambleText text={tab.label} hoverText={tab.hover} delay={200} duration={600} triggerOnHover />
                     <span
-                      className={`absolute bottom-0 right-0 h-[1.5px] bg-[#c6b89e] transition-all duration-350 ${
+                      className={`absolute bottom-0 right-0 h-[1px] bg-[#c6b89e] transition-all duration-300 ${
                         activeTab === tab.id ? "w-full" : "w-0 group-hover:w-full"
                       }`}
                     />
-                  </motion.button>
+                  </button>
                 ))}
+
+                {/* Secure Concierge AI Drawer controller */}
+                <button
+                  onClick={() => setShowChatDrawer(!showChatDrawer)}
+                  className="hover:text-white transition-colors pb-1.5 font-sans font-medium text-white/50 hover:border-b hover:border-white focus:outline-none cursor-pointer"
+                >
+                  CONCIERGE
+                </button>
+
+                {/* Vault Admin Section Access */}
+                <button
+                  onClick={() => {
+                    scrollToSection("admin");
+                  }}
+                  className={`hover:text-white transition-colors pb-1.5 font-sans font-medium focus:outline-none cursor-pointer ${
+                    activeTab === "admin" ? "text-[#ff4a00]" : "text-white/40"
+                  }`}
+                >
+                  ADMIN
+                </button>
               </nav>
 
               {/* Mobile hamburger navigation toggler */}
-              <div className="md:hidden pointer-events-auto mt-2 flex gap-4 items-center">
+              <div className="md:hidden pointer-events-auto flex gap-3 items-center">
                 <button
                   onClick={() => setShowChatDrawer(!showChatDrawer)}
-                  className="text-[#93000a] p-2.5 h-full border border-[#93000a]/30 uppercase font-mono text-[9px] tracking-[2px] bg-black/60 backdrop-blur-md"
+                  className="text-white p-2 border border-white/10 uppercase font-mono text-[8px] tracking-[2px] bg-black/60 backdrop-blur-md"
                 >
-                  CHAT
+                  CONCIERGE
                 </button>
                 <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                   aria-label="Toggle mobile menu navigation"
-                  className="text-[#c6b89e] p-2.5 h-full border border-[#c6b89e]/30 uppercase font-mono text-[9px] tracking-[2px] bg-black/60 backdrop-blur-md flex items-center justify-center cursor-pointer"
+                  className="text-[#c6b89e] p-2 border border-white/10 uppercase font-mono text-[8px] tracking-[2px] bg-black/60 backdrop-blur-md flex items-center justify-center cursor-pointer"
                 >
-                  {mobileMenuOpen ? "[ CLOSE ]" : "[ MENU ]"}
+                  {mobileMenuOpen ? "CLOSE" : "MENU"}
                 </button>
               </div>
             </header>
@@ -676,36 +798,102 @@ export default function App() {
                     </svg>
                   </div>
 
-                  {/* Mobile Paradox Universe Selector */}
-                  <div className="relative z-10 border-b border-white/5 pb-4 mb-2 flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-[7px] text-white/50 tracking-[3px] uppercase">COSMOS DIMENSION:</span>
-                      <span className="font-mono text-[7px] text-[#c6b89e] tracking-[1px]">
-                        {paradoxMode ? "OMEGA_PARADOX_999" : "ALPHA_REALM_097"}
-                      </span>
+                  {/* Mobile Paradox Universe, Theme, and Readability Selector */}
+                  <div className="relative z-10 border-b border-white/5 pb-4 mb-2 flex flex-col gap-4">
+                    {/* Dimension */}
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-[7px] text-white/50 tracking-[3px] uppercase">COSMOS DIMENSION:</span>
+                        <span className="font-mono text-[7px] text-[#c6b89e] tracking-[1px]">
+                          {paradoxMode ? "OMEGA_PARADOX_999" : "ALPHA_REALM_097"}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 mt-1">
+                        <button
+                          onClick={() => paradoxMode && toggleParadoxMode()}
+                          className={`text-[8.5px] font-mono tracking-[2px] py-2 border text-center uppercase cursor-pointer focus:outline-none ${
+                            !paradoxMode
+                              ? "bg-[#c6b89e]/10 border-[#c6b89e] text-[#c6b89e] font-bold"
+                              : "border-white/10 text-white/55"
+                          }`}
+                        >
+                          ALPHA GOLD
+                        </button>
+                        <button
+                          onClick={() => !paradoxMode && toggleParadoxMode()}
+                          className={`text-[8.5px] font-mono tracking-[2px] py-2 border text-center uppercase cursor-pointer focus:outline-none ${
+                            paradoxMode
+                              ? "bg-[#8bb9dc]/10 border-[#8bb9dc] text-[#8bb9dc] font-bold shadow-[0_0_12px_rgba(139,185,220,0.15)]"
+                              : "border-white/10 text-white/55"
+                          }`}
+                        >
+                          OMEGA PARADOX
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 mt-1">
-                      <button
-                        onClick={() => paradoxMode && toggleParadoxMode()}
-                        className={`text-[8.5px] font-mono tracking-[2px] py-2 border text-center uppercase cursor-pointer focus:outline-none ${
-                          !paradoxMode
-                            ? "bg-[#c6b89e]/10 border-[#c6b89e] text-[#c6b89e] font-bold"
-                            : "border-white/10 text-white/55"
-                        }`}
-                      >
-                        ALPHA GOLD
-                      </button>
-                      <button
-                        onClick={() => !paradoxMode && toggleParadoxMode()}
-                        className={`text-[8.5px] font-mono tracking-[2px] py-2 border text-center uppercase cursor-pointer focus:outline-none ${
-                          paradoxMode
-                            ? "bg-[#8bb9dc]/10 border-[#8bb9dc] text-[#8bb9dc] font-bold shadow-[0_0_12px_rgba(139,185,220,0.15)]"
-                            : "border-white/10 text-white/55"
-                        }`}
-                      >
-                        OMEGA PARADOX
-                      </button>
+                    {/* Mobile Theme Switcher */}
+                    <div className="flex flex-col gap-1.5 border-t border-white/5 pt-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-[7px] text-white/50 tracking-[3px] uppercase">AMBIENT THEME:</span>
+                        <span className="font-mono text-[7px] text-[#c6b89e] tracking-[1px]">
+                          {theme === "light" ? "GALLERY_LIGHT" : "VOID_DARK"}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 mt-1">
+                        <button
+                          onClick={() => theme === "light" && toggleTheme()}
+                          className={`text-[8.5px] font-mono tracking-[2px] py-2 border text-center uppercase cursor-pointer focus:outline-none ${
+                            theme === "dark"
+                              ? "bg-[#c6b89e]/10 border-[#c6b89e] text-[#c6b89e] font-bold"
+                              : "border-white/10 text-white/55"
+                          }`}
+                        >
+                          VOID (DARK)
+                        </button>
+                        <button
+                          onClick={() => theme === "dark" && toggleTheme()}
+                          className={`text-[8.5px] font-mono tracking-[2px] py-2 border text-center uppercase cursor-pointer focus:outline-none ${
+                            theme === "light"
+                              ? "bg-[#93000a]/10 border-[#93000a] text-[#93000a] font-bold"
+                              : "border-white/10 text-white/55"
+                          }`}
+                        >
+                          GALLERY (LIGHT)
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Mobile Readability Switcher */}
+                    <div className="flex flex-col gap-1.5 border-t border-white/5 pt-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-[7px] text-white/50 tracking-[3px] uppercase">READABILITY & SIZE:</span>
+                        <span className="font-mono text-[7px] text-[#c6b89e] tracking-[1px]">
+                          {readabilityEnhanced ? "ENHANCED_LARGE" : "STANDARD_MINIMAL"}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 mt-1">
+                        <button
+                          onClick={() => readabilityEnhanced && toggleReadability()}
+                          className={`text-[8.5px] font-mono tracking-[2px] py-2 border text-center uppercase cursor-pointer focus:outline-none ${
+                            !readabilityEnhanced
+                              ? "bg-[#c6b89e]/10 border-[#c6b89e] text-[#c6b89e] font-bold"
+                              : "border-white/10 text-white/55"
+                          }`}
+                        >
+                          STANDARD
+                        </button>
+                        <button
+                          onClick={() => !readabilityEnhanced && toggleReadability()}
+                          className={`text-[8.5px] font-mono tracking-[2px] py-2 border text-center uppercase cursor-pointer focus:outline-none ${
+                            readabilityEnhanced
+                              ? "bg-[#dcc57b]/15 border-[#dcc57b] text-[#dcc57b] font-bold"
+                              : "border-white/10 text-white/55"
+                          }`}
+                        >
+                          LARGE / ENHANCED
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -850,8 +1038,40 @@ export default function App() {
                 </button>
               </div>
 
-              <span className="font-sans font-light capitalize text-[9.5px] text-[#c6b89e]/70">
-                Authorized Executive Lounge Session and Terminal Interface
+              <div className="flex flex-wrap items-center gap-6 text-[8px] font-mono tracking-[1.5px] text-[#c6b89e]/50 border-[#c6b89e]/10 lg:border-l lg:pl-6">
+                <div className="flex items-center gap-2">
+                  <span>THEME:</span>
+                  <button 
+                    onClick={toggleTheme} 
+                    className="text-white/60 hover:text-[#c6b89e] transition-colors focus:outline-none cursor-pointer uppercase"
+                  >
+                    {theme === "dark" ? "VOID" : "GALLERY"}
+                  </button>
+                </div>
+                <span className="opacity-10 hidden lg:inline">|</span>
+                <div className="flex items-center gap-2">
+                  <span>TEXT:</span>
+                  <button 
+                    onClick={toggleReadability} 
+                    className="text-white/60 hover:text-[#c6b89e] transition-colors focus:outline-none cursor-pointer uppercase"
+                  >
+                    {readabilityEnhanced ? "LARGE" : "STANDARD"}
+                  </button>
+                </div>
+                <span className="opacity-10 hidden lg:inline">|</span>
+                <div className="flex items-center gap-2">
+                  <span>FOCUS:</span>
+                  <button 
+                    onClick={toggleParadoxMode} 
+                    className="text-white/60 hover:text-[#c6b89e] transition-colors focus:outline-none cursor-pointer uppercase"
+                  >
+                    {paradoxMode ? "OMEGA" : "ALPHA"}
+                  </button>
+                </div>
+              </div>
+
+              <span className="font-sans font-light tracking-[2px] uppercase text-[7.5px] text-[#c6b89e]/50">
+                KingShadP Private Art Exhibition // All Rights Reserved
               </span>
             </footer>
 

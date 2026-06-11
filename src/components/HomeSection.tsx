@@ -25,12 +25,11 @@ export default function HomeSection({ onNavigate, paradoxMode }: HomeSectionProp
       </div>
 
       {/* --- HERO SECTION --- */}
-      <div className="flex flex-col lg:flex-row gap-12 items-stretch mt-10">
+      <div className="flex flex-col lg:flex-row gap-12 items-stretch mt-12">
         <div className="flex-grow flex-1 flex flex-col justify-center">
-          <div className="inline-flex max-w-max items-center gap-4 mb-6 border border-[#c6b89e]/20 bg-black/40 px-5 py-2.5 backdrop-blur-md">
-            <Cpu className="w-4 h-4 text-[#c6b89e] animate-pulse" />
-            <span className="text-[9px] md:text-[10px] font-mono uppercase tracking-[5px] text-[#c6b89e] pt-0.5 font-bold">
-              <ScrambleText text="MYTHIC DIY RAP // POP EMPIRE" delay={500} duration={800} />
+          <div className="inline-flex max-w-max items-center mb-4 px-1 pr-6 border-b border-[#c6b89e]/15 pb-2">
+            <span className="text-[9px] font-sans uppercase tracking-[6px] text-[#c6b89e] font-semibold">
+              PRIVATE EXHIBITION // VOLUME I
             </span>
           </div>
 
@@ -43,95 +42,94 @@ export default function HomeSection({ onNavigate, paradoxMode }: HomeSectionProp
             </span>
           </h2>
 
-          <div className="text-[12px] md:text-[14px] uppercase tracking-[6px] text-[#dcc57b] font-mono mb-4 opacity-80">
-            Raw. Theatrical. Cocky. Funny. Emotional.
+          <div className="text-[11px] md:text-[12px] uppercase tracking-[6px] text-[#dcc57b] font-sans font-medium mb-4 opacity-80">
+            Raw • Theatrical • Pure • Sovereign
           </div>
-          <div className="text-white/40 font-mono text-[10px] tracking-[3px] uppercase mb-8">
-            "The soundtrack to a personal empire."
+          <div className="text-white/40 font-mono text-[9px] tracking-[2px] uppercase mb-8">
+            "We do not negotiate with the mainstream"
           </div>
 
-          <p className="text-[14px] md:text-base text-white/50 font-light leading-relaxed font-sans text-justify selection:bg-[#93000a]/30 max-w-3xl mb-8">
-            This is character-driven mythology where raw experimental compositions, unpolished mixes, and aggressive theatrical freestyles form a protective armor for the soul. We do not negotiate with the mainstream. We construct the fortress, room by room, era by era.
+          <p className="text-[13.5px] md:text-sm text-white/50 font-light leading-relaxed font-sans text-justify selection:bg-[#93000a]/30 max-w-3xl mb-10">
+            This is character-driven mythology where raw experimental compositions, unpolished mixes, and aggressive theatrical freestyles form a protective armor for the soul. We bypass commercial frameworks entirely, constructing the fortress room by room, era by era.
           </p>
 
-          {/* CTA Buttons - 3 Primary */}
+          {/* CTA Buttons - 3 Primary (Ghost buttons with 0px radius) */}
           <div className="flex flex-col sm:flex-row gap-4 items-stretch max-w-3xl">
             <button
               id="cta-listen"
               onClick={() => onNavigate("listen")}
-              className="flex items-center justify-between gap-6 px-8 py-5 border border-[#c6b89e] text-black bg-[#c6b89e] font-mono text-[9.5px] tracking-[4px] uppercase hover:bg-transparent hover:text-[#c6b89e] transition-all duration-300 relative overflow-hidden group cursor-pointer focus:outline-none"
+              className="flex items-center justify-between gap-6 px-8 py-4 border border-[#c6b89e] text-[#050505] bg-[#c6b89e] font-sans font-semibold text-[8px] tracking-[4px] uppercase hover:bg-transparent hover:text-[#c6b89e] transition-all duration-300 relative overflow-hidden group cursor-pointer focus:outline-none rounded-none"
             >
-              <span className="relative z-10 font-bold pt-0.5">
-                [ LISTEN TO THE LATEST ]
+              <span className="relative z-10 pt-0.5">
+                [ AUDIBLE FREQUENCIES ]
               </span>
-              <ArrowUpRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300 relative z-10" />
+              <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300 relative z-10" />
             </button>
 
             <button
               id="cta-lore"
               onClick={() => onNavigate("lore")}
-              className="px-6 py-5 border border-white/20 hover:border-[#c6b89e] text-white hover:text-[#c6b89e] font-mono text-[9.5px] uppercase tracking-[4px] flex items-center justify-center transition-colors duration-300 focus:outline-none"
+              className="px-6 py-4 border border-white/10 hover:border-[#c6b89e] text-white hover:text-[#c6b89e] font-sans font-medium text-[8px] uppercase tracking-[4px] flex items-center justify-center transition-colors duration-300 focus:outline-none rounded-none"
             >
-              [ ENTER THE MYTHOLOGY ]
+              ENTER MYTHOLOGY
             </button>
 
             <button
               id="cta-community"
               onClick={() => onNavigate("community")}
-              className="px-6 py-5 border border-[#93000a]/50 hover:bg-[#93000a]/20 text-[#ff4a00] hover:text-white font-mono text-[9.5px] uppercase tracking-[4px] flex items-center justify-center transition-all duration-300 focus:outline-none"
+              className="px-6 py-4 border border-[#93000a]/40 hover:bg-[#93000a] text-white font-sans font-medium text-[8px] uppercase tracking-[4px] flex items-center justify-center transition-all duration-300 focus:outline-none rounded-none"
             >
-              [ JOIN THE BELIEVERS ]
+              JOIN BELIEVERS
             </button>
           </div>
         </div>
       </div>
 
-      {/* --- LATEST RELEASE & FEATURE BLOCK --- */}
-      <div className="bg-black/80 border border-[#c6b89e]/20 p-8 relative overflow-hidden flex flex-col xl:flex-row gap-10 items-stretch mt-6">
-        <div className="absolute top-0 left-0 w-2 h-full bg-[#93000a]" />
+      {/* --- LATEST RELEASE & FEATURE BLOCK (Avarice Luxury design: clean slate with absolute elegance) --- */}
+      <div className="bg-black/92 border border-[#c6b89e]/15 p-10 relative overflow-hidden flex flex-col xl:flex-row gap-10 items-stretch mt-10">
         
         {/* Release cover artwork card */}
-        <div className="w-full xl:w-1/3 flex flex-col justify-between p-6 border border-white/5 bg-gradient-to-b from-white/5 to-transparent relative min-h-[220px]">
+        <div className="w-full xl:w-1/3 flex flex-col justify-between p-8 border border-white/5 bg-white/[0.01] relative min-h-[220px]">
           <div className="flex justify-between items-start">
-            <span className="text-[9px] font-mono text-[#c6b89e] tracking-[2px]">[STATUS: FEED ACTIVE]</span>
-            <span className="w-2.5 h-2.5 rounded-full bg-[#ff4a00] animate-pulse" />
+            <span className="text-[7.5px] font-mono text-[#c6b89e] tracking-[3px] uppercase font-bold">[ MASTER UNIFIED FEED ]</span>
+            <span className="w-1.5 h-1.5 bg-[#93000a] rounded-full animate-pulse shadow-[0_0_6px_#93000a]" />
           </div>
 
-          <div className="my-6">
-            <div className="text-[20px] font-serif italic text-white leading-tight">Regal Echoes of GOD</div>
-            <div className="text-[10px] font-mono tracking-[4px] text-[#ff4a00] uppercase mt-2">Latest Audio Manifest</div>
+          <div className="my-8">
+            <div className="text-[22px] font-serif italic text-white leading-tight">Regal Echoes of GOD</div>
+            <div className="text-[7.5px] font-mono tracking-[4px] text-[#dcc57b] uppercase mt-2">VOLUME I // TRACK IV</div>
           </div>
 
-          <div className="flex justify-between items-end border-t border-white/10 pt-4">
-            <div className="text-[9px] font-mono text-white/40 tracking-[1.5px]">YEAR: 2024</div>
-            <div className="text-[9px] font-mono text-white/40 tracking-[1.5px]">5.77K VIEWS</div>
+          <div className="flex justify-between items-end border-t border-white/5 pt-4">
+            <div className="text-[8px] font-mono text-white/30 tracking-[1.5px]">2026 DISTRIBUTION</div>
+            <div className="text-[8px] font-mono text-white/30 tracking-[1.5px]">RECOGNIZED</div>
           </div>
         </div>
 
         {/* Informational block */}
-        <div className="flex-1 flex flex-col justify-between py-2 text-justify">
+        <div className="flex-grow flex flex-col justify-between py-2 text-justify">
           <div>
-            <div className="text-[9px] font-mono text-[#c6b89e] tracking-[3px] uppercase mb-2">CURRENTLY BROADCASTING</div>
-            <h3 className="text-xl md:text-3xl font-serif text-white tracking-wide leading-tight mb-4 select-text">
+            <div className="text-[8px] font-sans text-[#c6b89e] tracking-[4px] uppercase mb-2 font-semibold">PRIMARY SOUNDWORK</div>
+            <h3 className="text-xl md:text-2xl font-serif text-white tracking-wide leading-tight mb-4 select-text">
               "The God-Complex Made Audible."
             </h3>
             <p className="font-sans text-[13.5px] text-white/50 leading-relaxed font-light mb-6">
               This track explores the high-tension border between defensive isolation and sovereign confidence. Recorded under full local shelter conditions in southern Florida, the track blends aggressive theatrical vocals with raw analogue synthesizers to forge a protective barrier.
             </p>
 
-            <div className="p-4 border border-[#c6b89e]/15 bg-black/40 mb-6 flex items-center justify-between">
+            <div className="px-6 py-4 border border-[#c6b89e]/10 bg-[#050505] mb-6 flex items-center justify-between">
               <div>
-                <span className="text-[8px] font-mono text-white/30 block uppercase tracking-[2px]">CONNECTED ERA ARTIFACTS</span>
-                <span className="text-xs font-mono text-[#c6b89e] tracking-[1px] uppercase font-bold">ARMORED LS ("Own this era")</span>
+                <span className="text-[7.5px] font-sans text-white/30 block uppercase tracking-[2px]">CONNECTED ERA ARTIFACTS</span>
+                <span className="text-xs font-serif text-[#c6b89e] tracking-[1px] uppercase font-medium">ARMORED LS ("Own this era")</span>
               </div>
-              <button onClick={() => onNavigate("artifacts")} className="text-[#ff4a00] font-mono text-[9px] tracking-[2px] uppercase hover:underline">
-                [ VIEW UNIFORM ]
+              <button onClick={() => onNavigate("artifacts")} className="text-[#c6b89e] font-sans text-[8px] tracking-[3px] uppercase hover:text-white transition-colors focus:outline-none cursor-pointer">
+                VIEW UNIFORM
               </button>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-4 items-center border-t border-white/5 pt-6">
-            <span className="text-[9px] font-mono text-white/40 tracking-[2px] uppercase mr-2">AVAILABILITY PLATFORMS:</span>
+          <div className="flex flex-wrap gap-3 items-center border-t border-white/5 pt-6">
+            <span className="text-[8px] font-sans text-white/30 tracking-[3px] uppercase mr-3 font-semibold">DISTRIBUTION NETWORKS:</span>
             {[
               { label: "SoundCloud", url: "https://soundcloud.com" },
               { label: "Audiomack", url: "https://audiomack.com" },
@@ -143,7 +141,7 @@ export default function HomeSection({ onNavigate, paradoxMode }: HomeSectionProp
                 href={p.url}
                 target="_blank"
                 rel="noreferrer"
-                className="text-[10px] font-mono text-[#c6b89e] tracking-[1.5px] uppercase border border-[#c6b89e]/20 px-3 py-1.5 hover:border-[#ff4a00] hover:text-white transition-colors"
+                className="text-[8px] font-mono text-[#c6b89e] tracking-[2px] uppercase border border-white/5 px-4 py-2 hover:border-[#c6b89e] hover:text-white transition-colors"
               >
                 {p.label}
               </a>

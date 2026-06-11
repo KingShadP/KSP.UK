@@ -27,17 +27,18 @@ let db: any = null;
 try {
   if (fs.existsSync(CONFIG_PATH)) {
     const firebaseConfig = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf-8"));
-    if (getApps().length === 0) {
-      initializeApp({
-        projectId: firebaseConfig.projectId,
-      });
-    }
-    db = getFirestore();
-    // Support non-default database ID if specified
-    if (firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== "(default)") {
-      db.settings({ databaseId: firebaseConfig.firestoreDatabaseId });
-    }
-    console.log("Firebase Admin SDK integrated successfully with database:", firebaseConfig.firestoreDatabaseId || "(default)");
+    const adminApp = getApps().length === 0
+      ? initializeApp({
+          projectId: firebaseConfig.projectId,
+        })
+      : getApps()[0];
+
+    const databaseId = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== "(default)"
+      ? firebaseConfig.firestoreDatabaseId
+      : undefined;
+
+    db = getFirestore(adminApp, databaseId);
+    console.log("Firebase Admin SDK integrated successfully with database:", databaseId || "(default)");
   } else {
     console.warn("WARNING: firebase-applet-config.json was not found on disk. Operating in static file database fallback mode.");
   }

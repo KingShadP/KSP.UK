@@ -256,12 +256,11 @@ export default function SovereignDragonSentinel() {
 
         {/* --- RIGHT HAND: COMPILATION CONTROL PANEL & PROJECTION SWITCHER --- */}
         <div className="w-full xl:w-[360px] flex flex-col justify-between bg-black/40 border border-white/5 p-6 relative">
-          <div className="absolute top-2 right-3 font-mono text-[6.5px] text-white/20">CTRL_BLOCK_04G</div>
           
           <div className="space-y-6">
             <div>
-              <span className="text-[8px] font-mono text-white/40 tracking-[2px] block uppercase">CONTROL DECK MATRIX</span>
-              <h4 className="font-serif text-lg text-[#c6b89e] uppercase mt-1">SENTINEL CHANNELS</h4>
+              <span className="text-[7.5px] font-sans text-white/30 tracking-[3px] block uppercase font-semibold">Exhibition Channelling</span>
+              <h4 className="font-serif text-base text-[#c6b89e] uppercase mt-1">SENTINEL CHANNELS</h4>
             </div>
 
             {/* Loop Select Accordion Item Cards */}
@@ -272,62 +271,54 @@ export default function SovereignDragonSentinel() {
                   <div
                     key={feed.id}
                     onClick={() => handleSelectFeed(idx)}
-                    className={`p-3.5 border transition-all duration-300 cursor-pointer ${
+                    className={`p-3 border transition-all duration-300 cursor-pointer ${
                       isActive
                         ? "border-[#c6b89e] bg-[#c6b89e]/5"
                         : "border-white/5 bg-black/30 hover:border-white/20"
                     }`}
                   >
                     <div className="flex justify-between items-center mb-1">
-                      <div className="font-serif text-xs font-medium text-white flex items-center gap-1.5">
-                        <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-[#ff4a00]" : "bg-white/20"}`} />
-                        {feed.id.toUpperCase()} // LOOP
+                      <div className="font-serif text-xs font-semibold text-white flex items-center gap-1.5">
+                        <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-[#c6b89e]" : "bg-white/10"}`} />
+                        CHANNEL 0{idx + 1}
                       </div>
                       <span className="font-mono text-[7px] text-[#c6b89e]">{feed.epoch}</span>
                     </div>
-                    <div className="text-[10.5px] font-mono text-white/50 tracking-[0.5px] line-clamp-1">{feed.name}</div>
+                    <div className="text-[10px] font-mono text-white/40 tracking-[0.5px] line-clamp-1">{feed.name}</div>
                   </div>
                 );
               })}
             </div>
 
             {/* Description details of selected sentinel */}
-            <div className="p-3 border border-[#c6b89e]/10 bg-black/60 font-sans text-[11px] text-white/40 leading-relaxed font-light">
-              <div className="font-mono text-[8px] tracking-[2px] text-[#c6b89e] uppercase mb-1 flex items-center gap-1">
-                <Info className="w-3 h-3" /> GUARDIAN ARCHETYPE MYTH
+            <div className="p-3 border border-[#c6b89e]/10 bg-[#050505] font-sans text-[11px] text-white/40 leading-relaxed font-light">
+              <div className="font-sans text-[7.5px] tracking-[2px] text-[#c6b89e] uppercase mb-1.5 flex items-center gap-1 font-semibold">
+                GUARDIAN ARCHETYPE MYTH
               </div>
               {activeFeed.description}
             </div>
 
             {/* --- CORE IMMERSIVE PROJECTION INJECTOR BUTTON --- */}
-            <div className="pt-4 border-t border-white/10 space-y-3">
+            <div className="pt-4 border-t border-white/5 space-y-3">
               <button
                 onClick={handleToggleProjection}
-                className={`w-full py-4 px-4 border font-mono text-[9px] tracking-[2px] uppercase transition-all duration-500 cursor-pointer text-center flex items-center justify-center gap-2 font-bold ${
+                className={`w-full py-3.5 px-4 border font-sans text-[8px] tracking-[3px] uppercase transition-all duration-300 cursor-pointer text-center flex items-center justify-center gap-2 font-bold rounded-none ${
                   isProjected
-                    ? "bg-[#93000a]/20 text-[#ff4a00] border-[#93000a] hover:bg-transparent hover:text-white"
-                    : "bg-white text-black border-white hover:bg-[#c6b89e] hover:border-[#c6b89e] hover:shadow-[0_0_20px_rgba(198,184,158,0.35)]"
+                    ? "bg-[#93000a]/20 text-white border-[#93000a] hover:bg-transparent"
+                    : "bg-white text-black border-white hover:bg-[#c6b89e] hover:border-[#c6b89e]"
                 }`}
                 title="Inject the current high-end golden dragon loop as the global webpage backdrop"
               >
-                {isProjected ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                {isProjected ? "[ DISENGAGE BACKSTAGE PROJECTION ]" : "[ PROJECT SENIOR BACKSTAGE PORTAL ]"}
+                {isProjected ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                {isProjected ? "DISENGAGE BG PROJECTION" : "PROJECT ON BACKGROUND"}
               </button>
               
-              <p className="text-[9.5px] font-sans text-center text-white/40 leading-relaxed font-light">
+              <p className="text-[9px] font-sans text-center text-white/40 leading-relaxed font-light">
                 {isProjected 
-                  ? "✓ Projection active: The legendary crowned dragon is now sweeping the ambient stage corridors of your private district."
-                  : "Click above to wrap your entire background within this spectacular 3D-staged dragon portal."
+                  ? "✓ Backstage projection is now active across your gallery backdrop corridor."
+                  : "Wraps your entire background structure in this magnificent dragon loop."
                 }
               </p>
-            </div>
-          </div>
-
-          {/* Embedded live scanning logs output */}
-          <div className="mt-6 pt-4 border-t border-white/5 font-mono text-[8px] text-white/40 space-y-1">
-            <div className="text-[#93000a]">TELEMETRY CONSOLE FEED // ACTIVE:</div>
-            <div className="bg-black p-2 max-h-[44px] overflow-hidden leading-normal text-[#c6b89e]/80 tracking-wide uppercase">
-              {latestLog}
             </div>
           </div>
 

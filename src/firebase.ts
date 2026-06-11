@@ -76,7 +76,7 @@ export async function testConnection() {
     await getDocFromServer(doc(db, "test", "connection"));
   } catch (error) {
     if (error instanceof Error && error.message.includes("offline")) {
-      console.error("Please check your Firebase configuration or connection bounds:", error.message);
+      console.warn("Please check your Firebase configuration or connection bounds (client in offline mode):", error.message);
     }
   }
 }
